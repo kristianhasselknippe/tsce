@@ -1,0 +1,15 @@
+{
+  "name": "ts-to-elisp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^9.4.1",
+    "typescript": "^2.7.1"
+  }
+}

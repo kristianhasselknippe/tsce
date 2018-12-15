@@ -91,4 +91,12 @@ declare module 'emacs' {
 	function startProcess(name: string, bufferOrName: BufferOrName, program: string, ...args: string[]): Process
 	function setProcessFilter(process: Process, filter: Filter): void
 	function processFilter(process: Process): Filter
+
+	// Interactive
+	function interactive(arg?: string): void
+
+	// Modules
+	interface Symbol { }
+	function intern(name: string): Symbol
+	function require(symbol: Symbol): void
 }

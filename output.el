@@ -41,18 +41,23 @@
   (with-current-buffer buffer
 	(funcall action)))
 
- (let ((dart-path "c:/tools/dart-sdk/bin/dart.exe"))
+ (load-file "emacs"})
+
+(load-file "./emacsLib"})
+
+(let ((dart-path "c:/tools/dart-sdk/bin/dart.exe"))
     (let ((snap-shot-path "c:/tools/dart-sdk/bin/snapshots/analysis_server.dart.snapshot"))
         (cl-defun do-something ( msg)
-            (block block29383-doSomething
+            (block block88852-doSomething
                 (message  (ts/+ "We got some msg: " msg))
             )
         )
+        (funcall (ht-get -emacs-lib 'require)  "dash")
         (cl-defun main ()
-            (block block34584-main
+            (block block27767-main
                 (let ((process (start-process  "dart analyzer" "dartanalyzer" dart-path snap-shot-path)))
                     (set-process-filter  process (lambda ( proc msg)
-        (block block27334-lambda
+        (block block57109-lambda
             (do-something  msg)
         )
 ))

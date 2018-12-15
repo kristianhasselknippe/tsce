@@ -382,7 +382,12 @@ function toElispNode(node: ts.Node, context: Context) {
 			} break
 			case ts.SyntaxKind.InterfaceDeclaration: {
 			} break
-			case ts.SyntaxKind.ImportDeclaration {
+			case ts.SyntaxKind.ImportDeclaration: {
+				const importDecl = <ts.ImportDeclaration>node
+				const moduleName = parseAndExpect<Elisp.StringLiteral>(importDecl.moduleSpecifier, context)
+				console.log("MODULE NAME: " + moduleName.str)
+				stack.push(new Elisp.ModuleImport(moduleName))
+				stack.resolveToCurrentScope()
 			} break
 			default:
 				throw new Error('Unsupported ast item: ' + node.kind);

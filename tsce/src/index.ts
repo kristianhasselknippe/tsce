@@ -135,7 +135,7 @@ function toElispNode(node: ts.Node, context: Context) {
 					});
 				}
 
-				stack.resolveTo(defun);
+				stack.resolveToParentOf(defun);
 				break;
 			}
 			case ts.SyntaxKind.Identifier: {
@@ -397,8 +397,8 @@ export function toElisp(sourceFile: ts.SourceFile) {
 	stack.push(root);
 	for (var statement of sourceFile.statements) {
 		toElispNode(statement, context);
-		stack.resolveTo(root)
 	}
+	stack.resolveTo(root)
 }
 
 function parseTypescriptFile(filePath: string) {

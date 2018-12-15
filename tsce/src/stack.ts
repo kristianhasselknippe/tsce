@@ -23,9 +23,9 @@ export default class Stack {
 		return expr.isBlock()
 	}
 
-	private findFirstOrThrow<T extends Node>(pred: (item: Node) => item is T, error: Error): T {
-		for (let i = this.stack.length - 1; i >= 0; i--) {
-			let item = this.stack[i]
+	private findFirstOrThrow<T extends Node>(stack: Node[], pred: (item: Node) => item is T, error: Error): T {
+		for (let i = stack.length - 1; i >= 0; i--) {
+			let item = stack[i]
 			if (pred(item)) {
 				return item
 			}
@@ -33,12 +33,16 @@ export default class Stack {
 		throw error
 	}
 
+	getCurrentScopeFor(stack: Node[]): Scope {
+		return this.findFirstOrThrow(stack, this.isScope, new Error("There was no scope in the stack"))
+	}
+
 	getCurrentScope(): Scope {
-		return this.findFirstOrThrow(this.isScope, new Error("There was no scope in the stack"))
+		return this.getCurrentScopeFor(this.stack)
 	}
 
 	getCurrentBlock(): Block {
-		return this.findFirstOrThrow(this.isBlock, new Error("There was no block in the stack, did you try to return from outside a function?"))
+		return this.findFirstOrThrow(this.stack, this.isBlock, new Error("There was no block in the stack, did you try to return from outside a function?"))
 	}
 
 	parentScopeOf(scope: Scope) {
@@ -123,7 +127,17 @@ export default class Stack {
 				this.resolveTo(scope)
 			}
 		}
+	}
 
+	getParentScopeOf(scope: Scope) {
+		const scopeIndex = this.stack.indexOf(scope)
+		const parentStack = this.stack.slice(0, scopeIndex)
+		return this.getCurrentScopeFor(parentStack)
+	}
+
+	resolveToParentOf(scope: Scope) {
+		const parent = this.getParentScopeOf(scope)
+		this.resolveTo(parent)
 	}
 
 	push<T extends Expression>(expr: T): T {

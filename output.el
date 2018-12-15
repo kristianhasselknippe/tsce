@@ -41,18 +41,24 @@
   (with-current-buffer buffer
 	(funcall action)))
 
- (cl-defun main ()
-    (block block87531-main
-        (let ((dart-path "c:/tools/dart-sdk/bin/dart.exe"))
-            (let ((snap-shot-path "c:/tools/dart-sdk/bin/snapshots/analysis_server.dart.snapshot"))
+ (let ((dart-path "c:/tools/dart-sdk/bin/dart.exe"))
+    (let ((snap-shot-path "c:/tools/dart-sdk/bin/snapshots/analysis_server.dart.snapshot"))
+        (cl-defun do-something ( msg)
+            (block block29383-doSomething
+                (message  (ts/+ "We got some msg: " msg))
+            )
+        )
+        (cl-defun main ()
+            (block block34584-main
                 (let ((process (start-process  "dart analyzer" "dartanalyzer" dart-path snap-shot-path)))
                     (set-process-filter  process (lambda ( proc msg)
-        (block block54360-lambda
-            (message  (ts/+ "We got some msg: " msg))
+        (block block27334-lambda
+            (do-something  msg)
         )
 ))
                 )
             )
         )
+        (main )
     )
-	)
+)

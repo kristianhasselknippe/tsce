@@ -79,4 +79,16 @@ declare module 'emacs' {
 
 	function lineNumberAtPos(pos?: number, absolute?: boolean): number
 
+	// Processes
+	let execDirectory: string
+	let execPath: string[]
+
+	
+	// Async processes
+	interface Process {}
+	type Filter = (proc: Process, input: string) => void
+	
+	function startProcess(name: string, bufferOrName: BufferOrName, program: string, ...args: string[]): Process
+	function setProcessFilter(process: Process, filter: Filter): void
+	function processFilter(process: Process): Filter
 }

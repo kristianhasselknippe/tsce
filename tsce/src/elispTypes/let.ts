@@ -26,11 +26,29 @@ ${tabs(indent)})`;
 	}
 }
 
+function isUpper(character: string) {
+	return (character !== character.toLowerCase())
+		&& (character === character.toUpperCase());
+}
+
 export class LetItem extends Expression {
 	type = 'LetItem';
 
 	constructor(public readonly identifier: string, readonly initializer?: Expression) {
 		super()
+	}
+
+	hyphenateName() {
+		let ret = ""
+		for (const char of this.identifier) {
+			if (isUpper(char)) {
+				ret += "-" + char.toLowerCase()
+			} else {
+				ret += char
+			}
+		}
+		console.log("REEEET: " + ret)
+		return ret
 	}
 
 	emitInitializer(indent: number) {
@@ -44,6 +62,6 @@ export class LetItem extends Expression {
 	}
 
 	emit(indent: number) {
-		return  `${tabs(indent)}(${this.identifier} ${this.emitInitializer(indent)})`
+		return  `${tabs(indent)}(${this.hyphenateName()} ${this.emitInitializer(indent)})`
 	}
 }

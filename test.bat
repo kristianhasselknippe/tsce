@@ -1,1 +1,1 @@
-node tsce\dist\index.js tsemacs\tests.ts output.el
+node tsce\dist\index.js tsemacs\dartLanguageServerTest.ts output.el

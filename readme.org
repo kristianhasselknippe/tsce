@@ -1,0 +1,19 @@
+* TSCE
+
+Typescript to Elisp compiler
+
+Just started, so it is very hacky and crude atm.
+
+** Implemented features
+- [X] Function declarations
+- [X] Function calls
+- [X] Variables declarations
+- [X] Literals (number, string, boolean)
+- [X] Object literals
+- [X] Array literals
+- [ ] Enums
+- [ ] Async/await
+- [ ] Proper module resolution
+
+** Why?
+I wanted to write more emacs packages, but I hate working without static type checking. Typescript has a flexible enough type system that i could be viable as a compiler frontend, and the typescript compiler API is very accessible.

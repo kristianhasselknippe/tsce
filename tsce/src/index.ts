@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as Elisp from './elispTypes';
 import Stack from './stack'
 import { Symbol, SymbolType, Context} from './context'
+import { loadProjectFile, loadInputFiles, startProcess } from './projectFormat'
 
 let stack = new Stack();
 
@@ -416,18 +417,38 @@ function parseTypescriptFile(filePath: string) {
 	);
 }
 
-const args = process.argv.slice(2)
-console.log("Args: ", args)
+function parseCliArguments() {
+	const args = process.argv.slice(2)
+	console.log("Args: ", args)
 
-args.forEach(x => {
-	console.log("Input: ", x)
-})
+	args.forEach(x => {
+		console.log("Input: ", x)
+	})
 
-if (args.length === 0) {
-	console.error('Expecting file as first argument');
+	if (args.length === 0) {
+		console.error('Expecting file as first argument');
+	}
+
+	if (args[0].split(".")[1] !== "tsceproj") {
+		console.error("Expected a tscwproj file as only argument")
+	}
+
+	return {
+		projectPath: args[0]
+	}
 }
 
-let filePath = args[0];
+let cliArgs = parseCliArguments()
+
+const compilerProcess = startProcess(cliArgs.projectPath)
+console.log("Compilerprocess: ", compilerProcess)
+
+//const files = loadInputFiles(projectConfig)
+
+//console.log("Files: ", files)
+
+
+/*let filePath = args[0];
 console.log("File path: " + filePath)
 let sourceFile = parseTypescriptFile(filePath);
 
@@ -446,5 +467,4 @@ fs.writeFileSync(outputFile, library + "\n " + output)
 
 console.log('Output: ' + JSON.stringify(stack));
 
-//stack.forEach(x => x.emit(0))
-console.log('Output: ' + stack.size);
+console.log('Output: ' + stack.size);*/

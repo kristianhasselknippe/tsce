@@ -50,8 +50,25 @@ function getFullPathToIncludeDir(process: ProcessInfo) {
 	return path.join(workingDirString, configPath.dir, process.config.includeFolder)
 }
 
+function filterTypeScriptFiles(files: string[]) {
+	const filesToCompile = []
+	for (const file of files) {
+		const extension = path.extname(file)
+		if (extension === '.ts' &&
+			file.indexOf('.d.ts') === -1) {
+			filesToCompile.push(file)
+		}
+	}
+	return filesToCompile
+}
+
 export function compileProject(process: ProcessInfo) {
 	const fullIncludeDirPath = getFullPathToIncludeDir(process)
 	console.log('Full path to include folder: ' + fullIncludeDirPath)
-	
+	const files = fs.readdirSync(fullIncludeDirPath)
+	console.log('Files in include dir', files)
+
+	const filesToCompile = filterTypeScriptFiles(files)
+
+	console.log('Files to compile', filesToCompile)
 }

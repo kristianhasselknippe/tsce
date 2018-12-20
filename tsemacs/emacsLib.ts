@@ -1,7 +1,5 @@
-import { intern, require as emacsRequire } from 'emacs'
+import { intern, require } from 'emacs'
 
-export namespace EmacsLib {
-	export function require(symbolName: string) {
-        return emacsRequire(intern(symbolName))
-	}
+export function emacsRequire(symbolName: string) { 
+	return require(intern(symbolName))
 }

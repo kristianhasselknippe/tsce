@@ -2,9 +2,11 @@ import * as process from 'process'
 import * as fs from 'fs';
 import * as path from 'path'
 
+import { compileSource } from './compiler'
+
 export interface ProjectConfig {
 	includeFolder: string
-	outputFile: string
+	outputFolder: string
 }
 
 export function loadProjectFile(filePath: string) {
@@ -50,6 +52,12 @@ function getFullPathToIncludeDir(process: ProcessInfo) {
 	return path.join(workingDirString, configPath.dir, process.config.includeFolder)
 }
 
+function getFullPathToOutputDir(process: ProcessInfo) {
+	const configPath = path.parse(process.configPath)
+	const workingDirString = path.format(process.workingDir)
+	return path.join(workingDirString, configPath.dir, process.config.outputFolder)
+}
+
 function filterTypeScriptFiles(files: string[]) {
 	const filesToCompile = []
 	for (const file of files) {
@@ -62,13 +70,51 @@ function filterTypeScriptFiles(files: string[]) {
 	return filesToCompile
 }
 
-export function compileProject(process: ProcessInfo) {
+function getFilesToCompile(process: ProcessInfo) {
 	const fullIncludeDirPath = getFullPathToIncludeDir(process)
 	console.log('Full path to include folder: ' + fullIncludeDirPath)
 	const files = fs.readdirSync(fullIncludeDirPath)
 	console.log('Files in include dir', files)
 
-	const filesToCompile = filterTypeScriptFiles(files)
+	return filterTypeScriptFiles(files.map(x => path.join(fullIncludeDirPath, x)))
+}
 
+export interface ElispFile {
+	content: string
+	fileName: string
+}
+
+export interface CompilationResult {
+	elispFiles: ElispFile[]
+}
+
+export function compileProject(process: ProcessInfo): CompilationResult {
+	const filesToCompile = getFilesToCompile(process)
 	console.log('Files to compile', filesToCompile)
+
+	const elispFiles = []
+	for (const file of filesToCompile) {
+		const content = fs.readFileSync(file).toString()
+		const fileName = path.basename(file).split('.')[0] + '.el'
+		const elispSource = compileSource(content)
+		elispFiles.push({
+			content: elispSource,
+			fileName: fileName
+		})
+	}
+	return {
+		elispFiles
+	}
+}
+
+export function writeCompilationResultToStorage(process: ProcessInfo, result: CompilationResult) {
+	const outputDir = getFullPathToOutputDir(process)
+	for (const file of result.elispFiles) {
+		const outputFilePath = path.join(outputDir, file.fileName)
+		console.log('Writing out file to: ' + outputFilePath)
+		//console.log('          ' + file.content)
+		fs.writeFile(outputFilePath, file.content, { flag: 'w' }, (err) => {
+			console.log(`Done writing file ${file.fileName}, error: ${err}`)
+		})
+	}
 }

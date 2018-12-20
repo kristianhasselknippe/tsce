@@ -22,7 +22,6 @@ export class Identifier extends Expression {
 				ret += char
 			}
 		}
-		console.log("REEEET: " + ret)
 		return ret
 	}
 

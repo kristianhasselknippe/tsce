@@ -47,7 +47,6 @@ export class LetItem extends Expression {
 				ret += char
 			}
 		}
-		console.log("REEEET: " + ret)
 		return ret
 	}
 

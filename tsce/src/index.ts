@@ -1,10 +1,11 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
+import * as path from 'path'
 
 import * as Elisp from './elispTypes';
 import Stack from './stack'
 import { Symbol, SymbolType, Context} from './context'
-import { loadProjectFile, loadInputFiles, startProcess } from './projectFormat'
+import { loadProjectFile, loadInputFiles, startProcess, compileProject } from './projectFormat'
 
 let stack = new Stack();
 
@@ -429,8 +430,10 @@ function parseCliArguments() {
 		console.error('Expecting file as first argument');
 	}
 
-	if (args[0].split(".")[1] !== "tsceproj") {
-		console.error("Expected a tscwproj file as only argument")
+	const pathExtension = path.parse(args[0])
+	console.log('Config path name: ' + pathExtension.ext)
+	if (pathExtension.ext !== ".tsceproj") {
+		console.error("Expected a tsceproj file as only argument")
 	}
 
 	return {
@@ -443,9 +446,8 @@ let cliArgs = parseCliArguments()
 const compilerProcess = startProcess(cliArgs.projectPath)
 console.log("Compilerprocess: ", compilerProcess)
 
-//const files = loadInputFiles(projectConfig)
+compileProject(compilerProcess)
 
-//console.log("Files: ", files)
 
 
 /*let filePath = args[0];

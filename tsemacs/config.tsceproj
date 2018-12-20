@@ -1,4 +1,4 @@
 {
 	"includeFolder": "./",
-	"outputFile": "dist/output.el"
+	"outputFolder": "./dist/"
 }

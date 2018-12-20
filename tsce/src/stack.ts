@@ -117,8 +117,6 @@ export default class Stack {
 	}
 
 	resolveTo(scope: Scope) {
-		console.log("Resolving to: " + scope.type)
-
 		while (this.peek() !== scope) {
 			this.resolveToCurrentScope()
 			if (this.getCurrentScope() !== scope) {

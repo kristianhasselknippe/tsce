@@ -21,7 +21,6 @@ export class Defun extends Block {
 				ret += char
 			}
 		}
-		console.log("REEEET: " + ret)
 		return ret
 	}
 

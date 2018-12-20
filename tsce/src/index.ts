@@ -1,8 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path'
-import { compileProject, startProcess, writeCompilationResultToStorage } from './projectFormat';
-
-
+import { compileProject, startProcess, writeCompilationResultToStorage, addFileToResult } from './projectFormat';
 
 function parseCliArguments() {
 	const args = process.argv.slice(2)
@@ -33,4 +31,9 @@ const compilerProcess = startProcess(cliArgs.projectPath)
 console.log("Compilerprocess: ", compilerProcess)
 
 const results = compileProject(compilerProcess)
+
+//TODO: Make sure this works after we've packaged the code
+const libPath = path.join(__dirname, '../src', 'ts-lib.el')
+addFileToResult(results, libPath)
+
 writeCompilationResultToStorage(compilerProcess, results) 

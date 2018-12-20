@@ -1,9 +1,4 @@
-import { Block, tabs } from "./";
-
-function isUpper(character: string) {
-	return (character !== character.toLowerCase())
-		&& (character === character.toUpperCase());
-}
+import { Block, tabs, hyphenate } from "./";
 
 export class Defun extends Block {
 	type = 'Function';
@@ -13,19 +8,11 @@ export class Defun extends Block {
 	}
 
 	hyphenateName() {
-		let ret = ""
-		for (const char of this.identifier) {
-			if (isUpper(char)) {
-				ret += "-" + char.toLowerCase()
-			} else {
-				ret += char
-			}
-		}
-		return ret
+		return hyphenate(this.identifier)
 	}
 
 	emitArgs() {
-		return this.args.reduce((prev, curr) => prev + " " + curr, "")
+		return this.args.reduce((prev, curr) => prev + " " + hyphenate(curr), "")
 	}
 
 	emit(indent: number) {

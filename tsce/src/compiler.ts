@@ -4,6 +4,7 @@ import Stack from './stack'
 import { Symbol, SymbolType, Context} from './context'
 import { loadProjectFile, loadInputFiles, startProcess, compileProject } from './projectFormat'
 import { createSourceFile } from 'typescript';
+import { fail } from 'assert';
 
 let stack = new Stack();
 
@@ -389,8 +390,17 @@ function toElispNode(node: ts.Node, context: Context) {
 			case ts.SyntaxKind.ImportDeclaration: {
 				const importDecl = <ts.ImportDeclaration>node
 				const moduleName = parseAndExpect<Elisp.StringLiteral>(importDecl.moduleSpecifier, context)
+
+				let isRelativePath = true
+				//TODO: Make this more robust! We check here if we are looking at a path or an ambient(?) module import
+				console.log('Module string: ' + moduleName.str)
+				if (moduleName.str.indexOf('/') === -1
+					&& moduleName.str.indexOf('\\') === -1
+					&& moduleName.str.indexOf('.') === -1) {
+					isRelativePath = false
+				}
 				console.log("MODULE NAME: " + moduleName.str)
-				stack.push(new Elisp.ModuleImport(moduleName))
+				stack.push(new Elisp.ModuleImport(moduleName, isRelativePath))
 				stack.resolveToCurrentScope()
 			} break
 			default:
@@ -400,9 +410,14 @@ function toElispNode(node: ts.Node, context: Context) {
 	stackCount--;
 }
 
+function addCommonLibs(root: Elisp.RootScope) {
+	root.pushExpression(new Elisp.ModuleImport(new Elisp.StringLiteral('./ts-lib'), true))
+}
+
 function toElisp(sourceFile: ts.SourceFile) {
 	const context = new Context()
 	const root = new Elisp.RootScope();
+	addCommonLibs(root)
 	stack.push(root);
 	for (var statement of sourceFile.statements) {
 		toElispNode(statement, context);

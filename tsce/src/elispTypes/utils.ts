@@ -5,3 +5,20 @@ export function tabs(indent: number) {
 	}
 	return ret;
 }
+
+export function isUpper(character: string) {
+	return (character !== character.toLowerCase())
+		&& (character === character.toUpperCase());
+}
+
+export function hyphenate(name: string) {
+	let ret = ""
+	for (const char of name) {
+		if (isUpper(char)) {
+			ret += "-" + char.toLowerCase()
+		} else {
+			ret += char
+		}
+	}
+	return ret
+}

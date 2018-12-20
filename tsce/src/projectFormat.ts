@@ -118,3 +118,13 @@ export function writeCompilationResultToStorage(process: ProcessInfo, result: Co
 		})
 	}
 }
+
+export function addFileToResult(result: CompilationResult, filePath: string) {
+	console.log('FilePath: ' + filePath)
+	const fileContent = fs.readFileSync(filePath).toString()
+	const outputFileName = path.basename(filePath).split('.')[0] + '.el'
+	result.elispFiles.push({
+		content: fileContent,
+		fileName: outputFileName
+	})
+}

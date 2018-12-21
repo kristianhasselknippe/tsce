@@ -1,7 +1,7 @@
 declare module 'emacs' {
 	const TS: {
 		consolelog: (msg: string | number) => void
-		len: (array) => number
+		len: <T>(array: T[]) => number
 	}
 
 	function message(msg: string): void
@@ -68,7 +68,7 @@ declare module 'emacs' {
 	// Motion by line
 	function beginningOfLine(count?: number): void
 	function lineBeginningPosition(count?: number): number
-	
+
 	function endOfLine(count?: number): void
 	function lineEndPosition(count?: number): void
 
@@ -83,11 +83,10 @@ declare module 'emacs' {
 	let execDirectory: string
 	let execPath: string[]
 
-	
 	// Async processes
 	interface Process {}
 	type Filter = (proc: Process, input: string) => void
-	
+
 	function startProcess(name: string, bufferOrName: BufferOrName, program: string, ...args: string[]): Process
 	function setProcessFilter(process: Process, filter: Filter): void
 	function processFilter(process: Process): Filter

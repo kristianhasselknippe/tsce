@@ -1,3 +1,4 @@
+(package-initialize)
 (require 'cl)
 (require 'ht)
 (require 'dash)

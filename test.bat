@@ -1,1 +1,1 @@
-node tsce/dist/index.js ./tsemacs/config.tsceproj
+node tsce/dist/index.js ./tests/config.tsceproj

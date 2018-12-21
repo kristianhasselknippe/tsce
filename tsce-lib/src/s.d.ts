@@ -39,11 +39,13 @@ declare module "s" {
     n: string,
     omitNulls?: number
   ): string[];
-  function sJoin(separator: string, strings: string[]);
+	function sJoin(separator: string, strings: string[]): string;
 
   //Predicates
-  //function sEquals?(s1 s2)
-  //function sLess? (s1 s2)
+  //[elisp: predicate]
+  function sEquals(s1: string, s2: string): boolean;
+  //[elisp: predicate]
+  function sLess(s1: string, s2: string): boolean;
   //function sMatches? (regexp s &optional start)
   //function sBlank? (s: string)
   //function sPresent? (s: string)

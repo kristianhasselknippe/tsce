@@ -1,30 +1,74 @@
+import Stack from './stack';
+import { tabs } from './elispTypes';
+import * as ts from 'typescript';
+
 export enum SymbolType {
 	Function,
 	Variable
 }
 
 export interface Symbol {
-	name: string,
-	type: SymbolType
+	name: string;
+	type: SymbolType;
 }
 
 export class Context {
-	private symbols: Symbol[] = []
+	private symbols: Symbol[] = [];
+	stack = new Stack();
+
+
+	private stackCount = 0;
+
+	incStackCount() {
+		this.stackCount++
+	}
+	
+	decStackCount() {
+		this.stackCount--
+	}
+
+	getCallStackSize() {
+		return this.stackCount;
+	}
+
+	stackSizeTabs() {
+		const stackSize = this.getCallStackSize();
+		return tabs(stackSize);
+	}
+
+	printAtStackOffset(text: string, node?: ts.Node) {
+		let scope = '<no scope>';
+		try {
+			scope = this.stack.getCurrentScope().type;
+		} catch (e) {
+			console.log('Error : ' + e);
+		}
+		console.log(
+			this.stackSizeTabs() +
+				text +
+				' - ' +
+				(node ? node.getText() : '') +
+				' scope: ' +
+				scope +
+				', size: ' +
+				this.stack.size
+		);
+	}
 
 	addSymbol(sym: Symbol) {
-		this.symbols.push(sym)
+		this.symbols.push(sym);
 	}
 
 	getSymbolForName(name: string) {
 		for (let i = this.symbols.length - 1; i >= 0; i--) {
-			const sym = this.symbols[i]
+			const sym = this.symbols[i];
 			if (sym.name === name) {
-				return sym
+				return sym;
 			}
 		}
 		return {
-			name: "<missing>",
+			name: '<missing>',
 			type: SymbolType.Function
-		}
+		};
 	}
 }

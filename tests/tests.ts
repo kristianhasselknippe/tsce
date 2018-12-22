@@ -124,3 +124,8 @@ function workingWithBuffers() {
 
 	return foo
 }
+
+//[name: "custom-function?"]
+function customFunctionNameThroughCommentDirective() {
+	
+}

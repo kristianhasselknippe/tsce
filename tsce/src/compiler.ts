@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import * as Elisp from './elispTypes';
 import { Symbol, SymbolType, Context} from './context'
 import { loadProjectFile, loadInputFiles, startProcess, compileProject } from './projectFormat'
-import { createSourceFile } from 'typescript';
+import { createSourceFile, getSyntheticLeadingComments, getCommentRange, getLeadingCommentRanges } from 'typescript';
 import { fail } from 'assert';
 
 
@@ -82,7 +82,6 @@ function toElispNode(node: ts.Node, context: Context) {
 			case ts.SyntaxKind.FunctionDeclaration: {
 				context.printAtStackOffset('FunctionDeclaration', node);
 				let fd = <ts.FunctionDeclaration>node;
-
 
 				let name = fd.name!;
 				context.addSymbol({
@@ -360,6 +359,9 @@ function toElispNode(node: ts.Node, context: Context) {
 			} break
 			case ts.SyntaxKind.InterfaceDeclaration: {
 			} break
+			case ts.SyntaxKind.SingleLineCommentTrivia: {
+				//const singleLineComment = <ts.SingleLineCommentTrivia>node
+			} break
 			case ts.SyntaxKind.ImportDeclaration: {
 				const importDecl = <ts.ImportDeclaration>node
 				const moduleName = parseAndExpect<Elisp.StringLiteral>(importDecl.moduleSpecifier, context)
@@ -405,7 +407,7 @@ export function compileSource(source: string) {
 		/*setParentNodes */ true
 	);
 	//TODO: Make context.stack a part of the context and not a global variable
-	const context = new Context()
+	const context = new Context(tsSource)
 	toElisp(tsSource, context)
 	return context.stack.getElispSource()
 }

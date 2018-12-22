@@ -16,13 +16,30 @@ export class Context {
 	private symbols: Symbol[] = [];
 	stack = new Stack();
 
+	private sourceText: string
+
+	constructor(readonly sourceFile: ts.SourceFile) {
+		this.sourceText = sourceFile.getText()
+	}
+
+	getCommentsForNode(node: ts.Node) {
+		const comments = ts.getLeadingCommentRanges(this.sourceFile.getText(), node.getFullStart())
+		if (comments) {
+			const ret = []
+			for (const comment of comments) {
+				const commentText = this.sourceText.substring(comment.pos, comment.end)
+				ret.push(commentText)
+			}
+			return ret
+		}
+	}
 
 	private stackCount = 0;
 
 	incStackCount() {
 		this.stackCount++
 	}
-	
+
 	decStackCount() {
 		this.stackCount--
 	}

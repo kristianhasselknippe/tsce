@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as Elisp from './elispTypes';
 import { Symbol, SymbolType, Context} from './context'
-import { loadProjectFile, loadInputFiles, startProject, compileProject } from './projectFormat'
+import { loadProjectFile, loadInputFiles, startProjectFromWorkingDir, compileProject } from './projectFormat'
 import { createSourceFile, getSyntheticLeadingComments, getCommentRange, getLeadingCommentRanges } from 'typescript';
 import { fail } from 'assert';
 

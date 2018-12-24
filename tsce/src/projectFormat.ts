@@ -33,17 +33,21 @@ export function loadInputFiles(config: ProjectConfig) {
 	return ret
 }
 
-export function startProcessFromConfig(configPath: string, config: ProjectConfig) {
+export function startProjectFromWorkingDir(configPath: string) {
 	const workingDir = path.parse(process.cwd())
 	return {
 		workingDir,
 		configPath: configPath,
-		config: config
+		config: loadProjectFile(configPath)
 	} as ProcessInfo
 }
 
-export function startProject(configPath: string) {
-	return startProcessFromConfig(configPath, loadProjectFile(configPath))
+export function startProjectFromDir(configPath: string, workingDir: string) {
+	return {
+		workingDir: path.parse(workingDir),
+		configPath: configPath,
+		config: loadProjectFile(path.join(workingDir, configPath))
+	} as ProcessInfo
 }
 
 export interface InputFile {

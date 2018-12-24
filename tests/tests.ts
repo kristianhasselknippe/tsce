@@ -129,3 +129,21 @@ function workingWithBuffers() {
 function customFunctionNameThroughCommentDirective() {
 	
 }
+
+//[form: ert-deftest]
+function testSomething() {
+	const foo = {
+		hei: tsarray([1,2,3]),
+		ok: {
+			bar: {
+				kult: () => {
+					message("foobar it worked")
+				}
+			}
+		}
+	}
+	foo.ok.bar.kult()
+	return foo.hei.length() + ""
+}
+
+testSomething()

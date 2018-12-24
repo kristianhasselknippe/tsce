@@ -11,15 +11,11 @@ export class Property extends Node {
 	}
 
 	emitName() {
-		if (this.name.type !== 'Identifier') {
-			return this.name.emit(0)
-		} else {
-			return (this.name as Identifier).emitQuoted(0)
-		}
+		return this.name.emit(0)
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)}(${this.emitName()} ${this.value.emit(0)})`
+		return `${tabs(indent)}(${this.emitName()} . ,${this.value.emit(0)})`
 	}
 }
 
@@ -42,7 +38,7 @@ export class ObjectLiteral extends Expression {
 	}
 
 	emit(indent: number) {
-		const ret = `${tabs(indent)}(ht
+		const ret = `${tabs(indent)}\`(
 ${this.emitProperties(indent+1)}
 ${tabs(indent)})`
 		return ret
@@ -57,6 +53,6 @@ export class PropertyAccess extends Expression {
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)}(ht-get ${this.leftHand.emit(0)} ${this.rightHand.emitQuoted(0)})`
+		return `${tabs(indent)}(cdr (assoc ${this.rightHand.emitQuoted(0)} ${this.leftHand.emit(0)}))`
 	}
 }

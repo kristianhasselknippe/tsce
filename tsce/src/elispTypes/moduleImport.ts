@@ -2,6 +2,7 @@ import { Statement, tabs, StringLiteral } from '.';
 
 export class ModuleImport extends Statement {
 	type: string = 'ModuleImport';
+
 	constructor(
 		readonly moduleString: StringLiteral,
 		readonly isRelativePath: boolean

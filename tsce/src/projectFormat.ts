@@ -7,7 +7,7 @@ import { compileSource } from './compiler'
 
 export interface ProjectConfig {
 	includeFolder: string
-	outputFolder: string
+	outputFolder?: string
 }
 
 export function loadProjectFile(filePath: string) {
@@ -33,13 +33,17 @@ export function loadInputFiles(config: ProjectConfig) {
 	return ret
 }
 
-export function startProcess(configPath: string) {
+export function startProcessFromConfig(configPath: string, config: ProjectConfig) {
 	const workingDir = path.parse(process.cwd())
 	return {
 		workingDir,
 		configPath: configPath,
-		config: loadProjectFile(configPath)
+		config: config
 	} as ProcessInfo
+}
+
+export function startProject(configPath: string) {
+	return startProcessFromConfig(configPath, loadProjectFile(configPath))
 }
 
 export interface InputFile {
@@ -60,7 +64,9 @@ function ensurePathExists(pathString: string) {
 function getFullPathToOutputDir(process: ProcessInfo) {
 	const configPath = path.parse(process.configPath)
 	const workingDirString = path.format(process.workingDir)
-	return path.join(workingDirString, configPath.dir, process.config.outputFolder)
+	if (process.config.outputFolder) {
+		return path.join(workingDirString, configPath.dir, process.config.outputFolder)
+	}
 }
 
 function filterTypeScriptFiles(files: string[]) {
@@ -93,6 +99,12 @@ export interface CompilationResult {
 	elispFiles: ElispFile[]
 }
 
+export function appendCompilationResult(to: CompilationResult, append: CompilationResult) {
+	return {
+		elispFiles: to.elispFiles.concat(append.elispFiles)
+	}
+}
+
 export function compileProject(process: ProcessInfo): CompilationResult {
 	const filesToCompile = getFilesToCompile(process)
 	console.log('Files to compile', filesToCompile)
@@ -114,14 +126,16 @@ export function compileProject(process: ProcessInfo): CompilationResult {
 
 export function writeCompilationResultToStorage(process: ProcessInfo, result: CompilationResult) {
 	const outputDir = getFullPathToOutputDir(process)
-	ensurePathExists(outputDir)
-	for (const file of result.elispFiles) {
-		const outputFilePath = path.join(outputDir, file.fileName)
-		console.log('Writing out file to: ' + outputFilePath)
-		//console.log('          ' + file.content)
-		fs.writeFile(outputFilePath, file.content, { flag: 'w' }, (err) => {
-			console.log(`Done writing file ${file.fileName}, error: ${err}`)
-		})
+	if (outputDir) {
+		ensurePathExists(outputDir)
+		for (const file of result.elispFiles) {
+			const outputFilePath = path.join(outputDir, file.fileName)
+			console.log('Writing out file to: ' + outputFilePath)
+			//console.log('          ' + file.content)
+			fs.writeFile(outputFilePath, file.content, { flag: 'w' }, (err) => {
+				console.log(`Done writing file ${file.fileName}, error: ${err}`)
+			})
+		}
 	}
 }
 

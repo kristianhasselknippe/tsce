@@ -125,11 +125,6 @@ function workingWithBuffers() {
 	return foo
 }
 
-//[name: "custom-function?"]
-function customFunctionNameThroughCommentDirective() {
-	
-}
-
 //[form: ert-deftest]
 function testSomething() {
 	const foo = {
@@ -156,3 +151,9 @@ function testArrayLoop() {
 }
 
 testArrayLoop()
+
+
+//[name: "custom-function?"]
+function customFunctionNameThroughCommentDirective() {
+	
+}

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path'
-import { compileProject, startProcess, writeCompilationResultToStorage, addFileToResult } from './projectFormat';
+import { compileProject, startProject, writeCompilationResultToStorage, addFileToResult, startProcessFromConfig, appendCompilationResult } from './projectFormat';
 
 function parseCliArguments() {
 	const args = process.argv.slice(2)
@@ -27,13 +27,23 @@ function parseCliArguments() {
 
 let cliArgs = parseCliArguments()
 
-const compilerProcess = startProcess(cliArgs.projectPath)
-console.log("Compilerprocess: ", compilerProcess)
+//compile ts-lib
+console.log("We are compiling ts-lib")
+const pathToTsLib = path.join(__dirname, '../../ts-lib')
+console.log("123123 path to ts lib", pathToTsLib)
+const tsLibCompilerProject = startProject(pathToTsLib)
+const libResult = compileProject(tsLibCompilerProject)
+console.log("123123 LIB results", libResult)
 
-const results = compileProject(compilerProcess)
+const compilerProject = startProject(cliArgs.projectPath)
+console.log("Compilerprocess: ", compilerProject)
+
+const projectResults = compileProject(compilerProject)
+
+const results = appendCompilationResult(projectResults, libResult)
 
 //TODO: Make sure this works after we've packaged the code
 const libPath = path.join(__dirname, '../src', 'ts-lib.el')
 addFileToResult(results, libPath)
 
-writeCompilationResultToStorage(compilerProcess, results) 
+writeCompilationResultToStorage(compilerProject, results) 

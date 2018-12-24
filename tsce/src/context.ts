@@ -54,7 +54,7 @@ export class Context {
 	}
 
 	printAtStackOffset(text: string, node?: ts.Node) {
-		let scope = '<no scope>';
+		/*let scope = '<no scope>';
 		try {
 			scope = this.stack.getCurrentScope().type;
 		} catch (e) {
@@ -69,7 +69,7 @@ export class Context {
 				scope +
 				', size: ' +
 				this.stack.size
-		);
+		);*/
 	}
 
 	addSymbol(sym: Symbol) {

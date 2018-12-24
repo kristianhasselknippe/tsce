@@ -143,7 +143,6 @@ function testSomething() {p
 
 testSomething()
 
-//[kult : ass] hei
 function testArrayLoop() {
 	const foo = tsarray(["hei", "hvordan", "har", "du", "det?"])
 	for (let i = 0; i < foo.length(); i++) {

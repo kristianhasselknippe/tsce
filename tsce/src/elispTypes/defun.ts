@@ -10,7 +10,9 @@ export class Defun extends Block {
 		super(identifier);
 
 		if (comments) {
-			this.compilerDirectives = comments.map(extractCompilerDirectivesFromString)
+			this.compilerDirectives = comments.map(x => extractCompilerDirectivesFromString(x)).reduce((prev, curr) => {
+				return prev.concat(curr)
+			})
 		}
 	}
 

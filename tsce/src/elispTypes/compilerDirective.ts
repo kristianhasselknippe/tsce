@@ -27,7 +27,7 @@ function expectNumArgs(directive: string, args: string[], num: number) {
 }
 
 // TODO: Use regex or something instead of this nonsense
-function parseBody(body: string) {
+function parseBody(body: string): CompilerDirective {
 	const [directive, bodyArgs] = body.split(':')
 
 	let args: string[] = []
@@ -47,7 +47,7 @@ function parseBody(body: string) {
 			if (expectNumArgs(directive, args, 1)) {
 				return {
 					kind: 'Form',
-					name: args[0]
+					form: args[0]
 				}
 			}
 		case "Predicate":
@@ -58,20 +58,25 @@ function parseBody(body: string) {
 			return {
 				kind: 'NamedArguments'
 			}
+		default:
+			throw new Error(`Error parsing directive body, didn't recognize diretive type: ${body}`)
 	}
 }
 
-export function extractCompilerDirectivesFromString(comment: string) {
+export function extractCompilerDirectivesFromString(comment: string): CompilerDirective[] {
 	const directiveRegex = new RegExp('\\[([^\\[\\]]*)\\]', 'g')
 	const matches = comment.match(directiveRegex)
 	let ret = []
 	if (matches && matches.length > 0) {
 		for (const directive of matches) {
 			const directiveBody = directive.substring(1, directive.length-1)
-			ret.push(parseBody(directiveBody))
+
+			const parsed = parseBody(directiveBody)
+			if (typeof parsed != "undefined") {
+				ret.push(parsed)
+			}
 		}
 	}
-	ret = ret.filter(x => x)
 	console.log(`Compiler directive: (len: ${ret.length})`, ret)
 	return ret
 }

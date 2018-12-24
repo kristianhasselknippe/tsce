@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path'
-import { compileProject, startProject, writeCompilationResultToStorage, addFileToResult, startProcessFromConfig, appendCompilationResult } from './projectFormat';
+import { compileProject, startProjectFromWorkingDir, writeCompilationResultToStorage, addFileToResult, startProcessFromConfig, appendCompilationResult, startProjectFromDir } from './projectFormat';
 
 function parseCliArguments() {
 	const args = process.argv.slice(2)
@@ -29,13 +29,13 @@ let cliArgs = parseCliArguments()
 
 //compile ts-lib
 console.log("We are compiling ts-lib")
-const pathToTsLib = path.join(__dirname, '../../ts-lib')
-console.log("123123 path to ts lib", pathToTsLib)
-const tsLibCompilerProject = startProject(pathToTsLib)
+const pathToTsLib = path.join(__dirname, '../ts-lib')
+console.log("111 path to ts lib", pathToTsLib)
+const tsLibCompilerProject = startProjectFromDir("config.tsceproj", pathToTsLib)
 const libResult = compileProject(tsLibCompilerProject)
 console.log("123123 LIB results", libResult)
 
-const compilerProject = startProject(cliArgs.projectPath)
+const compilerProject = startProjectFromWorkingDir(cliArgs.projectPath)
 console.log("Compilerprocess: ", compilerProject)
 
 const projectResults = compileProject(compilerProject)

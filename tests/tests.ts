@@ -26,7 +26,7 @@ function objectCreation() {
 
 objectCreation()
 
-function lambdas() {	
+function lambdas() {
 	const foo = {
 		doIt: (foobar: any, bar: any) => {
 			return foobar + bar
@@ -38,7 +38,7 @@ function lambdas() {
 
 lambdas()
 
-function operators() { 
+function operators() {
 	const foo = 1 + 2
 	tslog(foo)
 	const bar = 2 + "heisann"
@@ -101,10 +101,10 @@ arraysAndStuff1()
 function arraysAndStuff2() {
 	var items = tsarray([1,2,3,4,5,6])
 	const foo = items.length()
-	
+
 	tslog(foo)
 
-	
+
 
 	return items.get(4)
 }
@@ -120,7 +120,7 @@ function workingWithBuffers() {
 		insert("dette er en test")
 		tslog("Point max " + pointMax())
 	})
-	
+
 
 	return foo
 }
@@ -155,15 +155,36 @@ testArrayLoop()
 
 //[Name: +-+-+=>]
 function customFunctionNameThroughCommentDirective() {
-	
+
 }
 
 //[Predicate]
 function predicatedFunctionUsingCompilerDirective() {
-	
+
 }
 
 //[Form: defvar]
 function otherFormThanFunction() {
-	
+
 }
+
+function enBug() {
+	let listeMedNoe = tsarray([1,2,3,4,5,6])
+	for (let i = 0; i < listeMedNoe.length(); i++) {
+		const tallet = listeMedNoe.get(i)
+		tslog("Tallet til mamma: " + (tallet * tallet))
+	}
+}
+
+enBug()
+
+function heiMammaOgPappa() {
+	let listeMedNoe = tsarray([1,2,3,4,5,6])
+	for (let i = 0; i < listeMedNoe.length(); i++) {
+		const tallet = listeMedNoe.get(i)
+		const ret = tallet * tallet
+		tslog("Tallet til mamma: " + ret)
+	}
+}
+
+heiMammaOgPappa()

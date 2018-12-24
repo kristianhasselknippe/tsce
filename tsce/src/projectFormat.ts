@@ -87,9 +87,7 @@ function filterTypeScriptFiles(files: string[]) {
 
 function getFilesToCompile(process: ProcessInfo) {
 	const fullIncludeDirPath = getFullPathToIncludeDir(process)
-	console.log('Full path to include folder: ' + fullIncludeDirPath)
 	const files = fs.readdirSync(fullIncludeDirPath)
-	console.log('Files in include dir', files)
 
 	return filterTypeScriptFiles(files.map(x => path.join(fullIncludeDirPath, x)))
 }
@@ -111,7 +109,6 @@ export function appendCompilationResult(to: CompilationResult, append: Compilati
 
 export function compileProject(process: ProcessInfo): CompilationResult {
 	const filesToCompile = getFilesToCompile(process)
-	console.log('Files to compile', filesToCompile)
 
 	const elispFiles = []
 	for (const file of filesToCompile) {
@@ -134,17 +131,17 @@ export function writeCompilationResultToStorage(process: ProcessInfo, result: Co
 		ensurePathExists(outputDir)
 		for (const file of result.elispFiles) {
 			const outputFilePath = path.join(outputDir, file.fileName)
-			console.log('Writing out file to: ' + outputFilePath)
 			//console.log('          ' + file.content)
 			fs.writeFile(outputFilePath, file.content, { flag: 'w' }, (err) => {
-				console.log(`Done writing file ${file.fileName}, error: ${err}`)
+				if (err) {
+					console.error(`Error writing file ${file.fileName}, error: ${err}`)
+				}
 			})
 		}
 	}
 }
 
 export function addFileToResult(result: CompilationResult, filePath: string) {
-	console.log('FilePath: ' + filePath)
 	const fileContent = fs.readFileSync(filePath).toString()
 	const outputFileName = path.basename(filePath).split('.')[0] + '.el'
 	result.elispFiles.push({

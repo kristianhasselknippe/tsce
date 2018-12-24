@@ -59,12 +59,10 @@ function toElispNode(node: ts.Node, context: Context) {
 				const vdl = <ts.VariableDeclarationList>node;
 
 				const marker = context.stack.push(new Elisp.Body());
-				//console.log("Before declarations: ", stack)
 				for (let variable of vdl.declarations) {
 					toElispNode(variable, context);
 				}
 
-				//console.log("Popping to with context.stack", context.stack)
 				const bindings = context.stack.popTo(marker) as Elisp.LetItem[];
 				context.stack.pop(); //pop marker
 
@@ -193,15 +191,11 @@ function toElispNode(node: ts.Node, context: Context) {
 
 				const ifBody = context.stack.push(new Elisp.Body());
 
-				console.log('Making body of if');
 				for (let expr of (<ts.Block>ifExp.thenStatement).statements) {
 					toElispNode(expr, context);
 				}
-				console.log('current context.stack', context.stack);
 				context.stack.resolveTo(ifBody);
 				context.stack.pop();
-
-				console.log('  We have body');
 
 				let elseBody;
 				if (ifExp.elseStatement) {
@@ -209,10 +203,8 @@ function toElispNode(node: ts.Node, context: Context) {
 					if (
 						ifExp.elseStatement.kind === ts.SyntaxKind.IfStatement
 					) {
-						console.log('It was an elseif');
 						toElispNode(ifExp.elseStatement, context);
 					} else {
-						console.log('We have the else clause');
 						for (let expr of (<ts.Block>ifExp.thenStatement).statements) {
 							toElispNode(expr, context);
 						}
@@ -368,13 +360,11 @@ function toElispNode(node: ts.Node, context: Context) {
 
 				let isRelativePath = true
 				//TODO: Make this more robust! We check here if we are looking at a path or an ambient(?) module import
-				console.log('Module string: ' + moduleName.str)
 				if (moduleName.str.indexOf('/') === -1
 					&& moduleName.str.indexOf('\\') === -1
 					&& moduleName.str.indexOf('.') === -1) {
 					isRelativePath = false
 				}
-				console.log("MODULE NAME: " + moduleName.str)
 				context.stack.push(new Elisp.ModuleImport(moduleName, isRelativePath))
 				context.stack.resolveToCurrentScope()
 			} break

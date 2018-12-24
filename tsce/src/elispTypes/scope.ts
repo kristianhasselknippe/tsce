@@ -24,7 +24,6 @@ export class Scope extends Expression {
 	}
 
 	pushExpression(statement: Expression) {
-		console.log("Pushing statement: " + statement.type)
 		this.body.push(statement)
 	}
 

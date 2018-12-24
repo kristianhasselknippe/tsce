@@ -147,3 +147,12 @@ function testSomething() {
 }
 
 testSomething()
+
+function testArrayLoop() {
+	const foo = tsarray(["hei", "hvordan", "har", "du", "det?"])
+	for (let i = 0; i < foo.length(); i++) {
+		tslog(foo.get(i))
+	}
+}
+
+testArrayLoop()

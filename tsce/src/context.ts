@@ -12,13 +12,13 @@ export interface Symbol {
 	type: SymbolType;
 }
 
-export class Context {
+export class Context extends Stack{
 	private symbols: Symbol[] = [];
-	stack = new Stack();
 
 	private sourceText: string
 
 	constructor(readonly sourceFile: ts.SourceFile) {
+		super()
 		this.sourceText = sourceFile.getText()
 	}
 

@@ -153,7 +153,17 @@ function testArrayLoop() {
 testArrayLoop()
 
 
-//[Name: "custom-function?"]
+//[Name: +-+-+=>]
 function customFunctionNameThroughCommentDirective() {
+	
+}
+
+//[Predicate]
+function predicatedFunctionUsingCompilerDirective() {
+	
+}
+
+//[Form: defvar]
+function otherFormThanFunction() {
 	
 }

@@ -32,7 +32,7 @@ function parseBody(body: string): CompilerDirective {
 
 	let args: string[] = []
 	if (bodyArgs) {
-		args = bodyArgs.split(' ').filter(x => x.length > 0).map(x => x.trim()) 
+		args = bodyArgs.split(' ').filter(x => x.length > 0).map(x => x.trim())
 	}
 
 	switch (directive) {

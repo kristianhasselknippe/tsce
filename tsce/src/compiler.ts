@@ -138,6 +138,11 @@ function toElispNode(node: ts.Node, context: Context) {
 				context.push(new Elisp.Identifier(symbolName, symbol));
 				break;
 			}
+			case ts.SyntaxKind.ParenthesizedExpression:
+				context.printAtStackOffset('ParenthesizedExpression: ', node);
+				let pe = <ts.ParenthesizedExpression>node;
+				toElispNode(pe.expression, context)
+				break
 			case ts.SyntaxKind.BinaryExpression: {
 				context.printAtStackOffset('BinaryExpression: ', node);
 				let be = <ts.BinaryExpression>node;

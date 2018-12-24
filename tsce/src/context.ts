@@ -54,7 +54,7 @@ export class Context extends Stack{
 	}
 
 	printAtStackOffset(text: string, node?: ts.Node) {
-		/*let scope = '<no scope>';
+	/*	let scope = '<no scope>';
 		try {
 			scope = this.stack.getCurrentScope().type;
 		} catch (e) {

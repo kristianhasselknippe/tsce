@@ -1,5 +1,6 @@
+import { TS, message, tslog, tsarray, getBufferCreate, insertBufferSubstringNoProperties, setBuffer, withCurrentBuffer, insert, doWithCurrentBuffer, pointMax } from 'emacs'
+
 declare function message(msg: string): void
-declare function should(item: boolean): boolean
 
 function main() {
 	message("Foo bar")
@@ -7,8 +8,19 @@ function main() {
 
 //[form: ert-deftest]
 function testSomething() {
-	should(1 + 2 == 4)
-}
+	const foo = {
+		hei: tsarray([1,2,3]),
+		ok: {
+			bar: {
+				kult: () => {
+					message("foobar it worked")
+				}
+			}
+		}
+	}
+	foo.ok.bar.kult()
+	return foo.hei.length() + ""
+} 
 
 main()
-testSomething()
+message(testSomething())

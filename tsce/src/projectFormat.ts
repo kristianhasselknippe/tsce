@@ -1,6 +1,7 @@
 import * as process from 'process'
 import * as fs from 'fs';
 import * as path from 'path'
+import * as shell from 'shelljs'
 
 import { compileSource } from './compiler'
 
@@ -50,6 +51,10 @@ function getFullPathToIncludeDir(process: ProcessInfo) {
 	const configPath = path.parse(process.configPath)
 	const workingDirString = path.format(process.workingDir)
 	return path.join(workingDirString, configPath.dir, process.config.includeFolder)
+}
+
+function ensurePathExists(pathString: string) {
+	shell.mkdir('-p', pathString)
 }
 
 function getFullPathToOutputDir(process: ProcessInfo) {
@@ -109,6 +114,7 @@ export function compileProject(process: ProcessInfo): CompilationResult {
 
 export function writeCompilationResultToStorage(process: ProcessInfo, result: CompilationResult) {
 	const outputDir = getFullPathToOutputDir(process)
+	ensurePathExists(outputDir)
 	for (const file of result.elispFiles) {
 		const outputFilePath = path.join(outputDir, file.fileName)
 		console.log('Writing out file to: ' + outputFilePath)

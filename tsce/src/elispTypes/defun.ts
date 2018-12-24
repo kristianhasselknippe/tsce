@@ -1,10 +1,17 @@
 import { Block, tabs, hyphenate } from "./";
+import { CompilerDirective, extractCompilerDirectivesFromString } from "./compilerDirective";
 
 export class Defun extends Block {
 	type = 'Function';
 
-	constructor(identifier: string, readonly args: string[]) {
+	compilerDirectives?: CompilerDirective[]
+
+	constructor(identifier: string, readonly args: string[], comments?: string[]) {
 		super(identifier);
+
+		if (comments) {
+			this.compilerDirectives = comments.map(extractCompilerDirectivesFromString)
+		}
 	}
 
 	hyphenateName() {

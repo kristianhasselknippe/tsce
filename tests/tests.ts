@@ -18,7 +18,7 @@ function objectCreation() {
 		heisann,
 		foo: 123,
 		bar: {
-			testing: "123123"
+			testing: "heiheihei"
 		}
 	}
 	return foo.bar.testing
@@ -38,7 +38,7 @@ function lambdas() {
 
 lambdas()
 
-function operators() {
+function operators() { 
 	const foo = 1 + 2
 	tslog(foo)
 	const bar = 2 + "heisann"
@@ -125,8 +125,8 @@ function workingWithBuffers() {
 	return foo
 }
 
-//[form: ert-deftest]
-function testSomething() {
+//[Form: ert-deftest]
+function testSomething() {p
 	const foo = {
 		hei: tsarray([1,2,3]),
 		ok: {
@@ -143,6 +143,7 @@ function testSomething() {
 
 testSomething()
 
+//[kult : ass] hei
 function testArrayLoop() {
 	const foo = tsarray(["hei", "hvordan", "har", "du", "det?"])
 	for (let i = 0; i < foo.length(); i++) {
@@ -153,7 +154,7 @@ function testArrayLoop() {
 testArrayLoop()
 
 
-//[name: "custom-function?"]
+//[Name: "custom-function?"]
 function customFunctionNameThroughCommentDirective() {
 	
 }

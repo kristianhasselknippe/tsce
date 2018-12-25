@@ -37,7 +37,7 @@ export class Context extends Stack{
 	private symTable = new SymbolTable()
 	private sourceText: string
 
-	constructor(readonly sourceFile: ts.SourceFile) {
+	constructor(readonly sourceFile: ts.SourceFile, readonly typeChecker: ts.TypeChecker) {
 		super()
 		this.sourceText = sourceFile.getText()
 	}

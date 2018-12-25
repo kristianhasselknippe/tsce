@@ -28,13 +28,13 @@ let cliArgs = parseCliArguments()
 console.log("== Compiling ts-lib")
 const pathToTsLib = path.join(__dirname, '../ts-lib')
 const tsLibCompilerProject = startProjectFromDir("config.tsceproj", pathToTsLib)
-const libResult = compileProject(tsLibCompilerProject)
+
 
 console.log("== Compiling project")
 const compilerProject = startProjectFromWorkingDir(cliArgs.projectPath)
-const projectResults = compileProject(compilerProject)
+const projectResults = compileProject([tsLibCompilerProject, compilerProject])
 
-const results = appendCompilationResult(projectResults, libResult)
+const results = projectResults
 
 //TODO: Make sure this works after we've packaged the code
 const libPath = path.join(__dirname, '../src', 'ts-lib.el')

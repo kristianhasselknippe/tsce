@@ -1,4 +1,4 @@
-import { TS, message, tslog, tsarray, getBufferCreate, insertBufferSubstringNoProperties, setBuffer, withCurrentBuffer, insert, doWithCurrentBuffer, pointMax, stringp } from 'emacs'
+import { TS, message, tslog, tsarray, getBufferCreate, insertBufferSubstringNoProperties, setBuffer, withCurrentBuffer, insert, doWithCurrentBuffer, pointMax, stringp } from 'ts-lib'
 
 function assignmentAndLoops(to: number) {
 	let foo = 1 + 2

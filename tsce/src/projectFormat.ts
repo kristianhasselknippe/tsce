@@ -4,6 +4,7 @@ import * as path from 'path'
 import * as shell from 'shelljs'
 
 import { compileSources } from './compiler'
+import { isArray } from 'util';
 
 export interface ProjectConfig {
 	includeFolder: string
@@ -73,28 +74,15 @@ function getFullPathToOutputDir(process: ProcessInfo) {
 	}
 }
 
-interface ProjectFiles {
-	sourceFiles: string[]
-	definitionFiles: string[]
-}
-
-function filterTypeScriptFiles(files: string[]): ProjectFiles {
-	const sourceFiles = []
-	const definitionFiles = []
+function filterTypeScriptFiles(files: string[]) {
+	const ret = []
 	for (const file of files) {
 		const extension = path.extname(file)
-		if (extension === '.ts' &&
-			file.indexOf('.d.ts') === -1) {
-			sourceFiles.push(file)
-		} else if (extension === '.ts' &&
-				   file.indexOf('.d.ts') !== -1) {
-			definitionFiles.push(file)
+		if (extension === '.ts') {
+			ret.push(file)
 		}
 	}
-	return {
-		sourceFiles,
-		definitionFiles
-	}
+	return ret
 }
 
 function getFilesToCompile(process: ProcessInfo) {
@@ -119,14 +107,15 @@ export function appendCompilationResult(to: CompilationResult, append: Compilati
 	}
 }
 
-export function compileProject(process: ProcessInfo): CompilationResult {
-	const projectFiles = getFilesToCompile(process)
+export function compileProject(process: ProcessInfo[]): CompilationResult {
+	const projectFiles = process
+		.map(getFilesToCompile)
+		.reduce((prev, curr) => {
+			return prev.concat(curr)
+		})
 
 	const elispFiles = []
-
-
-	const allFiles = projectFiles.definitionFiles.concat(projectFiles.sourceFiles)
-	const result = compileSources(allFiles)
+	const result = compileSources(projectFiles)
 
 	for (const file of result) {
 

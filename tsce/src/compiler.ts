@@ -53,6 +53,7 @@ function toElispNode(node: ts.Node, context: Context) {
 				let args = ce.arguments.map(a => {
 					return parseAndExpect<Elisp.Expression>(a, context);
 				});
+
 				let funcall = new Elisp.FunctionCall(leftHand, args);
 				context.push(funcall);
 				break;
@@ -136,8 +137,23 @@ function toElispNode(node: ts.Node, context: Context) {
 			}
 			case ts.SyntaxKind.Identifier: {
 				context.printAtStackOffset('Identifier', node);
-				const symbolName = (<ts.Identifier>node).text;
+				const identifierNode = <ts.Identifier>node
+				const symbolName = identifierNode.text;
 				const symbol = context.getSymbolForName(symbolName);
+				
+				const tsSymbol = context.typeChecker.getSymbolAtLocation(identifierNode)
+				if (tsSymbol) {
+					const declaredType = context.typeChecker.getDeclaredTypeOfSymbol(tsSymbol)
+					console.log("    |== " + tsSymbol.escapedName)
+					if (tsSymbol.declarations) {
+						for (const decl of tsSymbol.declarations) {
+							console.log("     |=(decl)=> " + decl.getText())
+						}
+					}
+					//console.log("      |== " + JSON.stringify(declaredType))
+				}
+				
+
 				context.push(new Elisp.Identifier(symbolName, symbol));
 				break;
 			}
@@ -522,20 +538,6 @@ function createProgram(fileNames: string[]) {
 	return ts.createProgram(fileNames, options)
 }
 
-function compileSource(source: string, symbolTable: SymbolTable) {
-	const tsSource = ts.createSourceFile(
-		'../test.tselisp',
-		source,
-		ts.ScriptTarget.ES2015,
-		/*setParentNodes */ true
-	);
-
-	//TODO: Make context a part of the context and not a global variable
-	const context = new Context(tsSource);
-	toElisp(tsSource, context);
-	return context.getElispSource();
-}
-
 interface CompilationResult {
 	sourceFileName: string
 	output: string
@@ -551,7 +553,7 @@ export function compileSources(sources: string[]): CompilationResult[] {
 		console.log("== Compiling source file: " + sourceFile.fileName)
 		if (!sourceFile.isDeclarationFile) {
 			// Walk the tree to search for classes
-			const context = new Context(sourceFile);
+			const context = new Context(sourceFile, typeChecker);
 			toElisp(sourceFile, context);
 			ret.push({
 				sourceFileName: sourceFile.fileName,

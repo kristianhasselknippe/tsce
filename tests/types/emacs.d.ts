@@ -147,8 +147,9 @@ declare module "s" {
   ): string[];
 	function sJoin(separator: string, strings: string[]): string;
 
-  //Predicates
-  //[elisp: predicate]
+	//Predicates
+
+  //[Predicate]
   function sEquals(s1: string, s2: string): boolean;
   //[elisp: predicate]
   function sLess(s1: string, s2: string): boolean;

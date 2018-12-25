@@ -58,20 +58,25 @@ export class Context extends Stack {
 
 	getCommentsForNode(node: ts.Node, debug = false) {
 		const ret = [];
-		for (const sourceFile of this.sourceFiles) {
-			const theSource = node.getSourceFile();
-			const start = node.getFullStart();
-			const comments = ts.getLeadingCommentRanges(
-				theSource.getText(),
-				start
-			);
-			if (comments) {
-				for (const comment of comments) {
-					const commentText = this.sourceTexts[
-						sourceFile.fileName
-					].substring(comment.pos, comment.end);
-					ret.push(commentText);
-				}
+		const sourceFile = node.getSourceFile()
+		if (debug) {
+			console.log("123123123 Source File: " + sourceFile.fileName)
+		}
+		const start = node.getFullStart();
+		const comments = ts.getLeadingCommentRanges(
+			sourceFile.getText(),
+			start
+		);
+
+		if (comments) {
+			console.log("Node: " + node.getText())
+			console.log(`Comments: ${sourceFile.fileName}` + JSON.stringify(comments))
+			for (const comment of comments) {
+				const commentText = sourceFile
+					.getText()
+					.substring(comment.pos, comment.end);
+				console.log("   => comment text: " + commentText)
+				ret.push(commentText);
 			}
 		}
 		return ret;

@@ -41,15 +41,24 @@ function getCommentsForDeclarationOfIdentifier(
 	const tsSymbol = context.typeChecker.getSymbolAtLocation(identifierNode);
 	const ret = [];
 	if (tsSymbol) {
-		const declaredType = context.typeChecker.getDeclaredTypeOfSymbol(
-			tsSymbol
-		);
+		const declaredType = context.typeChecker.getDeclaredTypeOfSymbol(tsSymbol)
+		if (declaredType) {
+			console.log(" 123123 => sym: " + tsSymbol.getName())
+			const roots = context.typeChecker.getRootSymbols(tsSymbol)
+			for (const root of roots) {
+				console.log("    =>123123123 root: " + root.valueDeclaration!.getSourceFile().fileName)
+			}
 
-		if (tsSymbol.getDeclarations()) {
-			for (const decl of tsSymbol.getDeclarations()!) {
-				const declComment = context.getCommentsForNode(decl, true);
-				for (const dc of declComment) {
-					ret.push(dc);
+			const declarationSymbol = declaredType.symbol
+			console.log("123123 Declaration symbol: " + context.typeChecker.typeToString(declaredType))
+			console.log("123123 Declaration symbol: " + declarationSymbol)
+			if (declarationSymbol) {
+				for (const decl of declarationSymbol.declarations!) {
+					console.log("Decl: " + decl.getText() + " for (" + decl.getSourceFile().fileName + ")")
+					const declComment = context.getCommentsForNode(decl, true);
+					for (const dc of declComment) {
+						ret.push(dc);
+					}
 				}
 			}
 		}
@@ -181,6 +190,7 @@ function toElispNode(node: ts.Node, context: Context) {
 					identifierNode,
 					context
 				);
+				
 				const compilerDirectives = extractCompilerDirectivesFromStrings(
 					comments
 				);

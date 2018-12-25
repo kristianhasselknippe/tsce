@@ -4,7 +4,6 @@ import { Symbol, SymbolType, Context } from './context';
 import {
 	loadProjectFile,
 	loadInputFiles,
-	startProjectFromWorkingDir,
 	compileProject
 } from './projectFormat';
 import {
@@ -543,8 +542,7 @@ interface CompilationResult {
 	output: string
 }
 
-export function compileSources(sources: string[]): CompilationResult[] {
-	const program = createProgram(sources)
+export function compileSources(program: ts.Program): CompilationResult[] {
 	const typeChecker = program.getTypeChecker()
 
 	const ret = []

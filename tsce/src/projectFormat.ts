@@ -1,3 +1,4 @@
+import * as ts from 'typescript'
 import * as process from 'process'
 import * as fs from 'fs';
 import * as path from 'path'
@@ -16,12 +17,6 @@ export function loadProjectFile(filePath: string) {
 	return JSON.parse(content) as ProjectConfig
 }
 
-export interface ProcessInfo {
-	workingDir: path.ParsedPath
-	configPath: string
-	config: ProjectConfig
-}
-
 export function loadInputFiles(config: ProjectConfig) {
 	const files = fs.readdirSync(config.includeFolder)
 	let ret = []
@@ -34,21 +29,58 @@ export function loadInputFiles(config: ProjectConfig) {
 	return ret
 }
 
-export function startProjectFromWorkingDir(configPath: string) {
-	const workingDir = path.parse(process.cwd())
-	return {
-		workingDir,
-		configPath: configPath,
-		config: loadProjectFile(configPath)
-	} as ProcessInfo
+function convertConfigToCompilerOptions(opts: any) {
+	let parsed = ts.parseJsonConfigFileContent({
+		compilerOptions: opts,
+		// if files are not specified then parseJsonConfigFileContent
+		// will use ParseConfigHost to collect files in containing folder
+		files: []
+	},
+	undefined as any,
+	undefined as any);
+	return parsed.options
 }
 
-export function startProjectFromDir(configPath: string, workingDir: string) {
+function createParseConfigHost(): ts.ParseConfigHost {
 	return {
-		workingDir: path.parse(workingDir),
-		configPath: configPath,
-		config: loadProjectFile(path.join(workingDir, configPath))
-	} as ProcessInfo
+		useCaseSensitiveFileNames: true,
+		readDirectory: (rootDir: string, extensions: ReadonlyArray<string>, excludes: ReadonlyArray<string> | undefined, includes: ReadonlyArray<string>, depth?: number) => {
+			return fs.readdirSync(rootDir)
+		},
+		fileExists: (path: string) => {
+			return fs.existsSync(path)
+		},
+		readFile: (path: string) => {
+			return fs.readFileSync(path).toString()
+		}
+	}
+}
+
+export function createProgramFromDir(cp: string) {
+	const configPath = ts.findConfigFile(
+		/*searchPath*/ path.dirname(cp),
+		ts.sys.fileExists,
+		"tsconfig.json"
+	)!;
+
+	console.log("==-- Loading project from: " + configPath)
+	const configText = fs.readFileSync(configPath).toString()
+	const baseName = path.basename(configPath)
+	const basePath = path.dirname(configPath)
+	console.log("   -> basename: " + baseName)
+	const configJson = ts.parseConfigFileTextToJson(baseName, configText)
+
+	const config = ts.convertCompilerOptionsFromJson(configJson.config.compilerOptions, basePath)
+	console.log("   -> Config: " + JSON.stringify(config.options))
+	const program = ts.createProgram([], config.options)
+
+	const programFiles = program.getSourceFiles()
+	for (const file of programFiles) {
+		console.log("   |-> Program files: " + file.fileName)
+	}
+
+	return program
+
 }
 
 export interface InputFile {
@@ -56,22 +88,8 @@ export interface InputFile {
 	contents: string
 }
 
-function getFullPathToIncludeDir(process: ProcessInfo) {
-	const configPath = path.parse(process.configPath)
-	const workingDirString = path.format(process.workingDir)
-	return path.join(workingDirString, configPath.dir, process.config.includeFolder)
-}
-
 function ensurePathExists(pathString: string) {
 	shell.mkdir('-p', pathString)
-}
-
-function getFullPathToOutputDir(process: ProcessInfo) {
-	const configPath = path.parse(process.configPath)
-	const workingDirString = path.format(process.workingDir)
-	if (process.config.outputFolder) {
-		return path.join(workingDirString, configPath.dir, process.config.outputFolder)
-	}
 }
 
 function filterTypeScriptFiles(files: string[]) {
@@ -83,13 +101,6 @@ function filterTypeScriptFiles(files: string[]) {
 		}
 	}
 	return ret
-}
-
-function getFilesToCompile(process: ProcessInfo) {
-	const fullIncludeDirPath = getFullPathToIncludeDir(process)
-	const files = fs.readdirSync(fullIncludeDirPath)
-
-	return filterTypeScriptFiles(files.map(x => path.join(fullIncludeDirPath, x)))
 }
 
 export interface ElispFile {
@@ -107,15 +118,10 @@ export function appendCompilationResult(to: CompilationResult, append: Compilati
 	}
 }
 
-export function compileProject(process: ProcessInfo[]): CompilationResult {
-	const projectFiles = process
-		.map(getFilesToCompile)
-		.reduce((prev, curr) => {
-			return prev.concat(curr)
-		})
+export function compileProject(program: ts.Program): CompilationResult {
+	const result = compileSources(program)
 
 	const elispFiles = []
-	const result = compileSources(projectFiles)
 
 	for (const file of result) {
 
@@ -131,8 +137,8 @@ export function compileProject(process: ProcessInfo[]): CompilationResult {
 	}
 }
 
-export function writeCompilationResultToStorage(process: ProcessInfo, result: CompilationResult) {
-	const outputDir = getFullPathToOutputDir(process)
+export function writeCompilationResultToStorage(program: ts.Program, result: CompilationResult) {
+	const outputDir = program.getCompilerOptions().outDir!
 	if (outputDir) {
 		ensurePathExists(outputDir)
 		for (const file of result.elispFiles) {

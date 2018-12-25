@@ -11,9 +11,9 @@ import {
 	createSourceFile,
 	getSyntheticLeadingComments,
 	getCommentRange,
-    getLeadingCommentRanges,
-    SymbolTable,
-    createLanguageService
+	getLeadingCommentRanges,
+	SymbolTable,
+	createLanguageService
 } from 'typescript';
 import { fail } from 'assert';
 
@@ -140,19 +140,19 @@ function toElispNode(node: ts.Node, context: Context) {
 				const identifierNode = <ts.Identifier>node
 				const symbolName = identifierNode.text;
 				const symbol = context.getSymbolForName(symbolName);
-				
+
 				const tsSymbol = context.typeChecker.getSymbolAtLocation(identifierNode)
 				if (tsSymbol) {
 					const declaredType = context.typeChecker.getDeclaredTypeOfSymbol(tsSymbol)
-					console.log("    |== " + tsSymbol.escapedName)
+					console.log("   |==(name)=> " + tsSymbol.escapedName)
 					if (tsSymbol.declarations) {
 						for (const decl of tsSymbol.declarations) {
-							console.log("     |=(decl)=> " + decl.getText())
+							console.log("     |==(decl)=> " + decl.getText())
 						}
 					}
 					//console.log("      |== " + JSON.stringify(declaredType))
 				}
-				
+
 
 				context.push(new Elisp.Identifier(symbolName, symbol));
 				break;

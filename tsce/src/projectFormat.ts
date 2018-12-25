@@ -71,8 +71,13 @@ export function createProgramFromDir(cp: string) {
 	const configJson = ts.parseConfigFileTextToJson(baseName, configText)
 
 	const config = ts.convertCompilerOptionsFromJson(configJson.config.compilerOptions, basePath)
-	console.log("   -> Config: " + JSON.stringify(config.options))
-	const program = ts.createProgram([], config.options)
+	console.log("   -> Root dir: " + config.options.rootDir)
+
+	const rootDir = config.options.rootDir ? "./" + config.options.rootDir : "./"
+	const projectFiles = fs.readdirSync(rootDir).map(x => path.join(rootDir, x))
+	console.log("   -> Project files: ", projectFiles)
+
+	const program = ts.createProgram(projectFiles, config.options)
 
 	const programFiles = program.getSourceFiles()
 	for (const file of programFiles) {

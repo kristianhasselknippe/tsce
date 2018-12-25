@@ -56,7 +56,7 @@ function createParseConfigHost(): ts.ParseConfigHost {
 	}
 }
 
-export function createProgramFromDir(cp: string) {
+function readConfig(cp: string) {
 	const configPath = ts.findConfigFile(
 		/*searchPath*/ path.dirname(cp),
 		ts.sys.fileExists,
@@ -70,14 +70,35 @@ export function createProgramFromDir(cp: string) {
 	console.log("   -> basename: " + baseName)
 	const configJson = ts.parseConfigFileTextToJson(baseName, configText)
 
-	const config = ts.convertCompilerOptionsFromJson(configJson.config.compilerOptions, basePath)
-	console.log("   -> Root dir: " + config.options.rootDir)
+	return ts.convertCompilerOptionsFromJson(configJson.config.compilerOptions, basePath).options
+}
 
-	const rootDir = config.options.rootDir ? "./" + config.options.rootDir : "./"
-	const projectFiles = fs.readdirSync(rootDir).map(x => path.join(rootDir, x))
-	console.log("   -> Project files: ", projectFiles)
+export function createProgramFromDir(cp: string) {
+	const configDir = path.dirname(cp)
+	const config = readConfig(cp)
 
-	const program = ts.createProgram(projectFiles, config.options)
+	const allFiles: string[] = []
+
+	if (config.typeRoots) {
+		for (const typeRoot of config.typeRoots) {
+			const dirResult = fs.readdirSync("./" + typeRoot)
+			console.log("  -> Dir res: " + JSON.stringify(dirResult))
+			for (const typeFile of dirResult) {
+				console.log("   -> Type root: " + typeFile)
+				allFiles.push(path.join(typeRoot, typeFile))
+			}
+		}
+	}
+
+	console.log("   -> Root dir: " + config.rootDir)
+	const rootDir = config.rootDir ? "./" + config.rootDir : "./"
+	fs.readdirSync(rootDir)
+		.map(x => path.join(rootDir, x))
+		.forEach(x => allFiles.push(x))
+
+	console.log("   -> Project files: ", allFiles)
+
+	const program = ts.createProgram(allFiles, config)
 
 	const programFiles = program.getSourceFiles()
 	for (const file of programFiles) {

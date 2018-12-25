@@ -1,8 +1,12 @@
-import { Block, tabs } from "./";
+import { Block, tabs, Identifier } from "./";
+import { SymbolType } from "../context";
 
 export class Lambda extends Block {
 	constructor(readonly args: string[]) {
-		super("lambda")
+		super(new Identifier("lambda", {
+			name: "lambda",
+			type: SymbolType.Lambda
+		}, []))
 	}
 
 	emitArgs() {

@@ -1,9 +1,9 @@
-import {
-  tslog,
-  tsarray,
-} from 'emacs';
+const foo = "bar"
 
-function testing() {
-	const array = tsarray([1,2,3,4,5])
-	return array
+// [Predicate]
+function foobar(hei: number): boolean {
+	return true
 }
+
+//[Name: testing?]
+foobar(20)

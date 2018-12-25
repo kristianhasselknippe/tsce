@@ -15,6 +15,10 @@ import {
 	createLanguageService
 } from 'typescript';
 import { fail } from 'assert';
+import {
+	extractCompilerDirectivesFromString,
+	extractCompilerDirectivesFromStrings
+} from './elispTypes/compilerDirective';
 
 function parseAndExpect<T extends Elisp.Node>(node: ts.Node, context: Context) {
 	const prevStackLen = context.size;
@@ -28,6 +32,29 @@ function parseAndExpect<T extends Elisp.Node>(node: ts.Node, context: Context) {
 	}
 
 	return context.pop() as T;
+}
+
+function getCommentsForDeclarationOfIdentifier(
+	identifierNode: ts.Identifier,
+	context: Context
+) {
+	const tsSymbol = context.typeChecker.getSymbolAtLocation(identifierNode);
+	const ret = [];
+	if (tsSymbol) {
+		const declaredType = context.typeChecker.getDeclaredTypeOfSymbol(
+			tsSymbol
+		);
+
+		if (tsSymbol.getDeclarations()) {
+			for (const decl of tsSymbol.getDeclarations()!) {
+				const declComment = context.getCommentsForNode(decl, true);
+				for (const dc of declComment) {
+					ret.push(dc);
+				}
+			}
+		}
+	}
+	return ret;
 }
 
 function toElispNode(node: ts.Node, context: Context) {
@@ -123,7 +150,16 @@ function toElispNode(node: ts.Node, context: Context) {
 					});
 				});
 
-				let defun = new Elisp.Defun(name.text, args, nodeComments);
+				const functionIdentifier = parseAndExpect<Elisp.Identifier>(
+					name,
+					context
+				);
+
+				let defun = new Elisp.Defun(
+					functionIdentifier,
+					args,
+					nodeComments
+				);
 				context.push(defun);
 				if (fd.body) {
 					fd.body.statements.forEach(x => {
@@ -136,31 +172,29 @@ function toElispNode(node: ts.Node, context: Context) {
 			}
 			case ts.SyntaxKind.Identifier: {
 				context.printAtStackOffset('Identifier', node);
-				const identifierNode = <ts.Identifier>node
+				const identifierNode = <ts.Identifier>node;
 				const symbolName = identifierNode.text;
+				console.log(` Symbol(${symbolName}) =>`);
 				const symbol = context.getSymbolForName(symbolName);
 
-				const tsSymbol = context.typeChecker.getSymbolAtLocation(identifierNode)
-				if (tsSymbol) {
-					const declaredType = context.typeChecker.getDeclaredTypeOfSymbol(tsSymbol)
-					console.log("   |==(name)=> " + tsSymbol.escapedName)
-					if (tsSymbol.declarations) {
-						for (const decl of tsSymbol.declarations) {
-							console.log("     |==(decl)=> " + decl.getText())
-						}
-					}
-					//console.log("      |== " + JSON.stringify(declaredType))
-				}
+				const comments = getCommentsForDeclarationOfIdentifier(
+					identifierNode,
+					context
+				);
+				const compilerDirectives = extractCompilerDirectivesFromStrings(
+					comments
+				);
 
-
-				context.push(new Elisp.Identifier(symbolName, symbol));
+				context.push(
+					new Elisp.Identifier(symbolName, symbol, compilerDirectives)
+				);
 				break;
 			}
 			case ts.SyntaxKind.ParenthesizedExpression:
 				context.printAtStackOffset('ParenthesizedExpression: ', node);
 				let pe = <ts.ParenthesizedExpression>node;
-				toElispNode(pe.expression, context)
-				break
+				toElispNode(pe.expression, context);
+				break;
 			case ts.SyntaxKind.BinaryExpression: {
 				context.printAtStackOffset('BinaryExpression: ', node);
 				let be = <ts.BinaryExpression>node;
@@ -464,6 +498,12 @@ function toElispNode(node: ts.Node, context: Context) {
 					context.resolveTo(lambda);
 				}
 				break;
+			case ts.SyntaxKind.TypeAliasDeclaration:
+				break;
+			case ts.SyntaxKind.ModuleDeclaration:
+				break;
+			case ts.SyntaxKind.ClassDeclaration:
+				break;
 			case ts.SyntaxKind.ParenthesizedExpression:
 				{
 				}
@@ -477,10 +517,11 @@ function toElispNode(node: ts.Node, context: Context) {
 					//const singleLineComment = <ts.SingleLineCommentTrivia>node
 				}
 				break;
-			case ts.SyntaxKind.ConditionalExpression:
-				{
-					throw new Error("Unrecognized language feature: ConditionalExpression")
-				}
+			case ts.SyntaxKind.ConditionalExpression: {
+				throw new Error(
+					'Unrecognized language feature: ConditionalExpression'
+				);
+			}
 			case ts.SyntaxKind.ImportDeclaration:
 				{
 					const importDecl = <ts.ImportDeclaration>node;
@@ -527,37 +568,26 @@ function toElisp(sourceFile: ts.SourceFile, context: Context) {
 	context.resolveTo(root);
 }
 
-function createProgram(fileNames: string[]) {
-	const options = {
-		noEmitOnError: true,
-		noImplicitAny: true,
-		target: ts.ScriptTarget.ES5,
-		module: ts.ModuleKind.CommonJS
-	}
-	return ts.createProgram(fileNames, options)
-}
-
 interface CompilationResult {
-	sourceFileName: string
-	output: string
+	sourceFileName: string;
+	output: string;
 }
 
 export function compileSources(program: ts.Program): CompilationResult[] {
-	const typeChecker = program.getTypeChecker()
+	const typeChecker = program.getTypeChecker();
 
-	const ret = []
+	const ret = [];
 
-	for (const sourceFile of program.getSourceFiles()) {
-		console.log("== Compiling source file: " + sourceFile.fileName)
-		if (!sourceFile.isDeclarationFile) {
-			// Walk the tree to search for classes
-			const context = new Context(sourceFile, typeChecker);
-			toElisp(sourceFile, context);
-			ret.push({
-				sourceFileName: sourceFile.fileName,
-				output: context.getElispSource()
-			})
-		}
+	const sourceFiles = program.getSourceFiles();
+	for (const sourceFile of sourceFiles) {
+		console.log('== Compiling source file: ' + sourceFile.fileName);
+		// Walk the tree to search for classes
+		const context = new Context(sourceFiles, typeChecker);
+		toElisp(sourceFile, context);
+		ret.push({
+			sourceFileName: sourceFile.fileName,
+			output: context.getElispSource()
+		});
 	}
-	return ret
+	return ret;
 }

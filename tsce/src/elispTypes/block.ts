@@ -1,4 +1,4 @@
-import { Scope, tabs } from ".";
+import { Scope, tabs, Identifier } from ".";
 
 /** Defines a scope which can be returned from, like a function */
 export class Block extends Scope {
@@ -6,7 +6,7 @@ export class Block extends Scope {
 
 	idNumber: number
 
-	constructor(protected readonly identifier: string) {
+	constructor(protected readonly identifier: Identifier) {
 		super([])
 		this.idNumber = Math.floor(Math.random() * 100000)
 	}
@@ -16,7 +16,7 @@ export class Block extends Scope {
 	}
 
 	get blockId() {
-		return "block" + this.idNumber + "-" + this.identifier
+		return "block" + this.idNumber + "-" + this.identifier.emit(0)
 	}
 
 	emitBlock(indent: number, body: string) {

@@ -4,7 +4,8 @@ import * as ts from 'typescript';
 
 export enum SymbolType {
 	Function,
-	Variable
+	Variable,
+	Lambda
 }
 
 export interface Symbol {
@@ -16,14 +17,14 @@ export class SymbolTable {
 	private symbols: Symbol[] = [];
 
 	push(symbol: Symbol) {
-		this.symbols.push(symbol)
+		this.symbols.push(symbol);
 	}
 
 	searchBackwards(pred: (symbol: Symbol) => boolean) {
 		for (let i = this.symbols.length - 1; i >= 0; i--) {
 			const sym = this.symbols[i];
 			if (pred(sym)) {
-				return sym
+				return sym;
 			}
 		}
 		return {
@@ -33,13 +34,16 @@ export class SymbolTable {
 	}
 }
 
-export class Context extends Stack{
-	private symTable = new SymbolTable()
-	private sourceText: string
+export class Context extends Stack {
+	private symTable = new SymbolTable();
+	private sourceTexts: { [index: string]: string } = {};
 
-	constructor(readonly sourceFile: ts.SourceFile, readonly typeChecker: ts.TypeChecker) {
-		super()
-		this.sourceText = sourceFile.getText()
+	constructor(
+		readonly sourceFiles: ReadonlyArray<ts.SourceFile>,
+		readonly typeChecker: ts.TypeChecker
+	) {
+		super();
+		sourceFiles.forEach(x => (this.sourceTexts[x.fileName] = x.getText()));
 	}
 
 	addSymbol(sym: Symbol) {
@@ -47,31 +51,40 @@ export class Context extends Stack{
 	}
 
 	getSymbolForName(name: string) {
-		return this.symTable.searchBackwards((sym) => {
-			return sym.name === name
-		})
+		return this.symTable.searchBackwards(sym => {
+			return sym.name === name;
+		});
 	}
 
-	getCommentsForNode(node: ts.Node) {
-		const comments = ts.getLeadingCommentRanges(this.sourceFile.getText(), node.getFullStart())
-		if (comments) {
-			const ret = []
-			for (const comment of comments) {
-				const commentText = this.sourceText.substring(comment.pos, comment.end)
-				ret.push(commentText)
+	getCommentsForNode(node: ts.Node, debug = false) {
+		const ret = [];
+		for (const sourceFile of this.sourceFiles) {
+			const theSource = node.getSourceFile();
+			const start = node.getFullStart();
+			const comments = ts.getLeadingCommentRanges(
+				theSource.getText(),
+				start
+			);
+			if (comments) {
+				for (const comment of comments) {
+					const commentText = this.sourceTexts[
+						sourceFile.fileName
+					].substring(comment.pos, comment.end);
+					ret.push(commentText);
+				}
 			}
-			return ret
 		}
+		return ret;
 	}
 
 	private stackCount = 0;
 
 	incStackCount() {
-		this.stackCount++
+		this.stackCount++;
 	}
 
 	decStackCount() {
-		this.stackCount--
+		this.stackCount--;
 	}
 
 	getCallStackSize() {
@@ -84,7 +97,7 @@ export class Context extends Stack{
 	}
 
 	printAtStackOffset(text: string, node?: ts.Node) {
-	/*	let scope = '<no scope>';
+		/*	let scope = '<no scope>';
 		try {
 			scope = this.stack.getCurrentScope().type;
 		} catch (e) {

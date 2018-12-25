@@ -77,6 +77,15 @@ export function extractCompilerDirectivesFromString(comment: string): CompilerDi
 			}
 		}
 	}
-	console.log(`   |- Compiler directive: (len: ${ret.length})`, ret)
+	//console.log(`   |- Compiler directive: (len: ${ret.length})`, ret)
+	return ret
+}
+
+
+export function extractCompilerDirectivesFromStrings(comments: string[]): CompilerDirective[] {
+	let ret: CompilerDirective[] = []
+	for (const c of comments) {
+		ret = ret.concat(extractCompilerDirectivesFromString(c))
+	}
 	return ret
 }

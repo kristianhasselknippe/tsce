@@ -11,7 +11,9 @@ import {
 	createSourceFile,
 	getSyntheticLeadingComments,
 	getCommentRange,
-	getLeadingCommentRanges
+    getLeadingCommentRanges,
+    SymbolTable,
+    createLanguageService
 } from 'typescript';
 import { fail } from 'assert';
 
@@ -32,6 +34,7 @@ function parseAndExpect<T extends Elisp.Node>(node: ts.Node, context: Context) {
 function toElispNode(node: ts.Node, context: Context) {
 	context.incStackCount();
 	const nodeComments = context.getCommentsForNode(node);
+
 	(() => {
 		switch (node.kind) {
 			case ts.SyntaxKind.ExpressionStatement:
@@ -459,6 +462,10 @@ function toElispNode(node: ts.Node, context: Context) {
 					//const singleLineComment = <ts.SingleLineCommentTrivia>node
 				}
 				break;
+			case ts.SyntaxKind.ConditionalExpression:
+				{
+					throw new Error("Unrecognized language feature: ConditionalExpression")
+				}
 			case ts.SyntaxKind.ImportDeclaration:
 				{
 					const importDecl = <ts.ImportDeclaration>node;
@@ -505,15 +512,52 @@ function toElisp(sourceFile: ts.SourceFile, context: Context) {
 	context.resolveTo(root);
 }
 
-export function compileSource(source: string) {
+function createProgram(fileNames: string[]) {
+	const options = {
+		noEmitOnError: true,
+		noImplicitAny: true,
+		target: ts.ScriptTarget.ES5,
+		module: ts.ModuleKind.CommonJS
+	}
+	return ts.createProgram(fileNames, options)
+}
+
+function compileSource(source: string, symbolTable: SymbolTable) {
 	const tsSource = ts.createSourceFile(
 		'../test.tselisp',
 		source,
 		ts.ScriptTarget.ES2015,
 		/*setParentNodes */ true
 	);
+
 	//TODO: Make context a part of the context and not a global variable
 	const context = new Context(tsSource);
 	toElisp(tsSource, context);
 	return context.getElispSource();
+}
+
+interface CompilationResult {
+	sourceFileName: string
+	output: string
+}
+
+export function compileSources(sources: string[]): CompilationResult[] {
+	const program = createProgram(sources)
+	const typeChecker = program.getTypeChecker()
+
+	const ret = []
+
+	for (const sourceFile of program.getSourceFiles()) {
+		console.log("== Compiling source file: " + sourceFile.fileName)
+		if (!sourceFile.isDeclarationFile) {
+			// Walk the tree to search for classes
+			const context = new Context(sourceFile);
+			toElisp(sourceFile, context);
+			ret.push({
+				sourceFileName: sourceFile.fileName,
+				output: context.getElispSource()
+			})
+		}
+	}
+	return ret
 }

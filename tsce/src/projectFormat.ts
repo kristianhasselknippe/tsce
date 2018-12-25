@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path'
 import * as shell from 'shelljs'
 
-import { compileSource } from './compiler'
+import { compileSources } from './compiler'
 
 export interface ProjectConfig {
 	includeFolder: string
@@ -73,16 +73,28 @@ function getFullPathToOutputDir(process: ProcessInfo) {
 	}
 }
 
-function filterTypeScriptFiles(files: string[]) {
-	const filesToCompile = []
+interface ProjectFiles {
+	sourceFiles: string[]
+	definitionFiles: string[]
+}
+
+function filterTypeScriptFiles(files: string[]): ProjectFiles {
+	const sourceFiles = []
+	const definitionFiles = []
 	for (const file of files) {
 		const extension = path.extname(file)
 		if (extension === '.ts' &&
 			file.indexOf('.d.ts') === -1) {
-			filesToCompile.push(file)
+			sourceFiles.push(file)
+		} else if (extension === '.ts' &&
+				   file.indexOf('.d.ts') !== -1) {
+			definitionFiles.push(file)
 		}
 	}
-	return filesToCompile
+	return {
+		sourceFiles,
+		definitionFiles
+	}
 }
 
 function getFilesToCompile(process: ProcessInfo) {
@@ -108,15 +120,20 @@ export function appendCompilationResult(to: CompilationResult, append: Compilati
 }
 
 export function compileProject(process: ProcessInfo): CompilationResult {
-	const filesToCompile = getFilesToCompile(process)
+	const projectFiles = getFilesToCompile(process)
 
 	const elispFiles = []
-	for (const file of filesToCompile) {
-		const content = fs.readFileSync(file).toString()
-		const fileName = path.basename(file).split('.')[0] + '.el'
-		const elispSource = compileSource(content)
+
+
+	const allFiles = projectFiles.definitionFiles.concat(projectFiles.sourceFiles)
+	const result = compileSources(allFiles)
+
+	for (const file of result) {
+
+		const fileName = path.basename(file.sourceFileName).split('.')[0] + '.el'
+
 		elispFiles.push({
-			content: elispSource,
+			content: file.output,
 			fileName: fileName
 		})
 	}

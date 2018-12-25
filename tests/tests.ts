@@ -1,4 +1,4 @@
-import { TS, message, tslog, tsarray, getBufferCreate, insertBufferSubstringNoProperties, setBuffer, withCurrentBuffer, insert, doWithCurrentBuffer, pointMax } from 'emacs'
+import { TS, message, tslog, tsarray, getBufferCreate, insertBufferSubstringNoProperties, setBuffer, withCurrentBuffer, insert, doWithCurrentBuffer, pointMax, stringp } from 'emacs'
 
 function assignmentAndLoops(to: number) {
 	let foo = 1 + 2
@@ -188,3 +188,15 @@ function heiMammaOgPappa() {
 }
 
 heiMammaOgPappa()
+
+function square(a: number) {
+	return a * a
+}
+
+tslog(square(square(4)))
+
+function insertTextNew(someText: string) {
+	insert(someText)
+}
+
+stringp("foobar")

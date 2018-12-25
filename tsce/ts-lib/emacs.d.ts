@@ -98,4 +98,8 @@ declare module 'emacs' {
 	interface Symbol { }
 	function intern(name: string): Symbol
 	function require(symbol: Symbol): void
+
+	//Assertions
+	//[Name: string?]
+	function stringp(item: any): boolean
 }

@@ -77,6 +77,6 @@ export function extractCompilerDirectivesFromString(comment: string): CompilerDi
 			}
 		}
 	}
-	console.log(`Compiler directive: (len: ${ret.length})`, ret)
+	console.log(`   |- Compiler directive: (len: ${ret.length})`, ret)
 	return ret
 }

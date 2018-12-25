@@ -12,14 +12,44 @@ export interface Symbol {
 	type: SymbolType;
 }
 
-export class Context extends Stack{
+export class SymbolTable {
 	private symbols: Symbol[] = [];
 
+	push(symbol: Symbol) {
+		this.symbols.push(symbol)
+	}
+
+	searchBackwards(pred: (symbol: Symbol) => boolean) {
+		for (let i = this.symbols.length - 1; i >= 0; i--) {
+			const sym = this.symbols[i];
+			if (pred(sym)) {
+				return sym
+			}
+		}
+		return {
+			name: '<missing>',
+			type: SymbolType.Function
+		};
+	}
+}
+
+export class Context extends Stack{
+	private symTable = new SymbolTable()
 	private sourceText: string
 
 	constructor(readonly sourceFile: ts.SourceFile) {
 		super()
 		this.sourceText = sourceFile.getText()
+	}
+
+	addSymbol(sym: Symbol) {
+		this.symTable.push(sym);
+	}
+
+	getSymbolForName(name: string) {
+		return this.symTable.searchBackwards((sym) => {
+			return sym.name === name
+		})
 	}
 
 	getCommentsForNode(node: ts.Node) {
@@ -70,22 +100,5 @@ export class Context extends Stack{
 				', size: ' +
 				this.stack.size
 		);*/
-	}
-
-	addSymbol(sym: Symbol) {
-		this.symbols.push(sym);
-	}
-
-	getSymbolForName(name: string) {
-		for (let i = this.symbols.length - 1; i >= 0; i--) {
-			const sym = this.symbols[i];
-			if (sym.name === name) {
-				return sym;
-			}
-		}
-		return {
-			name: '<missing>',
-			type: SymbolType.Function
-		};
 	}
 }

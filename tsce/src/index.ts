@@ -19,6 +19,9 @@ function parseCliArguments() {
 	}
 }
 
+
+
+
 let cliArgs = parseCliArguments()
 
 //compile ts-lib
@@ -38,4 +41,4 @@ const libPath = path.join(__dirname, '../src', 'ts-lib.el')
 addFileToResult(results, libPath)
 
 console.log("== Writing result")
-writeCompilationResultToStorage(compilerProject, results) 
+writeCompilationResultToStorage(compilerProject, results)

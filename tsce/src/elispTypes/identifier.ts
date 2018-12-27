@@ -10,8 +10,9 @@ function isUpper(character: string) {
 export class Identifier extends Expression {
 	type = 'Identifier';
 
-	private isPredicate = false
-	private customName?: string
+	isPredicate = false
+	customName?: string
+	useNamedArguments = false
 
 	constructor(public readonly identifierName: string, readonly symbol: Symbol, readonly declarationDirectives: CompilerDirective[]) {
 		super();
@@ -23,6 +24,9 @@ export class Identifier extends Expression {
 					break
 				case "Predicate":
 					this.isPredicate = true
+					break
+				case "NamedArguments":
+					this.useNamedArguments = true
 					break
 			}
 		}

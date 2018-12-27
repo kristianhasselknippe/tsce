@@ -38,32 +38,20 @@ function getCommentsForDeclarationOfIdentifier(
 	identifierNode: ts.Identifier,
 	context: Context
 ) {
-	const tsSymbol = context.typeChecker.getSymbolAtLocation(identifierNode);
-	const ret = [];
-	if (tsSymbol) {
-		const declaredType = context.typeChecker.getDeclaredTypeOfSymbol(tsSymbol)
-		if (declaredType) {
-			console.log(" 123123 => sym: " + tsSymbol.getName())
-			const roots = context.typeChecker.getRootSymbols(tsSymbol)
-			for (const root of roots) {
-				console.log("    =>123123123 root: " + root.valueDeclaration!.getSourceFile().fileName)
-			}
-
-			const declarationSymbol = declaredType.symbol
-			console.log("123123 Declaration symbol: " + context.typeChecker.typeToString(declaredType))
-			console.log("123123 Declaration symbol: " + declarationSymbol)
-			if (declarationSymbol) {
-				for (const decl of declarationSymbol.declarations!) {
-					console.log("Decl: " + decl.getText() + " for (" + decl.getSourceFile().fileName + ")")
-					const declComment = context.getCommentsForNode(decl, true);
-					for (const dc of declComment) {
-						ret.push(dc);
-					}
-				}
+	const nodeType = context.typeChecker.getTypeAtLocation(identifierNode)
+	const nodeSymbol = nodeType.getSymbol()
+	let ret: string[] = []
+	if (nodeSymbol) {
+		const declarations = nodeSymbol.getDeclarations()
+		if (declarations) {
+			for (const decl of declarations) {
+				const comments = context.getCommentsForNode(decl)
+				ret = ret.concat(comments)
 			}
 		}
 	}
-	return ret;
+	return ret
+
 }
 
 function toElispNode(node: ts.Node, context: Context) {

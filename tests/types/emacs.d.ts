@@ -198,3 +198,8 @@ declare module "s" {
 	//function sTitleizedWords (s: string)
 	//function sWordInitials (s: string)
 }
+
+declare module 'json' {
+	function jsonReadFromString<T>(input: string): T
+	function jsonEncode<T>(input: T): string
+}

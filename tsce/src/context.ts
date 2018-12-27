@@ -59,9 +59,6 @@ export class Context extends Stack {
 	getCommentsForNode(node: ts.Node, debug = false) {
 		const ret = [];
 		const sourceFile = node.getSourceFile()
-		if (debug) {
-			console.log("123123123 Source File: " + sourceFile.fileName)
-		}
 		const start = node.getFullStart();
 		const comments = ts.getLeadingCommentRanges(
 			sourceFile.getText(),
@@ -69,13 +66,10 @@ export class Context extends Stack {
 		);
 
 		if (comments) {
-			console.log("Node: " + node.getText())
-			console.log(`Comments: ${sourceFile.fileName}` + JSON.stringify(comments))
 			for (const comment of comments) {
 				const commentText = sourceFile
 					.getText()
 					.substring(comment.pos, comment.end);
-				console.log("   => comment text: " + commentText)
 				ret.push(commentText);
 			}
 		}

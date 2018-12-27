@@ -34,24 +34,23 @@ function parseAndExpect<T extends Elisp.Node>(node: ts.Node, context: Context) {
 	return context.pop() as T;
 }
 
-function getCommentsForDeclarationOfIdentifier(
-	identifierNode: ts.Identifier,
+function getCommentsForDeclarationOfNode(
+	node: ts.Node,
 	context: Context
 ) {
-	const nodeType = context.typeChecker.getTypeAtLocation(identifierNode)
-	const nodeSymbol = nodeType.getSymbol()
-	let ret: string[] = []
+	const nodeType = context.typeChecker.getTypeAtLocation(node);
+	const nodeSymbol = nodeType.getSymbol();
+	let ret: string[] = [];
 	if (nodeSymbol) {
-		const declarations = nodeSymbol.getDeclarations()
+		const declarations = nodeSymbol.getDeclarations();
 		if (declarations) {
 			for (const decl of declarations) {
-				const comments = context.getCommentsForNode(decl)
-				ret = ret.concat(comments)
+				const comments = context.getCommentsForNode(decl);
+				ret = ret.concat(comments);
 			}
 		}
 	}
-	return ret
-
+	return ret;
 }
 
 function toElispNode(node: ts.Node, context: Context) {
@@ -174,11 +173,11 @@ function toElispNode(node: ts.Node, context: Context) {
 				console.log(` Symbol(${symbolName}) =>`);
 				const symbol = context.getSymbolForName(symbolName);
 
-				const comments = getCommentsForDeclarationOfIdentifier(
+				const comments = getCommentsForDeclarationOfNode(
 					identifierNode,
 					context
 				);
-				
+
 				const compilerDirectives = extractCompilerDirectivesFromStrings(
 					comments
 				);
@@ -537,9 +536,51 @@ function toElispNode(node: ts.Node, context: Context) {
 					) {
 						isRelativePath = false;
 					}
-					context.push(
-						new Elisp.ModuleImport(moduleName, isRelativePath)
-					);
+
+					if (importDecl.importClause) {
+						console.log(
+							'Import clause: ' +
+								importDecl.importClause.getText()
+						);
+						if (importDecl.importClause.namedBindings) {
+							console.log(
+								'   namedBindings: ' +
+									importDecl.importClause.namedBindings.getText()
+							);
+							const namedBinding =
+								importDecl.importClause.namedBindings;
+							if (
+								namedBinding.kind ===
+								ts.SyntaxKind.NamespaceImport
+							) {
+								//Need to create an elisp object with the entire namespace
+								const namespaceIdentifier = parseAndExpect<Elisp.Identifier>(namedBinding.name, context);
+								const namespaceType = context.typeChecker.getTypeAtLocation(namedBinding)
+
+								const members = []
+								const properties =  namespaceType.getProperties()
+								for (const p of properties) {
+									const declaration = p.valueDeclaration
+									if (declaration) {
+										if (declaration.kind === ts.SyntaxKind.FunctionDeclaration) {
+											const funDecl = <ts.FunctionDeclaration>declaration
+											if (funDecl.name) {
+												const propIdentifier = parseAndExpect<Elisp.Identifier>(funDecl.name, context)
+												members.push(propIdentifier)
+											}
+											//TODO: Handle other types of declarations in namespace imports
+										}
+									}
+								}
+								context.push(new Elisp.NamespaceImport(namespaceIdentifier, members, moduleName, isRelativePath))
+							} else if (namedBinding.kind === ts.SyntaxKind.NamedImports) {
+								context.push(
+									new Elisp.ModuleImport(moduleName, isRelativePath)
+								);
+							}
+						}
+					}
+
 					context.resolveToCurrentScope();
 				}
 				break;

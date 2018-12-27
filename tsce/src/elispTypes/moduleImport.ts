@@ -1,4 +1,4 @@
-import { Statement, tabs, StringLiteral } from '.';
+import { Statement, tabs, StringLiteral, Identifier } from '.';
 
 export class ModuleImport extends Statement {
 	type: string = 'ModuleImport';
@@ -21,5 +21,34 @@ export class ModuleImport extends Statement {
 			   This might not be enough in the future. */
 			return '';
 		}
+	}
+}
+
+export class NamespaceImport extends ModuleImport {
+	constructor(
+		readonly namespaceObjectIdentifier: Identifier,
+		readonly namespaceMembers: Identifier[],
+		moduleString: StringLiteral,
+		isRelativePath: boolean
+	) {
+		super(moduleString, isRelativePath);
+	}
+
+	emitMembers(indent: number) {
+		let ret = ''
+		for (const member of this.namespaceMembers) {
+			ret += `${tabs(indent)}(${member.emit(0)} . ${member.emit(0)})\n`
+		}
+		return ret
+	}
+
+	emitNamespaceObject(indent: number) {
+		return `${tabs(indent)}(setq ${this.namespaceObjectIdentifier.emit(0)} \'(\n${this.emitMembers(indent + 1)}))`
+	}
+
+	emit(indent: number) {
+		const loadingTheModule = super.emit(indent) + '\n'
+		const namespaceObject = this.emitNamespaceObject(indent)
+		return loadingTheModule + namespaceObject
 	}
 }

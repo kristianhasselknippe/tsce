@@ -1,5 +1,5 @@
-import { sEquals } from 's'
+import { interactive } from 'emacs'
+import * as s from 's'
 
-
-
-sEquals("hei", "bar")
+const foo = 'HeiSann'
+const rest = s.sDowncase(foo)

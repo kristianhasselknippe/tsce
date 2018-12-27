@@ -5,7 +5,6 @@ export class Defun extends Block {
 	type = 'Function';
 
 	private customForm?: string
-	//private usesNamedArguments = false
 
 	constructor(identifier: Identifier, readonly args: string[], comments?: string[]) {
 		super(identifier);
@@ -19,9 +18,6 @@ export class Defun extends Block {
 				switch (compDir.kind) {
 					case "Form":
 						this.customForm = compDir.form
-						break
-					case "NamedArguments":
-						//this.usesNamedArguments = true
 						break
 				}
 			}

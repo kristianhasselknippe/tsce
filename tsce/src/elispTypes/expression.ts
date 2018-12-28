@@ -8,7 +8,7 @@ export abstract class Expression extends Node {
 	}
 
 	emit(indent: number) {
-		return ""
+		return ''
 	}
 
 	emitAsString(indent: number) {

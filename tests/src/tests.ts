@@ -146,3 +146,21 @@ function callRootFunctionThroughObjectRefTest() {
 	}
 	should(theObj.root(val))
 }
+
+//[Form: ert-deftest]
+function objectCreationWithListOfStrings() {
+	const foo = {
+		bar: ['hei', 'sann']
+	}
+	should(equal(foo.bar[0], 'hei'))
+}
+
+//[Form: ert-deftest]
+function objectCreationWithListOfVariables() {
+	const hei = 'hei'
+	const sann = 'sann'
+	const foo = {
+		bar: [hei, sann]
+	}
+	should(equal(foo.bar[0], 'hei'))
+}

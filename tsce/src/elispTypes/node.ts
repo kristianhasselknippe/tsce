@@ -3,6 +3,10 @@ import { Lambda, Identifier, Scope, Block, RootScope } from './'
 export abstract class Node {
 	abstract type: string
 	abstract emit(indent: number): string
+	
+	emitQuoted(indent: number): string {
+		return this.emit(indent)
+	}
 
 	isBig() {
 		return false

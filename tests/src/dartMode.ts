@@ -26,12 +26,13 @@ function filter(proc: emacs.Process, msg: string) {
 }
 
 function startServer() {
-	const server = emacs.makeProcess({
+	let arg = {
 		name: 'Dart analyzer process',
 		buffer: 'Dart analyzer buffer',
 		command: [dartPath, snapShotPath],
-		filter: (proc, msg) => filter(proc, msg),
-	})
+		filter: (proc: emacs.Process, msg: string) => filter(proc, msg),
+	}
+	const server = emacs.makeProcess(arg)
 	return {
 		process: server
 	}

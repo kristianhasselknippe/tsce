@@ -3,6 +3,7 @@ import { StringLiteral, NumberLiteral, Identifier, tabs, Expression, Node } from
 export type PropertyName = Identifier | NumberLiteral | StringLiteral
 
 export class Property extends Node {
+
 	type: string = 'Property'
 
 	constructor(readonly name: PropertyName,

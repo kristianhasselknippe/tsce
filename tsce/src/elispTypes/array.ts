@@ -11,8 +11,12 @@ export class ArrayLiteral extends Expression {
 		}, "")
 	}
 
+	emitQuoted(indent: number) {
+		return `${tabs(indent)} \`(${this.emitItems()})`
+	}
+
 	emit(indent: number) {
-		return `${tabs(indent)}\`(${this.emitItems()})`
+		return `${tabs(indent)} (${this.emitItems()})`
 	}
 }
 

@@ -1,5 +1,4 @@
 import { should, equal } from 'ert'
-import * as emacs from 'emacs'
 
 //[Form: ert-deftest]
 function testEquality(){
@@ -185,4 +184,17 @@ function objectLiteralReferencingArrayInObject() {
 		testing: foo.bar[1]
 	}
 	should(equal(bar.testing, 'bartesting'))
+}
+
+
+function convert(str: string) {
+	return 'foobar'
+}
+
+//[Form: ert-deftest]
+function testQuotationOfNestedFunctionsInLetExpression() {
+	let foo = {
+		bar: convert('heisann')
+	}
+	should(equal(foo.bar, 'foobar'))
 }

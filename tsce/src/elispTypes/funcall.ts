@@ -24,6 +24,10 @@ export class FunctionCall extends Expression {
 	emit(indent: number) {
 		return `${tabs(indent)}(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
 	}
+
+	emitQuoted(indent: number) {
+		return `${tabs(indent)},(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
+	}
 }
 
 export interface NamedArgument {
@@ -58,6 +62,12 @@ export class NamedArgumentsFunctionCall extends FunctionCall {
 	emit(indent: number) {
 		return this.WrappingLet.emitWithBody(indent, (indent) => {
 			return `${tabs(indent)}(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
+		})
+	}
+
+	emitQuoted(indent: number) {
+		return this.WrappingLet.emitWithBody(indent, (indent) => {
+			return `${tabs(indent)},(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
 		})
 	}
 }

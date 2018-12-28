@@ -164,3 +164,14 @@ function objectCreationWithListOfVariables() {
 	}
 	should(equal(foo.bar[0], 'hei'))
 }
+
+//[Form: ert-deftest]
+function objectLiteralReferencingVariable() {
+	const foo = {
+		bar: 'bartesting'
+	}
+	const bar = {
+		testing: foo.bar
+	}
+	should(equal(bar.testing, 'bartesting'))
+}

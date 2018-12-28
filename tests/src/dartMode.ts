@@ -15,22 +15,22 @@ interface Server {
 
 let buffer = ''
 
-function parseMessage() {
+function dartParseMessage() {
 	console.log('Parsing message from buffer: ' + buffer)
 }
 
-function filter(proc: emacs.Process, msg: string) {
+function dartFilter(proc: emacs.Process, msg: string) {
 	console.log('Filter called with msg: ' + msg)
 	buffer = buffer + msg
-	parseMessage()
+	dartParseMessage()
 }
 
-function startServer() {
+function dartStartServer() {
 	let arg = {
 		name: 'Dart analyzer process',
 		buffer: 'Dart analyzer buffer',
 		command: [dartPath, snapShotPath],
-		filter: (proc: emacs.Process, msg: string) => filter(proc, msg),
+		filter: (proc: emacs.Process, msg: string) => dartFilter(proc, msg),
 	}
 	const server = emacs.makeProcess(arg)
 	return {
@@ -38,7 +38,7 @@ function startServer() {
 	}
 }
 
-const server = startServer()
+const server = dartStartServer()
 
 interface Request<T extends string> {
 	id: string
@@ -47,19 +47,19 @@ interface Request<T extends string> {
 
 type GetVersionRequest = Request<"server.getVersion">
 
-function makeRequest<T extends string, TOut>(request: Request<T>) {
+function dartMakeRequest<T extends string, TOut>(request: Request<T>) {
 	const jsonString = json.jsonEncode(request)
 	emacs.print('Json string ' + jsonString)
 	emacs.processSendString(server.process, jsonString)
 }
 
 let idCounter = 0
-function getVersion() {
+function dartGetVersion() {
 	interactive()
-	makeRequest({
+	dartMakeRequest({
 		id: idCounter + '',
 		method: 'server.GetVersion'
 	})
 }
 
-getVersion()
+dartGetVersion()

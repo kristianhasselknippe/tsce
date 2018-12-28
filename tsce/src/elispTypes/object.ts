@@ -33,7 +33,7 @@ export class ObjectLiteral extends Expression {
 	}
 
 	emitProperties(indent: number) {
-		const ret = this.properties.map(prop => prop.emit(0)).reduce((prev, prop) => {
+		const ret = this.properties.map(prop => prop.emitQuoted(0)).reduce((prev, prop) => {
 			return  prev + `\n${tabs(indent)}` + prop
 		})
 		return ret
@@ -54,6 +54,14 @@ export class PropertyAccess extends Expression {
 		super()
 	}
 
+	referenceByQuote(){
+		return false
+	}
+
+	emitQuoted(indent: number) {
+		return `${tabs(indent)},(cdr (assoc ${this.rightHand.emitQuoted(0)} ${this.leftHand.emit(0)}))`
+	}
+	
 	emit(indent: number) {
 		return `${tabs(indent)}(cdr (assoc ${this.rightHand.emitQuoted(0)} ${this.leftHand.emit(0)}))`
 	}

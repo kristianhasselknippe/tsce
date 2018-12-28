@@ -11,6 +11,7 @@ declare interface ElispArray<T> {
 declare function tsarray<T>(items: T[]): ElispArray<T>
 
 declare module 'emacs' {
+	function print(msg: string): void
 	function message(msg: string): void
 
 	function doWithCurrentBuffer(buffer: Buffer, action: () => void): void
@@ -109,6 +110,11 @@ If coding is nil, the default rules for finding the coding system will apply. Se
 	function makeProcess(args: MakeProcessArgs): Process
 	function setProcessFilter(process: Process, filter: Filter): void
 	function processFilter(process: Process): Filter
+
+	function processSendString(process: Process, str: string): void
+	function processSendRegion(process: Process, start: number, end: number): void
+	function processSendEof(process?: Process): Process
+	function processRunningChildP(process?: Process): boolean
 
 	// Interactive
 	function interactive(arg?: string): void

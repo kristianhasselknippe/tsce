@@ -113,11 +113,9 @@ function getMembersOfInterfaceDeclaration(node: ts.InterfaceDeclaration, context
 }
 
 function getNamedArgumentNamesForCallExpression(node: ts.CallExpression, context: Context) {
-	console.log('Getting declaration of node; ' + node.getText())
 	const declarations = getDeclarationOfNode(node.expression, context)
 	if (declarations) {
 		for (const declaration of declarations) {
-			console.log('Declaration : ' + declaration.getText())
 			if (declaration.kind === ts.SyntaxKind.FunctionDeclaration) {
 				const args = getArgumentsOfFunctionDeclaration(<ts.FunctionDeclaration>declaration, context)
 				if (args.length !== 1) {

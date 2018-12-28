@@ -7,12 +7,12 @@ export class ArrayLiteral extends Expression {
 
 	emitItems() {
 		return this.items.reduce((prev, curr) => {
-			return prev + " " + curr.emit(0)
+			return prev + " ," + curr.emit(0)
 		}, "")
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)}'(${this.emitItems()})`
+		return `${tabs(indent)}\`(${this.emitItems()})`
 	}
 }
 

@@ -121,3 +121,28 @@ function inlineFunctionTest() {
 	}
 	should(equal(foo(), 'hei'))
 }
+
+//[Form: ert-deftest]
+function callInlineFunctionThroughObjectRefTest() {
+	let val = 20
+	function foobar(v: number) {
+		return v > 10
+	}
+	const theObj = {
+		foo: foobar
+	}
+	should(theObj.foo(val))
+}
+
+function rootFunction(foo: number) {
+	return foo > 10
+}
+
+//[Form: ert-deftest]
+function callRootFunctionThroughObjectRefTest() {
+	let val = 20
+	const theObj = {
+		root: rootFunction
+	}
+	should(theObj.root(val))
+}

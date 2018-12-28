@@ -15,17 +15,17 @@ interface Server {
 
 let buffer = ''
 
-const parseMessage = () => {
+function parseMessage() {
 	console.log('Parsing message from buffer: ' + buffer)
 }
 
-const filter = (proc: emacs.Process, msg: string) => {
+function filter(proc: emacs.Process, msg: string) {
 	console.log('Filter called with msg: ' + msg)
 	buffer = buffer + msg
 	parseMessage()
 }
 
-const startServer = () => {
+function startServer() {
 	const server = emacs.makeProcess({
 		name: 'Dart analyzer process',
 		buffer: 'Dart analyzer buffer',
@@ -46,14 +46,15 @@ interface Request<T extends string> {
 
 type GetVersionRequest = Request<"server.getVersion">
 
-const makeRequest = <T extends string, TOut>(request: Request<T>) => {
+function makeRequest<T extends string, TOut>(request: Request<T>) {
 	const jsonString = json.jsonEncode(request)
 	emacs.print('Json string ' + jsonString)
 	emacs.processSendString(server.process, jsonString)
 }
 
 let idCounter = 0
-const getVersion = () => {
+function getVersion() {
+	interactive()
 	makeRequest({
 		id: idCounter + '',
 		method: 'server.GetVersion'

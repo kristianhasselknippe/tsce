@@ -45,6 +45,10 @@ export class Identifier extends Expression {
 		}
 	}
 
+	referenceByQuote() {
+		return this.symbol.type === SymbolType.Function
+	}
+
 	hyphenateName() {
 		let ret = ""
 		for (const char of this.identifierName) {

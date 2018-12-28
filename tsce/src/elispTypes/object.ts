@@ -15,7 +15,8 @@ export class Property extends Node {
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)}(${this.emitName()} . ,${this.value.emit(0)})`
+		const escape = this.value.referenceByQuote() ? '' : ','
+		return `${tabs(indent)}(${this.emitName()} . ${escape}${this.value.emit(0)})`
 	}
 }
 

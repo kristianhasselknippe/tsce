@@ -2,6 +2,8 @@ import * as emacs from 'emacs'
 import { interactive } from 'emacs'
 import * as json from 'json'
 
+//https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
+
 const dartPath = "c:/tools/dart-sdk/bin/dart.exe"
 const snapShotPath = "c:/tools/dart-sdk/bin/snapshots/analysis_server.dart.snapshot"
 
@@ -25,20 +27,25 @@ function dartFilter(proc: emacs.Process, msg: string) {
 	dartParseMessage()
 }
 
+let server: Server | number = 0
+
 function dartStartServer() {
-	let arg = {
+	let arg: emacs.MakeProcessArgs = {
 		name: 'Dart analyzer process',
 		buffer: 'Dart analyzer buffer',
 		command: [dartPath, snapShotPath],
 		filter: (proc: emacs.Process, msg: string) => dartFilter(proc, msg),
+		stderr: emacs.getBufferCreate('dart analyzer errors')
 	}
-	const server = emacs.makeProcess(arg)
+	if (server) {
+		emacs.deleteProcess(server)
+	}
 	return {
-		process: server
+		process: emacs.makeProcess(arg)
 	}
 }
 
-const server = dartStartServer()
+server = dartStartServer()
 
 interface Request<T extends string> {
 	id: string
@@ -48,7 +55,7 @@ interface Request<T extends string> {
 type GetVersionRequest = Request<"server.getVersion">
 
 function dartMakeRequest<T extends string, TOut>(request: Request<T>) {
-	const jsonString = json.jsonEncode(request)
+	const jsonString = json.jsonEncode(request) + '\n'
 	emacs.print('Json string ' + jsonString)
 	emacs.processSendString(server.process, jsonString)
 }
@@ -57,7 +64,7 @@ let idCounter = 0
 function dartGetVersion() {
 	interactive()
 	dartMakeRequest({
-		id: idCounter + '',
+		id: (idCounter++) + '',
 		method: 'server.GetVersion'
 	})
 }

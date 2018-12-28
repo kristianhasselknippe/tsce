@@ -35,16 +35,21 @@ export class ObjectLiteral extends Expression {
 		return true
 	}
 
-	emitProperties(indent: number) {
-		const ret = this.properties.map(prop => prop.emitQuoted(0)).reduce((prev, prop) => {
+	emitProperties(indent: number, quoted = false) {
+		const ret = this.properties.map(prop => quoted ? prop.emitQuoted(0) : prop.emit(0)).reduce((prev, prop) => {
 			return  prev + `\n${tabs(indent)}` + prop
 		})
 		return ret
 	}
 
-	emit(indent: number) {
-		const ret = `${tabs(indent)}\`(
-${this.emitProperties(indent+1)}
+	emitQuoted(indent: number) {
+		return this.emit(indent, true)
+	}
+
+	emit(indent: number, quoted = false) {
+		const quotation = quoted ? '' : '`'
+		const ret = `${tabs(indent)}${quotation}(
+${this.emitProperties(indent+1, true)}
 ${tabs(indent)})`
 		return ret
 	}

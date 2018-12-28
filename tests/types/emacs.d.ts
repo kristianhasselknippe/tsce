@@ -111,6 +111,8 @@ If coding is nil, the default rules for finding the coding system will apply. Se
 	function setProcessFilter(process: Process, filter: Filter): void
 	function processFilter(process: Process): Filter
 
+	function deleteProcess(process: Process): void
+
 	function processSendString(process: Process, str: string): void
 	function processSendRegion(process: Process, start: number, end: number): void
 	function processSendEof(process?: Process): Process

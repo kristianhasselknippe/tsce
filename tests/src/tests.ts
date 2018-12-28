@@ -221,5 +221,15 @@ function testQuotationOfOperatorsInObject() {
 	should(equal(foobar.baz, 120))
 	should(equal(foobar.multi, 240))
 	should(equal(foobar.div, 60))
-	should(equal(foobar.sub, 20)
+	should(equal(foobar.sub, 20))
+}
+
+//[Form: ert-deftest]
+function testObjectLiteralInObjectLiteral() {
+	const foo = {
+		bar: {
+			hi: 'there'
+		}
+	}
+	should(equal(foo.bar.hi, 'there'))
 }

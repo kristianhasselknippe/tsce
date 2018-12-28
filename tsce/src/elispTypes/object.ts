@@ -15,9 +15,12 @@ export class Property extends Node {
 		return this.name.emit(0)
 	}
 
+	emitQuoted(indent: number) {
+		return `${tabs(indent)}(${this.emitName()} . ${this.value.emitQuoted(0)})`
+	}
+
 	emit(indent: number) {
-		const escape = this.value.referenceByQuote() ? '' : ','
-		return `${tabs(indent)}(${this.emitName()} . ${escape}${this.value.emit(0)})`
+		return `${tabs(indent)}(${this.emitName()} . ${this.value.emit(0)})`
 	}
 }
 
@@ -54,15 +57,11 @@ export class PropertyAccess extends Expression {
 		super()
 	}
 
-	referenceByQuote(){
-		return false
-	}
-
 	emitQuoted(indent: number) {
-		return `${tabs(indent)},(cdr (assoc ${this.rightHand.emitQuoted(0)} ${this.leftHand.emit(0)}))`
+		return `${tabs(indent)},(cdr (assoc ${this.rightHand.emitUnquoted(0)} ${this.leftHand.emit(0)}))`
 	}
 	
 	emit(indent: number) {
-		return `${tabs(indent)}(cdr (assoc ${this.rightHand.emitQuoted(0)} ${this.leftHand.emit(0)}))`
+		return `${tabs(indent)}(cdr (assoc ${this.rightHand.emitUnquoted(0)} ${this.leftHand.emit(0)}))`
 	}
 }

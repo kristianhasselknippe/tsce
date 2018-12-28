@@ -3,7 +3,11 @@ import { Lambda, Identifier, Scope, Block, RootScope } from './'
 export abstract class Node {
 	abstract type: string
 	abstract emit(indent: number): string
-	
+
+	emitUnquoted(indent: number){
+		return this.emit(indent)
+	}
+
 	emitQuoted(indent: number): string {
 		return this.emit(indent)
 	}

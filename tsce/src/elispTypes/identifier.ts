@@ -45,10 +45,6 @@ export class Identifier extends Expression {
 		}
 	}
 
-	referenceByQuote() {
-		return this.symbol.type === SymbolType.Function
-	}
-
 	hyphenateName() {
 		let ret = ""
 		for (const char of this.identifierName) {
@@ -78,6 +74,13 @@ export class Identifier extends Expression {
 	}
 
 	emitQuoted(indent: number) {
-		return tabs(indent) + "'" + this.emit(0)
+		if (this.symbol.type === SymbolType.Function) {
+			return `${tabs(indent)}${this.formatName()}`
+		}
+		return `${tabs(indent)},${this.formatName()}`
+	}
+
+	emitUnquoted(indent: number){
+		return `${tabs(indent)}'${this.formatName()}`
 	}
 }

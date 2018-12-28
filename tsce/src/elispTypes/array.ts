@@ -12,11 +12,11 @@ export class ArrayLiteral extends Expression {
 	}
 
 	emitQuoted(indent: number) {
-		return `${tabs(indent)} \`(${this.emitItems()})`
+		return `${tabs(indent)} (${this.emitItems()})`
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)} (${this.emitItems()})`
+		return `${tabs(indent)} \`(${this.emitItems()})`
 	}
 }
 
@@ -27,5 +27,9 @@ export class ArrayIndexer extends Expression {
 
 	emit(indent: number) {
 		return `${tabs(indent)}(nth ${this.indexer.emit(0)} ${this.leftHand.emit(0)})`
+	}
+
+	emitQuoted(indent: number) {
+		return `${tabs(indent)},(nth ${this.indexer.emit(0)} ${this.leftHand.emit(0)})`
 	}
 }

@@ -166,12 +166,23 @@ function objectCreationWithListOfVariables() {
 }
 
 //[Form: ert-deftest]
-function objectLiteralReferencingVariable() {
+function objectLiteralReferencingMemberOfObject() {
 	const foo = {
 		bar: 'bartesting'
 	}
 	const bar = {
 		testing: foo.bar
+	}
+	should(equal(bar.testing, 'bartesting'))
+}
+
+//[Form: ert-deftest]
+function objectLiteralReferencingArrayInObject() {
+	const foo = {
+		bar: ['1','bartesting','2']
+	}
+	const bar = {
+		testing: foo.bar[1]
 	}
 	should(equal(bar.testing, 'bartesting'))
 }

@@ -39,7 +39,7 @@ export class NamedArgumentsFunctionCall extends FunctionCall {
 		super(leftHand, [arg])
 
 		this.BindingName = this.randomBindingName()
-		this.WrappingLet = new LetBinding([new LetItem(this.BindingName, arg)])
+		this.WrappingLet = new LetBinding([new LetItem(new Identifier(this.BindingName), arg)])
 	}
 
 	randomBindingName() {

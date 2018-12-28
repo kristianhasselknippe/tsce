@@ -107,3 +107,17 @@ function callingArrowFunctionFromLambda(){
 	}
 	should(foo.tester())
 }
+
+const foo = 'bar'
+//[Form: ert-deftest]
+function testTopLevelVariable(){
+	should(equal(foo, 'bar'))
+}
+
+//[Form: ert-deftest]
+function inlineFunctionTest() {
+	function foo() {
+		return 'hei'
+	}
+	should(equal(foo(), 'hei'))
+}

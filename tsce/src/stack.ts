@@ -94,6 +94,10 @@ export default class Stack {
 		}
 	}
 
+	isInRootScope() {
+		return this.getCurrentScope().isRootScope()
+	}
+
 	printStack() {
 		this.visualizeStack(this.stack)
 	}

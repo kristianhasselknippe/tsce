@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import * as Elisp from './elispTypes';
-import { Symbol, SymbolType, Context } from './context';
+import { Symbol, SymbolType, Context, Marker } from './context';
 import {
 	loadProjectFile,
 	loadInputFiles,
@@ -17,10 +17,11 @@ import {
 import { fail } from 'assert';
 import {
 	extractCompilerDirectivesFromString,
-    extractCompilerDirectivesFromStrings,
-    CompilerDirective,
-    CompilerDirectiveKind
+	extractCompilerDirectivesFromStrings,
+	CompilerDirective,
+	CompilerDirectiveKind
 } from './elispTypes/compilerDirective';
+import { LetBinding } from './elispTypes';
 
 function parseAndExpect<T extends Elisp.Node>(node: ts.Node, context: Context) {
 	const prevStackLen = context.size;
@@ -172,6 +173,8 @@ function toElispNode(node: ts.Node, context: Context) {
 			case ts.SyntaxKind.VariableDeclaration:
 				context.printAtStackOffset('VariableDeclaration: ', node);
 				const vd = <ts.VariableDeclaration>node;
+
+				const identifier = parseAndExpect<Elisp.Identifier>(vd.name, context)
 				let name = vd.name.getText();
 				context.addSymbol({
 					name,
@@ -184,40 +187,47 @@ function toElispNode(node: ts.Node, context: Context) {
 						context
 					);
 				}
-				context.push(new Elisp.LetItem(name, initializer));
+				if (context.isInRootScope()) {
+					context.push(new Elisp.Setq(identifier, initializer))
+				} else {
+					context.push(new Elisp.LetItem(identifier, initializer));
+				}
 				break;
 
 			case ts.SyntaxKind.VariableDeclarationList:
 				context.printAtStackOffset('VariableDeclarationList', node);
 				const vdl = <ts.VariableDeclarationList>node;
 
-				const marker = context.push(new Elisp.Body());
+				let marker: Marker
+				if (!context.isInRootScope()) {
+					 marker = context.pushMarker()
+				}
 				for (let variable of vdl.declarations) {
 					toElispNode(variable, context);
 				}
 
-				const bindings = context.popTo(marker) as Elisp.LetItem[];
-				context.pop(); //pop marker
-
-				let letBinding = new Elisp.LetBinding(bindings);
-				context.push(letBinding);
+				if (!context.isInRootScope()) {
+					const bindings = context.popToMarker<Elisp.LetItem>(marker!)
+					let letBinding = new Elisp.LetBinding(bindings);
+					context.push(letBinding);
+				}
 				break;
 
 			case ts.SyntaxKind.VariableStatement: {
 				context.printAtStackOffset('VariableStatement', node);
 				let vs = <ts.VariableStatement>node;
 				toElispNode(vs.declarationList, context);
-
 				break;
 			}
 			case ts.SyntaxKind.FunctionDeclaration: {
 				context.printAtStackOffset('FunctionDeclaration', node);
 				let fd = <ts.FunctionDeclaration>node;
 
+				const inRootScope = context.isInRootScope()
 				let name = fd.name!;
 				context.addSymbol({
 					name: name.getText(),
-					type: SymbolType.Function
+					type: inRootScope ? SymbolType.Function : SymbolType.Variable
 				});
 
 				if (typeof fd.body === 'undefined') {
@@ -240,19 +250,32 @@ function toElispNode(node: ts.Node, context: Context) {
 					context
 				);
 
-				let defun = new Elisp.Defun(
-					functionIdentifier,
-					args,
-					compilerDirectives
-				);
-				context.push(defun);
+				let marker
+				if (inRootScope) {
+					marker = context.push(new Elisp.Defun(
+						functionIdentifier,
+						args,
+						compilerDirectives
+					))
+				} else {
+					marker = context.push(new Elisp.Lambda(args))
+				}
+
 				if (fd.body) {
 					fd.body.statements.forEach(x => {
 						toElispNode(x, context);
 					});
 				}
 
-				context.resolveToParentOf(defun);
+				context.resolveTo(marker)
+				const functionDecl = context.pop() as Elisp.Defun | Elisp.Lambda
+
+				if (!inRootScope) {
+					context.push(new Elisp.LetBinding([new Elisp.LetItem(functionIdentifier, functionDecl)]))
+				} else {
+					context.push(functionDecl)
+					context.resolveToParentOf(functionDecl)
+				}
 				break;
 			}
 			case ts.SyntaxKind.Identifier: {

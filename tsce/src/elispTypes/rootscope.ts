@@ -1,7 +1,7 @@
 import { Scope } from ".";
 
 export class RootScope extends Scope {
-	type = "Root scope"
+	type = "RootScope"
 	constructor() {
 		super([])
 	}

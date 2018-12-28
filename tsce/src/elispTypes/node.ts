@@ -1,4 +1,4 @@
-import { Lambda, Identifier, Scope, Block } from './'
+import { Lambda, Identifier, Scope, Block, RootScope } from './'
 
 export abstract class Node {
 	abstract type: string
@@ -6,6 +6,10 @@ export abstract class Node {
 
 	isBig() {
 		return false
+	}
+
+	isRootScope(): this is RootScope {
+		return this.type === 'RootScope'
 	}
 
 	isLambda(): this is Lambda {

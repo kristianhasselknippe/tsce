@@ -1,4 +1,4 @@
-import { Scope, Expression, tabs } from ".";
+import { Scope, Expression, tabs, Identifier } from ".";
 
 export class LetBinding extends Scope {
 	type = 'LetBinding';
@@ -38,20 +38,12 @@ function isUpper(character: string) {
 export class LetItem extends Expression {
 	type = 'LetItem';
 
-	constructor(public readonly identifier: string, readonly initializer?: Expression) {
+	constructor(public readonly identifier: Identifier, readonly initializer?: Expression) {
 		super()
 	}
 
 	hyphenateName() {
-		let ret = ""
-		for (const char of this.identifier) {
-			if (isUpper(char)) {
-				ret += "-" + char.toLowerCase()
-			} else {
-				ret += char
-			}
-		}
-		return ret
+		return this.identifier.hyphenateName()
 	}
 
 	emitInitializer(indent: number) {

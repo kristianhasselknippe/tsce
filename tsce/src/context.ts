@@ -1,5 +1,5 @@
 import Stack from './stack';
-import { tabs } from './elispTypes';
+import { tabs, Node, Expression } from './elispTypes';
 import * as ts from 'typescript';
 
 export enum SymbolType {
@@ -34,6 +34,14 @@ export class SymbolTable {
 	}
 }
 
+export class Marker extends Expression {
+    type = 'Marker';
+
+    emit(indent: number): string {
+        throw new Error("Internal error: There should be no markers left on the stack after compilation.");
+    }
+}
+
 export class Context extends Stack {
 	private symTable = new SymbolTable();
 	private sourceTexts: { [index: string]: string } = {};
@@ -44,6 +52,18 @@ export class Context extends Stack {
 	) {
 		super();
 		sourceFiles.forEach(x => (this.sourceTexts[x.fileName] = x.getText()));
+	}
+
+	pushMarker() {
+		const marker = new Marker()
+		this.push(marker)
+		return marker
+	}
+
+	popToMarker<T extends Node>(marker: Marker): T[] {
+		const ret = this.popTo(marker) as T[]
+		this.pop(); //pop marker
+		return ret
 	}
 
 	addSymbol(sym: Symbol) {
@@ -96,9 +116,9 @@ export class Context extends Stack {
 	}
 
 	printAtStackOffset(text: string, node?: ts.Node) {
-		/*	let scope = '<no scope>';
+		/*let scope = '<no scope>';
 		try {
-			scope = this.stack.getCurrentScope().type;
+			scope = this.getCurrentScope().type;
 		} catch (e) {
 			console.log('Error : ' + e);
 		}
@@ -110,7 +130,7 @@ export class Context extends Stack {
 				' scope: ' +
 				scope +
 				', size: ' +
-				this.stack.size
+				this.size
 		);*/
 	}
 }

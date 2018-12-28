@@ -198,3 +198,28 @@ function testQuotationOfNestedFunctionsInLetExpression() {
 	}
 	should(equal(foo.bar, 'foobar'))
 }
+
+//[Form: ert-deftest]
+function testQuotationOfPlusInObject() {
+	let foo = {
+		bar: 'heisann' + 123
+	}
+	should(equal(foo.bar, 'heisann123'))
+}
+
+//[Form: ert-deftest]
+function testQuotationOfOperatorsInObject() {
+	let foo = 120
+	let foobar = {
+		bar: foo++,
+		baz: foo--,
+		multi: foo * 2,
+		div: foo / 2.0,
+		sub: foo - 100
+	}
+	should(equal(foobar.bar, 121))
+	should(equal(foobar.baz, 120))
+	should(equal(foobar.multi, 240))
+	should(equal(foobar.div, 60))
+	should(equal(foobar.sub, 20)
+}

@@ -26,6 +26,7 @@ export class FunctionCall extends Expression {
 	}
 
 	emitQuoted(indent: number) {
+		console.log('EMITTING QUOTED: ' + `(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`)
 		return `${tabs(indent)},(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
 	}
 }

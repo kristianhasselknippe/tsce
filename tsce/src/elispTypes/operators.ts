@@ -27,12 +27,17 @@ export class BinaryExpression extends Expression {
 		}
 	}
 
-	emit(indent: number) {
+	emitQuoted(indent: number) {
+		return this.emit(indent, true)
+	}
+
+	emit(indent: number, quoted = false) {
 		let operatorFunc = this.operator
 		if (this.operator === "+") {
 			operatorFunc = "ts/+"
 		}
-		return `${tabs(indent)}(${operatorFunc} ${this.left.emit(0)} ${this.right.emit(0)})`
+		const unquote = quoted ? ',' : ''
+		return `${tabs(indent)}${unquote}(${operatorFunc} ${this.left.emit(0)} ${this.right.emit(0)})`
 	}
 }
 
@@ -51,8 +56,13 @@ export class UnaryPrefixExpression extends UnaryExpression {
 		super(operatorsMap[op], operand)
 	}
 
-	emit(indent: number) {
-		return `${tabs(indent)}(${this.operator} ${this.operand.emit(0)})`
+	emitQuoted(indent: number) {
+		return this.emit(indent, true)
+	}
+
+	emit(indent: number, quoted = false) {
+		const unquote = quoted ? ',' : ''
+		return `${tabs(indent)}${unquote}(${this.operator} ${this.operand.emit(0)})`
 	}
 }
 
@@ -68,8 +78,13 @@ export class UnaryPostfixExpression extends UnaryExpression {
 		super(unaryPostFixOps[op], operand)
 	}
 
-	emit(indent: number) {
+	emitQuoted(indent: number) {
+		return this.emit(indent, true)
+	}
+
+	emit(indent: number, quoted = false) {
+		const unquote = quoted ? ',' : ''
 		const operandStr = this.operand.emit(0)
-		return `${tabs(indent)}(setq ${operandStr} (${this.operator} ${operandStr}))`
+		return `${tabs(indent)}${unquote}(setq ${operandStr} (${this.operator} ${operandStr}))`
 	}
 }

@@ -17,7 +17,9 @@ import {
 import { fail } from 'assert';
 import {
 	extractCompilerDirectivesFromString,
-	extractCompilerDirectivesFromStrings
+    extractCompilerDirectivesFromStrings,
+    CompilerDirective,
+    CompilerDirectiveKind
 } from './elispTypes/compilerDirective';
 
 function parseAndExpect<T extends Elisp.Node>(node: ts.Node, context: Context) {
@@ -34,30 +36,110 @@ function parseAndExpect<T extends Elisp.Node>(node: ts.Node, context: Context) {
 	return context.pop() as T;
 }
 
+function getDeclarationOfNode(node: ts.Node, context: Context) {
+	const nodeType = context.typeChecker.getTypeAtLocation(node)
+	const nodeSymbol = nodeType.getSymbol()
+	if (nodeSymbol) {
+		return nodeSymbol.getDeclarations();
+	}
+}
+
 function getCommentsForDeclarationOfNode(
 	node: ts.Node,
 	context: Context
 ) {
-	const nodeType = context.typeChecker.getTypeAtLocation(node);
-	const nodeSymbol = nodeType.getSymbol();
 	let ret: string[] = [];
-	if (nodeSymbol) {
-		const declarations = nodeSymbol.getDeclarations();
-		if (declarations) {
-			for (const decl of declarations) {
-				const comments = context.getCommentsForNode(decl);
-				ret = ret.concat(comments);
-			}
+	const declarations = getDeclarationOfNode(node, context)
+	if (declarations) {
+		for (const decl of declarations) {
+			const comments = context.getCommentsForNode(decl);
+			ret = ret.concat(comments);
 		}
 	}
 	return ret;
 }
 
+function getArgumentsOfFunctionDeclaration(funDecl: ts.FunctionDeclaration, context: Context) {
+	const ret = []
+	for (const param of funDecl.parameters) {
+		const declaration = getDeclarationOfNode(param, context)
+		if (declaration) {
+			for (const decl of declaration) {
+				ret.push(decl)
+			}
+		}
+	}
+	return ret
+}
+
+function getCompilerDirectivesForNode(node: ts.Node, context: Context) {
+	const nodeComments = context.getCommentsForNode(node);
+	const compilerDirectives = extractCompilerDirectivesFromStrings(nodeComments)
+	return compilerDirectives
+}
+
+function nodeHasCompilerDirectiveKind(node: ts.Node, compilerDirectiveKind: CompilerDirectiveKind, context: Context) {
+	const directives = getCompilerDirectivesForNode(node, context)
+	for (const dir of directives) {
+		if (dir.kind === compilerDirectiveKind) {
+			return true
+		}
+	}
+	return false
+}
+
+function declarationOfNodeHasCompilerDirectiveKind(node: ts.Node, compilerDirectiveKind: CompilerDirectiveKind, context: Context) {
+	const functionDeclarations = getDeclarationOfNode(node, context)
+	let hasTheDirective = false
+	if (functionDeclarations) {
+		for (const decl of functionDeclarations) {
+			if (nodeHasCompilerDirectiveKind(decl, compilerDirectiveKind, context)) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+function getMembersOfInterfaceDeclaration(node: ts.InterfaceDeclaration, context: Context) {
+	const ret = []
+	for (const member of node.members) {
+		const name = member.name
+		if (name) {
+			ret.push(name.getText())
+		}
+	}
+	return ret
+}
+
+function getNamedArgumentNamesForCallExpression(node: ts.CallExpression, context: Context) {
+	console.log('Getting declaration of node; ' + node.getText())
+	const declarations = getDeclarationOfNode(node.expression, context)
+	if (declarations) {
+		for (const declaration of declarations) {
+			console.log('Declaration : ' + declaration.getText())
+			if (declaration.kind === ts.SyntaxKind.FunctionDeclaration) {
+				const args = getArgumentsOfFunctionDeclaration(<ts.FunctionDeclaration>declaration, context)
+				if (args.length !== 1) {
+					throw new Error('Named argument functions expect 1 and only 1 argument. Got ' + args.length)
+				}
+				const arg = args[0]
+				if (arg.kind === ts.SyntaxKind.InterfaceDeclaration) {
+					return getMembersOfInterfaceDeclaration(<ts.InterfaceDeclaration>arg, context)
+				} else {
+					throw new Error('Named argument function expects their argument to be declared as an interface')
+				}
+			}
+		}
+	}
+	return []
+}
+
 function toElispNode(node: ts.Node, context: Context) {
 	context.incStackCount();
-	const nodeComments = context.getCommentsForNode(node);
 
 	(() => {
+		const compilerDirectives = getCompilerDirectivesForNode(node, context)
 		switch (node.kind) {
 			case ts.SyntaxKind.ExpressionStatement:
 				context.printAtStackOffset('ExpressionStatement', node);
@@ -76,8 +158,17 @@ function toElispNode(node: ts.Node, context: Context) {
 					return parseAndExpect<Elisp.Expression>(a, context);
 				});
 
-				let funcall = new Elisp.FunctionCall(leftHand, args);
-				context.push(funcall);
+				const isNamedArgumentsFunction = declarationOfNodeHasCompilerDirectiveKind(ce.expression, 'NamedArguments', context)
+				if (isNamedArgumentsFunction) {
+					if (args.length !== 1) {
+						throw new Error('Named functions expects 1 and only 1 argument')
+					}
+					let namedArgsFuncall = new Elisp.NamedArgumentsFunctionCall(leftHand, args[0], getNamedArgumentNamesForCallExpression(ce, context));
+					context.push(namedArgsFuncall);
+				} else {
+					let funcall = new Elisp.FunctionCall(leftHand, args);
+					context.push(funcall);
+				}
 				break;
 			}
 			case ts.SyntaxKind.VariableDeclaration:
@@ -154,7 +245,7 @@ function toElispNode(node: ts.Node, context: Context) {
 				let defun = new Elisp.Defun(
 					functionIdentifier,
 					args,
-					nodeComments
+					compilerDirectives
 				);
 				context.push(defun);
 				if (fd.body) {
@@ -537,15 +628,7 @@ function toElispNode(node: ts.Node, context: Context) {
 					}
 
 					if (importDecl.importClause) {
-						console.log(
-							'Import clause: ' +
-								importDecl.importClause.getText()
-						);
 						if (importDecl.importClause.namedBindings) {
-							console.log(
-								'   namedBindings: ' +
-									importDecl.importClause.namedBindings.getText()
-							);
 							const namedBinding =
 								importDecl.importClause.namedBindings;
 							if (
@@ -603,10 +686,7 @@ function toElisp(sourceFile: ts.SourceFile, context: Context) {
 	for (var statement of sourceFile.statements) {
 		toElispNode(statement, context);
 	}
-	console.log('STACK=========')
-	context.printStack()
 	context.resolveTo(root);
-	context.printStack()
 }
 
 interface CompilationResult {

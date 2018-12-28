@@ -1,12 +1,12 @@
 import * as emacs from 'emacs'
-import * as s from 's'
 
-const foo = 'HeiSann'
-const rest = s.sUpcase(foo)
-
-emacs.message('We were able to upcase ' + rest)
-
-const process = emacs.makeProcess({
-	commant: ['foo', 'bar'],
-	name: 'This is the name'
+emacs.makeProcess({
+	name: 'the name',
+	command: ['git', 'status'],
+	filter: (proc, msg) => {
+		emacs.message(msg)
+	},
+	sentinel: (proc, msg) => {
+		emacs.message(msg)
+	}
 })

@@ -101,7 +101,6 @@ export default class Stack {
 	getItemsInScope(scope: Scope) {
 		//We prob have a bug here because it might return true for two different items
 		const index = this.stack.indexOf(scope)
-		console.log('Index of scope: ' + scope.toString() + ', : ' + index)
 		return this.stack.slice(index+1)
 	}
 
@@ -111,10 +110,7 @@ export default class Stack {
 
 	resolveToScope(scope: Scope) {
 		const itemsInScope = this.getItemsInScope(scope)
-		console.log('Resolving to current scope: items in scope: ' + itemsInScope.length)
-		this.printStack()
 		for (const item of itemsInScope) {
-			console.log('Pusing item to body: ' + item.emit(0))
 			scope.body.push(item)
 		}
 		this.popStackToScope(scope)

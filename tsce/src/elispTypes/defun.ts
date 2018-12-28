@@ -6,14 +6,10 @@ export class Defun extends Block {
 
 	private customForm?: string
 
-	constructor(identifier: Identifier, readonly args: string[], comments?: string[]) {
+	constructor(identifier: Identifier, readonly args: string[], compilerDirectives: CompilerDirective[]) {
 		super(identifier);
 
-		if (comments && comments.length > 0) {
-			const compilerDirectives = comments.map(x => extractCompilerDirectivesFromString(x)).reduce((prev, curr) => {
-				return prev.concat(curr)
-			})
-
+		if (compilerDirectives && compilerDirectives.length > 0) {
 			for (const compDir of compilerDirectives) {
 				switch (compDir.kind) {
 					case "Form":

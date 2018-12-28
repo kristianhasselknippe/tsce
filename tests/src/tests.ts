@@ -1,12 +1,15 @@
+import { should, equal } from 'ert'
 import * as emacs from 'emacs'
 
-emacs.makeProcess({
-	name: 'the name',
-	command: ['git', 'status'],
-	filter: (proc, msg) => {
-		emacs.message(msg)
-	},
-	sentinel: (proc, msg) => {
-		emacs.message(msg)
-	}
-})
+//[Form: ert-deftest]
+function test1(){
+	should(equal('a', 'a'))
+}
+
+//[Form: ert-deftest]
+function test2(){
+	const a = 'a'
+	const b = 'b'
+	const ab = a + b
+	should(equal(ab, 'ab'))
+}

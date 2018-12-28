@@ -222,3 +222,8 @@ declare module 'json' {
 	function jsonReadFromString<T>(input: string): T
 	function jsonEncode<T>(input: T): string
 }
+
+declare module 'ert' {
+	function equal<T>(a: T, b: T): boolean
+	function should(be: boolean): void
+}

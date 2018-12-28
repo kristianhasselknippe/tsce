@@ -67,7 +67,6 @@ function readConfig(cp: string) {
 	const configText = fs.readFileSync(configPath).toString()
 	const baseName = path.basename(configPath)
 	const basePath = path.dirname(configPath)
-	console.log("   -> basename: " + baseName)
 	const configJson = ts.parseConfigFileTextToJson(baseName, configText)
 
 	return ts.convertCompilerOptionsFromJson(configJson.config.compilerOptions, basePath).options
@@ -82,15 +81,12 @@ export function createProgramFromDir(cp: string) {
 	if (config.typeRoots) {
 		for (const typeRoot of config.typeRoots) {
 			const dirResult = fs.readdirSync("./" + typeRoot)
-			console.log("  -> Dir res: " + JSON.stringify(dirResult))
 			for (const typeFile of dirResult) {
-				console.log("   -> Type root: " + typeFile)
 				allFiles.push(path.join(typeRoot, typeFile))
 			}
 		}
 	}
 
-	console.log("   -> Root dir: " + config.rootDir)
 	const rootDir = config.rootDir ? "./" + config.rootDir : "./"
 	fs.readdirSync(rootDir)
 		.map(x => path.join(rootDir, x))

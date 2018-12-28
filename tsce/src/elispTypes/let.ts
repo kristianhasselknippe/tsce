@@ -32,11 +32,11 @@ ${tabs(indent)})`;
 	}
 
 	emitQuoted(indent: number) {
-		return this.emit(indent, true)
+		return this.emitWithBody(indent, () => this.emitBody(indent+1), true)
 	}
 
-	emit(indent: number, quoted = false) {
-		return this.emitWithBody(indent, () => this.emitBody(indent+1), quoted)
+	emit(indent: number) {
+		return this.emitWithBody(indent, () => this.emitBody(indent+1), false)
 	}
 }
 

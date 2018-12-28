@@ -26,7 +26,6 @@ export class FunctionCall extends Expression {
 	}
 
 	emitQuoted(indent: number) {
-		console.log('EMITTING QUOTED: ' + `(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`)
 		return `${tabs(indent)},(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
 	}
 }
@@ -51,10 +50,11 @@ export class NamedArgumentsFunctionCall extends FunctionCall {
 		return 'temp' + Math.floor(Math.random() * 100000)
 	}
 
-	emitArgs() {
+	emitArgs(quoted = false) {
 		let ret = ''
 		for (const argName of this.namedArgumentsNames) {
-			const propertySelection = (new PropertyAccess(new Identifier(this.BindingName), new Identifier(argName))).emit(0)
+			const propAccess = new PropertyAccess(new Identifier(this.BindingName), new Identifier(argName))
+			const propertySelection = quoted ? propAccess.emitQuoted(0) : propAccess.emit(0)
 			ret += `:${argName} ${propertySelection} `
 		}
 		return ret
@@ -68,7 +68,7 @@ export class NamedArgumentsFunctionCall extends FunctionCall {
 
 	emitQuoted(indent: number) {
 		return this.WrappingLet.emitWithBody(indent, (indent) => {
-			return `${tabs(indent)},(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
+			return `${tabs(indent)},(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs(true)})`
 		})
 	}
 }

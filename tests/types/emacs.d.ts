@@ -92,7 +92,7 @@ declare module 'emacs' {
 		/**Use buffer as the process buffer. If the value is nil, the subprocess is not associated with any buffer. */
 		buffer?: Buffer
 		/**Use command as the command line of the process. The value should be a list starting with the program's executable file name, followed by strings to give to the program as its arguments. If the first element of the list is nil, Emacs opens a new pseudoterminal (pty) and associates its input and output with buffer, without actually running any program; the rest of the list elements are ignored in that case. */
-		commant?: string[]
+		command?: string[]
 		/**If coding is a symbol, it specifies the coding system to be used for both reading and writing of data from and to the connection. If coding is a cons cell (decoding . encoding), then decoding will be used for reading and encoding for writing. The coding system used for encoding the data written to the program is also used for encoding the command-line arguments (but not the program itself, whose file name is encoded as any other file name; see file-name-coding-system).
 If coding is nil, the default rules for finding the coding system will apply. See Default Coding Systems. */
 		coding?: Symbol

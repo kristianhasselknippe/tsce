@@ -1,18 +1,24 @@
-interface Name {
+export type CompilerDirectiveKind = 'Name' | 'Form' | 'Predicate' | 'NamedArguments'
+
+interface CompilerDirectiveBase {
+	kind: CompilerDirectiveKind
+}
+
+export interface Name extends CompilerDirectiveBase {
 	kind: 'Name'
 	name: string
 }
 
-interface Form {
+export interface Form extends CompilerDirectiveBase {
 	kind: 'Form'
 	form: string
 }
 
-interface Predicate {
+export interface Predicate extends CompilerDirectiveBase {
 	kind: 'Predicate'
 }
 
-interface NamedArguments {
+export interface NamedArguments extends CompilerDirectiveBase {
 	kind: 'NamedArguments'
 }
 

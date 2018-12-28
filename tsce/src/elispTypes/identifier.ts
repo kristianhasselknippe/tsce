@@ -1,5 +1,5 @@
 import { Expression, tabs } from ".";
-import { Symbol } from "../context";
+import { Symbol, SymbolType } from "../context";
 import { CompilerDirective } from "./compilerDirective";
 
 function isUpper(character: string) {
@@ -14,20 +14,33 @@ export class Identifier extends Expression {
 	customName?: string
 	useNamedArguments = false
 
-	constructor(public readonly identifierName: string, readonly symbol: Symbol, readonly declarationDirectives: CompilerDirective[]) {
+	symbol: Symbol
+
+	constructor(public readonly identifierName: string, symbol?: Symbol, readonly declarationDirectives?: CompilerDirective[]) {
 		super();
 
-		for (const compDir of declarationDirectives) {
-			switch (compDir.kind) {
-				case "Name":
-					this.customName = compDir.name
-					break
-				case "Predicate":
-					this.isPredicate = true
-					break
-				case "NamedArguments":
-					this.useNamedArguments = true
-					break
+		if (!symbol) {
+			this.symbol = {
+				name: this.identifierName,
+				type: SymbolType.Variable
+			}
+		} else {
+			this.symbol = symbol
+		}
+
+		if (declarationDirectives) {
+			for (const compDir of declarationDirectives) {
+				switch (compDir.kind) {
+					case "Name":
+						this.customName = compDir.name
+						break
+					case "Predicate":
+						this.isPredicate = true
+						break
+					case "NamedArguments":
+						this.useNamedArguments = true
+						break
+				}
 			}
 		}
 	}

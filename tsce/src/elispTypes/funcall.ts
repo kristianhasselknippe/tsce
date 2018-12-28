@@ -1,5 +1,6 @@
-import { Expression, tabs } from ".";
+import { Expression, tabs, ObjectLiteral, LetBinding, LetItem, PropertyAccess, Identifier } from ".";
 import { SymbolType } from "../context";
+import { CompilerDirective } from "./compilerDirective";
 
 export class FunctionCall extends Expression {
 	type: string = 'FunctionCall'
@@ -8,26 +9,8 @@ export class FunctionCall extends Expression {
 		super();
 	}
 
-	emitArgsAsNamedArguments() {
-		if (this.args.length !== 1) {
-			throw new Error('Functions declared with the NamedArguments directive can only receive one arugment, ' + this.args.length + ' was supplied')
-		}
-		const arg = this.args[0]
-
-		let ret = '{\n'
-		for (const arg of this.args) {
-			
-		}
-		ret += '}'
-		return ret
-	}
-
 	emitArgs() {
-		if (this.leftHand.isIdentifier() && this.leftHand.useNamedArguments) {
-			return this.emitArgsAsNamedArguments()
-		}else {
-			return this.args.map(x => x.emit(0)).reduce((prev, curr) => prev + " " + curr, "")
-		}
+		return this.args.map(x => x.emit(0)).reduce((prev, curr) => prev + " " + curr, "")
 	}
 
 	funcallIfLambda() {
@@ -40,5 +23,41 @@ export class FunctionCall extends Expression {
 
 	emit(indent: number) {
 		return `${tabs(indent)}(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
+	}
+}
+
+export interface NamedArgument {
+	name: string,
+}
+
+export class NamedArgumentsFunctionCall extends FunctionCall {
+
+	BindingName: string
+	WrappingLet: LetBinding
+
+	constructor(leftHand: Expression, arg: Expression, private namedArgumentsNames: string[]) {
+		super(leftHand, [arg])
+
+		this.BindingName = this.randomBindingName()
+		this.WrappingLet = new LetBinding([new LetItem(this.BindingName, arg)])
+	}
+
+	randomBindingName() {
+		return 'temp' + Math.floor(Math.random() * 100000)
+	}
+
+	emitArgs() {
+		let ret = ''
+		for (const argName of this.namedArgumentsNames) {
+			const propertySelection = (new PropertyAccess(new Identifier(this.BindingName), new Identifier(argName))).emit(0)
+			ret += `:${argName} ${propertySelection} `
+		}
+		return ret
+	}
+
+	emit(indent: number) {
+		return this.WrappingLet.emitWithBody(indent, (indent) => {
+			return `${tabs(indent)}(${this.funcallIfLambda()}${this.leftHand.emit(0)} ${this.emitArgs()})`
+		})
 	}
 }

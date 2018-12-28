@@ -7,6 +7,10 @@ export class Scope extends Expression {
 		super()
 	}
 
+	toString() {
+		return 'Scope(' + this.type
+	}
+
 	isBig() {
 		return true
 	}

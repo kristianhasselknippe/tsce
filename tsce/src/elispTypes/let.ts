@@ -7,6 +7,10 @@ export class LetBinding extends Scope {
 		super([])
 	}
 
+	toString() {
+		return 'LetBinding(' + this.bindings.length + ')'
+	}
+
 	emitWithBody(indent: number, bodyEmittor: (indent: number) => string) {
 		let bindings = '';
 

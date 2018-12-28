@@ -150,7 +150,6 @@ export function compileProject(program: ts.Program): CompilationResult {
 	const elispFiles = []
 
 	for (const file of result) {
-
 		const fileName = path.basename(file.sourceFileName).split('.')[0] + '.el'
 
 		elispFiles.push({

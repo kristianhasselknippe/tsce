@@ -170,7 +170,6 @@ function toElispNode(node: ts.Node, context: Context) {
 				context.printAtStackOffset('Identifier', node);
 				const identifierNode = <ts.Identifier>node;
 				const symbolName = identifierNode.text;
-				console.log(` Symbol(${symbolName}) =>`);
 				const symbol = context.getSymbolForName(symbolName);
 
 				const comments = getCommentsForDeclarationOfNode(
@@ -604,7 +603,10 @@ function toElisp(sourceFile: ts.SourceFile, context: Context) {
 	for (var statement of sourceFile.statements) {
 		toElispNode(statement, context);
 	}
+	console.log('STACK=========')
+	context.printStack()
 	context.resolveTo(root);
+	context.printStack()
 }
 
 interface CompilationResult {
@@ -619,6 +621,10 @@ export function compileSources(program: ts.Program): CompilationResult[] {
 
 	const sourceFiles = program.getSourceFiles();
 	for (const sourceFile of sourceFiles) {
+		//To not build the default lib.ts file. Move or remove this?
+		if (sourceFile.fileName.indexOf('lib.d.ts') !== -1) {
+			continue
+		}
 		console.log('== Compiling source file: ' + sourceFile.fileName);
 		// Walk the tree to search for classes
 		const context = new Context(sourceFiles, typeChecker);

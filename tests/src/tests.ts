@@ -287,3 +287,9 @@ function testNamedArgumentsFunction4() {
 	})
 	should(equal(res, 30))
 }
+
+//[Form: ert-deftest]
+function nullTest() {
+	const n = null
+	should(equal(n, null))
+}

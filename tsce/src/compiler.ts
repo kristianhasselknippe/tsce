@@ -630,6 +630,9 @@ function toElispNode(node: ts.Node, context: Context) {
 					'Unrecognized language feature: ConditionalExpression'
 				);
 			}
+			case ts.SyntaxKind.NullKeyword: {
+				context.push(new Elisp.Null())
+			} break
 			case ts.SyntaxKind.ImportDeclaration:
 				{
 					const importDecl = <ts.ImportDeclaration>node;

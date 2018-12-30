@@ -1,5 +1,14 @@
 import { should, equal } from 'ert'
 
+
+interface TsceTestFunctionNamedArgumentsArg {
+	foo: number
+	bar: number
+}
+
+//[NamedArguments]
+declare function tsceTestFunctionNamedArguments(arg: TsceTestFunctionNamedArgumentsArg): number
+
 //[Form: ert-deftest]
 function testEquality(){
 	should(equal('a', 'a'))
@@ -232,4 +241,49 @@ function testObjectLiteralInObjectLiteral() {
 		}
 	}
 	should(equal(foo.bar.hi, 'there'))
+}
+
+//[Form: ert-deftest]
+function testNamedArgumentsFunction1() {
+	const res = tsceTestFunctionNamedArguments({
+		foo: 20,
+		bar: 10
+	})
+	should(equal(res, 30))
+}
+
+//[Form: ert-deftest]
+function testNamedArgumentsFunction2() {
+	let arg = {
+		foo: 20,
+		bar: 10
+	}
+	const res = tsceTestFunctionNamedArguments(arg)
+	should(equal(res, 30))
+}
+
+//[Form: ert-deftest]
+function testNamedArgumentsFunction3() {
+	let obj = {
+		theFunc: tsceTestFunctionNamedArguments
+	}
+	let arg = {
+		foo: 20,
+		bar: 10
+	}
+	const res = obj.theFunc(arg)
+	should(equal(res, 30))
+}
+
+
+//[Form: ert-deftest]
+function testNamedArgumentsFunction4() {
+	let obj = {
+		theFunc: tsceTestFunctionNamedArguments
+	}
+	const res = obj.theFunc({
+		foo: 20,
+		bar: 10
+	})
+	should(equal(res, 30))
 }

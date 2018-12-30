@@ -36,3 +36,6 @@
 (defun do-with-current-buffer (buffer action)
   (with-current-buffer buffer
 	(funcall action)))
+
+(cl-defun tsce-test-function-named-arguments (&key foo bar)
+  (+ foo bar))

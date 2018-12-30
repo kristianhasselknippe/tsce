@@ -16,6 +16,16 @@ declare module 'emacs' {
 
 	function doWithCurrentBuffer(buffer: Buffer, action: () => void): void
 
+	type EmacsVersion = string
+
+	const systemType: "darwin" | "windows-nt" | "gnu/linux"
+	const emacsVersion: EmacsVersion
+	const emacsMajorVersion: number
+	const emacsMinorVersion: number
+
+	//[Name: version<]
+	function versionLessThan(version: EmacsVersion, isBefore: EmacsVersion): boolean
+
 	// Buffers
 	interface Buffer {}
 

@@ -1,5 +1,5 @@
 import { should, equal } from 'ert'
-
+import * as emacs from 'emacs'
 
 interface TsceTestFunctionNamedArgumentsArg {
 	foo: number
@@ -293,3 +293,10 @@ function nullTest() {
 	const n = null
 	should(equal(n, null))
 }
+
+//[Form: ert-deftest]
+//TODO: Need to handle variable declarations in ambient modules
+/*function testEmacsVersion() {
+	const v = emacs.emacsVersion
+	should(!emacs.versionLessThan(v, "24.0"))
+}*/

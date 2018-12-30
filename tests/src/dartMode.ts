@@ -27,7 +27,7 @@ function dartFilter(proc: emacs.Process, msg: string) {
 	dartParseMessage()
 }
 
-let server: Server | number = 0
+let server: Server | null = null
 
 function dartStartServer() {
 	let arg: emacs.MakeProcessArgs = {
@@ -57,7 +57,9 @@ type GetVersionRequest = Request<"server.getVersion">
 function dartMakeRequest<T extends string, TOut>(request: Request<T>) {
 	const jsonString = json.jsonEncode(request) + '\n'
 	emacs.print('Json string ' + jsonString)
-	emacs.processSendString(server.process, jsonString)
+	if (server) {
+		emacs.processSendString(server.process, jsonString)
+	}
 }
 
 let idCounter = 0

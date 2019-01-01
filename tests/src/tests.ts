@@ -315,12 +315,20 @@ function plusplusTest() {
 	should(equal(item, 2))
 }
 
-
 //[Form: ert-deftest]
 function forOfTest() {
 	const items = [1,2,3,4]
 	let counter = 0
 	for (const item of items) {
 		should(equal(item, items[counter++]))
+	}
+}
+
+//[Form: ert-deftest]
+function forOfTest2() {
+	const items = [{name: 'one'},{name: 'two'},{name: 'three'}]
+	let counter = 0
+	for (const item of items) {
+		should(equal(item.name, items[counter++].name))
 	}
 }

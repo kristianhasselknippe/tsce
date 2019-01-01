@@ -299,3 +299,12 @@ function testEmacsVersion() {
 	const v = emacs.emacsVersion
 	should(!emacs.versionLessThan(v, "24.0"))
 }
+
+//[Form: ert-deftest]
+function testStringEquality() {
+	const foo = "hei"
+	const bar = "hei"
+	should(foo === bar)
+}
+
+

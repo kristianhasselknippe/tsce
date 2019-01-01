@@ -5,6 +5,7 @@ let operatorsMap = {
 	'==': 'equal',
 	'===': 'equal',
 	'!=': '/=',
+	'!==': '/=',
 	'!': 'not',
 	'&&': 'and',
 	'||': 'or'

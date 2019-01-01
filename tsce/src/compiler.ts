@@ -441,6 +441,13 @@ function toElispNode(node: ts.Node, context: Context) {
 				}
 				break;
 			}
+			case ts.SyntaxKind.ForOfStatement:
+				const forOf = <ts.ForOfStatement>node;
+				const initializer = 
+				break
+			case ts.SyntaxKind.ForInStatement:
+				throw new Error('For-In statements are currently not supported')
+				break
 			case ts.SyntaxKind.ForStatement:
 				{
 					const forStatement = <ts.ForStatement>node;

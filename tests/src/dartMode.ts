@@ -1,4 +1,5 @@
 import * as emacs from 'emacs'
+import * as s from 's'
 import { interactive } from 'emacs'
 import * as json from 'json'
 
@@ -25,6 +26,10 @@ let buffer = ''
 
 function dartParseMessage() {
 	console.log('Parsing message from buffer: ' + buffer)
+	const split = s.sSplit('\n', buffer)
+	for (const s of split) {
+		emacs.print("Split item: " + s)
+	}
 }
 
 function dartFilter(proc: emacs.Process, msg: string) {
@@ -60,7 +65,9 @@ interface Request<T extends string> {
 
 type GetVersionRequest = Request<"server.getVersion">
 
-function dartMakeRequest<T extends string, TOut>(request: Request<T>) {
+type Requests = GetVersionRequest
+
+function dartMakeRequest<TOut>(request: Requests) {
 	const jsonString = json.jsonEncode(request) + '\n'
 	emacs.print('Json string ' + jsonString)
 	if (server) {
@@ -73,7 +80,7 @@ function dartGetVersion() {
 	interactive()
 	dartMakeRequest({
 		id: (idCounter++) + '',
-		method: 'server.GetVersion'
+		method: 'server.getVersion'
 	})
 }
 

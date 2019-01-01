@@ -6,7 +6,9 @@ import * as json from 'json'
 
 let dartPath = "c:/tools/dart-sdk/bin/dart.exe"
 let snapshotPath = "c:/tools/dart-sdk/bin/snapshots/analysis_server.dart.snapshot"
-if (emacs.systemType === "darwin") {
+
+const sysType = emacs.symbolName(emacs.systemType)
+if (sysType === "darwin") {
 	dartPath = "dart"
 	snapshotPath = "dartanalyzer"
 }

@@ -18,7 +18,7 @@ declare module 'emacs' {
 
 	type EmacsVersion = string
 
-	const systemType: "darwin" | "windows-nt" | "gnu/linux"
+	const systemType: Symbol<"darwin" | "windows-nt" | "gnu/linux">
 	const emacsVersion: EmacsVersion
 	const emacsMajorVersion: number
 	const emacsMinorVersion: number
@@ -132,9 +132,10 @@ If coding is nil, the default rules for finding the coding system will apply. Se
 	function interactive(arg?: string): void
 
 	// Modules
-	interface Symbol { }
-	function intern(name: string): Symbol
-	function require(symbol: Symbol): void
+	interface Symbol<T extends string> {}
+	function intern<T extends string>(name: T): Symbol<T>
+	function require<T extends string>(symbol: Symbol<T>): void
+	function symbolName<T extends string>(sym: Symbol<T>): string
 }
 
 declare module "s" {

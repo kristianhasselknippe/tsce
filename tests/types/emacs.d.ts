@@ -172,7 +172,7 @@ declare module "s" {
 	function sMatchStringsAll(regex: string): string;
 	function sMatchedPositionsAll(regexp: string, subexpDepth?: number): string;
 	function sSliceAt(regexp: string, s: string): string;
-	function sSplit(separator: string, s: string, omitNulls?: number): string;
+	function sSplit(separator: string, s: string, omitNulls?: number): string[];
 	function sSplitUpTo(
 		separator: string,
 		s: string,

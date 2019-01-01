@@ -245,6 +245,12 @@ function testObjectLiteralInObjectLiteral() {
 }
 
 //[Form: ert-deftest]
+function testEmptyObjectLiteral() {
+	const foo = {}
+	should(equal(foo, {}))
+}
+
+//[Form: ert-deftest]
 function testNamedArgumentsFunction1() {
 	const res = tsceTestFunctionNamedArguments({
 		foo: 20,

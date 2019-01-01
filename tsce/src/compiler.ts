@@ -625,15 +625,15 @@ function toElispNode(node: ts.Node, context: Context) {
 					context.resolveTo(lambda);
 				}
 				break;
+			case ts.SyntaxKind.AsExpression:
+				const asExpression = <ts.AsExpression>node;
+				toElispNode(asExpression.expression, context)
+				break
 			case ts.SyntaxKind.TypeAliasDeclaration:
 				break;
 			case ts.SyntaxKind.ModuleDeclaration:
 				break;
 			case ts.SyntaxKind.ClassDeclaration:
-				break;
-			case ts.SyntaxKind.ParenthesizedExpression:
-				{
-				}
 				break;
 			case ts.SyntaxKind.InterfaceDeclaration:
 				{

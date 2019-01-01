@@ -1,5 +1,5 @@
 import * as ts from 'typescript'
-import { Expression, tabs } from ".";
+import { Expression, tabs, generateTempBindingName } from ".";
 
 let operatorsMap = {
 	'==': 'equal',
@@ -86,6 +86,7 @@ export class UnaryPostfixExpression extends UnaryExpression {
 	emit(indent: number, quoted = false) {
 		const unquote = quoted ? ',' : ''
 		const operandStr = this.operand.emit(0)
-		return `${tabs(indent)}${unquote}(setq ${operandStr} (${this.operator} ${operandStr}))`
+		const tempBinding = generateTempBindingName()
+		return `${tabs(indent)}${unquote}(let ((${tempBinding} ${operandStr})) (setq ${operandStr} (${this.operator} ${operandStr})) ${tempBinding})`
 	}
 }

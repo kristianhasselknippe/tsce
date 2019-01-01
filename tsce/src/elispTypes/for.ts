@@ -1,4 +1,4 @@
-import { Scope, tabs, LetBinding, Expression } from ".";
+import { Scope, tabs, LetBinding, Expression, Identifier } from ".";
 
 export class ForStatement extends Scope {
 	constructor(readonly initializer?: LetBinding, //Let binding?
@@ -29,5 +29,35 @@ ${tabs(indent)})`
 		}
 
 		return body
+	}
+}
+
+export class ForOf extends Scope {
+	constructor(readonly variable: LetBinding | Identifier, readonly expression: Expression) {
+		super([])
+	}
+
+	emitLoopVariable() {
+		if (this.variable.isIdentifier()) {
+			return this.variable.emit(0)
+		} else {
+			const letBinding = <LetBinding>this.variable
+			if (letBinding.bindings.length !== 1) {
+				throw new Error("Expecting the variable declaration of for of loops to have one and only one binding")
+			}
+			// We can assume that we onlye have one binding and that that binding
+			// doesn't have an initializer (as this is guaranteed by the TS compiler)
+			const binding = letBinding.bindings[0]
+			return binding.identifier.emit(0)
+		}
+	}
+
+
+	emit(indent: number) {
+		return `${tabs(indent)}(cl-loop for ${this.emitLoopVariable()} in ${this.expression.emit(0)} do 
+${tabs(indent+1)}(progn
+${tabs(indent+2)}${this.emitBody(0)}
+${tabs(indent+1)})
+${tabs(indent)})`
 	}
 }

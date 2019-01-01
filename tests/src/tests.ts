@@ -226,8 +226,9 @@ function testQuotationOfOperatorsInObject() {
 		div: foo / 2.0,
 		sub: foo - 100
 	}
-	should(equal(foobar.bar, 121))
-	should(equal(foobar.baz, 120))
+	should(equal(foo, 120))
+	should(equal(foobar.bar, 120))
+	should(equal(foobar.baz, 121))
 	should(equal(foobar.multi, 240))
 	should(equal(foobar.div, 60))
 	should(equal(foobar.sub, 20))
@@ -307,4 +308,19 @@ function testStringEquality() {
 	should(foo === bar)
 }
 
+//[Form: ert-deftest]
+function plusplusTest() {
+	let item = 1
+	should(equal(item++, 1))
+	should(equal(item, 2))
+}
 
+
+//[Form: ert-deftest]
+function forOfTest() {
+	const items = [1,2,3,4]
+	let counter = 0
+	for (const item of items) {
+		should(equal(item, items[counter++]))
+	}
+}

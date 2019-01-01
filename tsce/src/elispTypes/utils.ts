@@ -22,3 +22,7 @@ export function hyphenate(name: string) {
 	}
 	return ret
 }
+
+export function generateTempBindingName() {
+	return 'temp' + Math.floor(Math.random() * 100000)
+}

@@ -443,11 +443,23 @@ function toElispNode(node: ts.Node, context: Context) {
 			}
 			case ts.SyntaxKind.ForOfStatement:
 				const forOf = <ts.ForOfStatement>node;
-				const initializer = 
+				const forOfInitializer = forOf.initializer
+				const forOfExpression = forOf.expression
+
+				console.log('Initializer : ' + forOfInitializer.getText())
+				console.log('Expression : ' + forOfExpression.getText())
+
+				const variableInitializer = parseAndExpect<Elisp.LetBinding>(forOfInitializer, context)
+				const loopExpression = parseAndExpect<Elisp.Expression>(forOfExpression, context)
+
+				console.log('Varialbe initializer: ', variableInitializer)
+				console.log('Loop expression: ', loopExpression)
+				context.push(new Elisp.ForOf(variableInitializer, loopExpression))
+
+				toElispNode(forOf.statement, context)
 				break
 			case ts.SyntaxKind.ForInStatement:
 				throw new Error('For-In statements are currently not supported')
-				break
 			case ts.SyntaxKind.ForStatement:
 				{
 					const forStatement = <ts.ForStatement>node;

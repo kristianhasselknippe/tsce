@@ -675,6 +675,14 @@ function toElispNode(node: ts.Node, context: Context) {
 												members.push(propIdentifier)
 											}
 											//TODO: Handle other types of declarations in namespace imports
+										} else if (declaration.kind === ts.SyntaxKind.VariableDeclaration) {
+											const variableDecl = <ts.VariableDeclaration>declaration
+											context.addSymbol({
+												name: variableDecl.name.getText(),
+												type: SymbolType.Variable
+											})
+											const variable = parseAndExpect<Elisp.Identifier>(variableDecl.name, context)
+											members.push(variable)
 										}
 									}
 								}

@@ -295,8 +295,7 @@ function nullTest() {
 }
 
 //[Form: ert-deftest]
-//TODO: Need to handle variable declarations in ambient modules
-/*function testEmacsVersion() {
+function testEmacsVersion() {
 	const v = emacs.emacsVersion
 	should(!emacs.versionLessThan(v, "24.0"))
-}*/
+}

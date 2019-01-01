@@ -4,8 +4,12 @@ import * as json from 'json'
 
 //https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
 
-const dartPath = "c:/tools/dart-sdk/bin/dart.exe"
-const snapShotPath = "c:/tools/dart-sdk/bin/snapshots/analysis_server.dart.snapshot"
+let dartPath = "c:/tools/dart-sdk/bin/dart.exe"
+let snapshotPath = "c:/tools/dart-sdk/bin/snapshots/analysis_server.dart.snapshot"
+if (emacs.systemType === "darwin") {
+	dartPath = "dart"
+	snapshotPath = "dartanalyzer"
+}
 
 const console = {
 	log: emacs.message
@@ -33,7 +37,7 @@ function dartStartServer() {
 	let arg: emacs.MakeProcessArgs = {
 		name: 'Dart analyzer process',
 		buffer: 'Dart analyzer buffer',
-		command: [dartPath, snapShotPath],
+		command: [dartPath, snapshotPath],
 		filter: (proc: emacs.Process, msg: string) => dartFilter(proc, msg),
 		stderr: emacs.getBufferCreate('dart analyzer errors')
 	}

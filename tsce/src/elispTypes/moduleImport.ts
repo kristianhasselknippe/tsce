@@ -1,4 +1,5 @@
 import { Statement, tabs, StringLiteral, Identifier } from '.';
+import { SymbolType } from '../context';
 
 export class ModuleImport extends Statement {
 	type: string = 'ModuleImport';
@@ -37,13 +38,17 @@ export class NamespaceImport extends ModuleImport {
 	emitMembers(indent: number) {
 		let ret = ''
 		for (const member of this.namespaceMembers) {
-			ret += `${tabs(indent)}(${member.emit(0)} . ${member.emit(0)})\n`
+			let quotation = ""
+			if (member.symbol.type === SymbolType.Variable) {
+				quotation = ","
+			}
+			ret += `${tabs(indent)}(${member.emit(0)} . ${quotation}${member.emit(0)})\n`
 		}
 		return ret
 	}
 
 	emitNamespaceObject(indent: number) {
-		return `${tabs(indent)}(setq ${this.namespaceObjectIdentifier.emit(0)} \'(\n${this.emitMembers(indent + 1)}))`
+		return `${tabs(indent)}(setq ${this.namespaceObjectIdentifier.emit(0)} \`(\n${this.emitMembers(indent + 1)}))`
 	}
 
 	emit(indent: number) {

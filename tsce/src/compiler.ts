@@ -641,6 +641,9 @@ function toElispNode(node: ts.Node, context: Context) {
 				break;
 			case ts.SyntaxKind.ClassDeclaration:
 				break;
+			case ts.SyntaxKind.MissingDeclaration:
+				const missingDecl = <ts.MissingDeclaration>node
+				break
 			case ts.SyntaxKind.InterfaceDeclaration:
 				{
 				}

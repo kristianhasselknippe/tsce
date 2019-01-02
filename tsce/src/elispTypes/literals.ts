@@ -41,6 +41,8 @@ export class StringLiteral extends Literal<string> {
 		super();
 	}
 
+	isStringLiteral() { return true }
+
 	emit(indent: number) {
 		return tabs(indent) + ('"' + this.str + '"');
 	}

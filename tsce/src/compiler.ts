@@ -318,7 +318,7 @@ function toElispNode(node: ts.Node, context: Context) {
 				if (op.getText() === '=') {
 					//TODO Not use string literal
 					context.push(
-						new Elisp.Assignment(left as Elisp.Identifier, right)
+						new Elisp.Assignment(left, right)
 					);
 				} else {
 					context.push(
@@ -509,19 +509,16 @@ function toElispNode(node: ts.Node, context: Context) {
 					);
 
 					const leftHandType = context.typeChecker.getTypeAtLocation(indexer.expression)
-					console.log("THE tiity: " + context.typeChecker.typeToString(leftHandType))
-					
-					if (leftHandType.flags & ts.TypeFlags.Object) {
-						console.log(`    123123123 object: ${leftHandType.flags} ` + indexer.expression.getText())
-						context.push(new Elisp.ElementIndexer(leftHand, index));
-					} else if (leftHandType.flags & ts.TypeFlags.String
-							  || leftHandType.flags & ts.TypeFlags.StringLiteral) {
-						console.log(`    123123123 string: ${leftHandType.flags} ` + indexer.expression.getText())
+					const indexType = context.typeChecker.getTypeAtLocation(indexer.argumentExpression!)
+
+					if (leftHandType.flags & ts.TypeFlags.String
+						|| leftHandType.flags & ts.TypeFlags.StringLiteral) {
 						context.push(new Elisp.StringIndexer(leftHand, index))
+					} else if (indexType.flags & ts.TypeFlags.NumberLike) {
+						context.push(new Elisp.ArrayIndexer(leftHand, index));
 					} else {
 						context.push(new Elisp.ElementIndexer(leftHand, index));
 					}
-					
 				}
 				break;
 			case ts.SyntaxKind.ArrayLiteralExpression:

@@ -7,6 +7,6 @@ export class RootScope extends Scope {
 	}
 
 	emit() {
-		return this.emitBody(0)
+		return this.emitBody(0, false)
 	}
 }

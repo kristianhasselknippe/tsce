@@ -51,11 +51,12 @@ type ResponseHandler = (response: Response) => void
 let responseHandlers: {[index: string]: ResponseHandler } = {}
 
 function decodeResponseString(resp: string) {
+	console.log('Decoding response strin: ' + resp)
 	if (emacs.length(resp) > 0) {
 		const item = json.jsonReadFromString(resp) as Response | undefined
+		console.log('Got item')
 		if (item) {
 			if ((<ResponseEvent>item).event) {
-				console.log('    Response string was event')
 				console.log('    Response string was event')
 			} else {
 				console.log('    Response string was item')
@@ -122,14 +123,16 @@ function getNextId() {
 	return (idCounter++) + ''
 }
 
-function dartMakeRequest<TOut>(request: { method: string }, handler: ResponseHandler) {
+function dartMakeRequest<TOut>(request: any, handler: ResponseHandler) {
+	console.log("Creating request with handler" + handler)
 	const id = getNextId()
+	let h = handler
 	responseHandlers[id] = (msg: Response) => {
-		handler(msg)
+		h(msg)
 		delete responseHandlers[id]
 	}
 	console.log('Response handlers; ' + responseHandlers)
-	(request as any).id = id
+	request.id = id
 	const jsonString = json.jsonEncode(request) + '\n'
 	console.log('Json string ' + jsonString)
 	if (server) {

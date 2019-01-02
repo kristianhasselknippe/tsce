@@ -598,3 +598,19 @@ function testIfElseWithMoreThanOneItemInBody() {
 
 	should(theAssert)
 }
+
+function testLexicalArgument(bar: (arg: boolean) => void) {
+	const later = () => {
+		bar(true)
+	}
+	later()
+}
+
+//[Form: ert-deftest]
+function lexicalScopingOverFunctionArguments() {
+	let foo = false
+	testLexicalArgument((arg: boolean) => {
+		foo = arg
+	})
+	should(foo)
+}

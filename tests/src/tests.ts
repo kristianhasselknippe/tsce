@@ -459,3 +459,35 @@ function typeAssertions() {
 		should(false)
 	}
 }
+
+//[Form: ert-deftest]
+function insertIntoMap() {
+	let foo: any = {}
+	foo.bar = 123
+	should(equal(foo.bar, 123))
+}
+
+//[Form: ert-deftest]
+function insertIntoMapIndexed() {
+	let foo: any = {}
+	foo["bar"] = 123
+	should(equal(foo.bar, 123))
+}
+
+//[Form: ert-deftest]
+function insertIntoMapByPropertyAndIndexed() {
+	let foo: any = {}
+	foo["bar"] = 123
+	foo.foo = 125
+	should(equal(foo.bar, 123))
+	should(equal(foo["foo"], 125))
+}
+
+//[Form: ert-deftest]
+function insertIntoEmptyObjAndCall() {
+	let foo = 0 + ''
+	let items: {[index: string]: any } = {}
+	items[foo + ''] = (arg: boolean) => { should(arg) }
+
+	items[foo](true)
+}

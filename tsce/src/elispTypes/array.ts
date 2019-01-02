@@ -44,10 +44,7 @@ export class ElementIndexer extends Expression {
 	isElementIndexer() { return true }
 
 	emitIndexer() {
-		if (this.indexer.isStringLiteral()) {
-			return this.indexer.str
-		}
-		return this.indexer.emit(0)
+		return `(intern ${this.indexer.emit(0)})`
 	}
 
 	emit(indent: number) {

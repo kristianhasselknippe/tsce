@@ -1,6 +1,6 @@
 import * as emacs from 'emacs'
 import * as s from 's'
-import { interactive } from 'emacs'
+import { interactive, withCurrentBuffer } from 'emacs'
 import * as json from 'json';
 
 //https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
@@ -14,8 +14,20 @@ if (sysType === "darwin") {
 	snapshotPath = "dartanalyzer"
 }
 
+const bufferName = "dartModeBuffer"
+function writeToDartModeBuffer(str: string) {
+	const buffer = emacs.getBufferCreate(bufferName)
+	withCurrentBuffer(buffer, (() => {
+		emacs.insert(str)
+	})())
+}
+
+function writeLineToDartModeBuffer(str: string) {
+	writeToDartModeBuffer(str + "\n")
+}
+
 const console = {
-	log: emacs.message
+	log: writeLineToDartModeBuffer
 }
 
 interface Server {
@@ -46,9 +58,10 @@ function decodeResponseString(resp: string) {
 		const item = json.jsonReadFromString(resp) as Response | undefined
 		console.log('We got item: ' + item)
 		if (item) {
-			if (item.event) {
+			if ((item.event) {
 				console.log('Foobar')
 			} else {
+				const response = item as ResponseItem
 				if (responseHandlers[item.id]) {
 					responseHandlers[item.id](resp)
 				}
@@ -61,7 +74,7 @@ function dartParseMessage() {
 	console.log('Parsing message from buffer: ' + buffer)
 	const split = s.sSplit('\n', buffer)
 	for (const s of split) {
-		emacs.print("Split item: " + s)
+		console.log("Split item: " + s)
 		decodeResponseString(s)
 	}
 }
@@ -103,7 +116,7 @@ type Requests = GetVersionRequest
 
 function dartMakeRequest<TOut>(request: Requests) {
 	const jsonString = json.jsonEncode(request) + '\n'
-	emacs.print('Json string ' + jsonString)
+	console.log('Json string ' + jsonString)
 	if (server) {
 		emacs.processSendString(server.process, jsonString)
 	}
@@ -124,6 +137,3 @@ function dartGetVersion() {
 }
 
 dartGetVersion()
-
-
-const foo = { foo: 123 }

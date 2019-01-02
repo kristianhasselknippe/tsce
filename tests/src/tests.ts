@@ -517,3 +517,44 @@ function deleteProperty() {
 	delete foo.bar
 	should(!(foo.bar))
 }
+
+//[Form: ert-deftest]
+function deletePropertyUsingIndexer() {
+	let foo: any = {}
+	should(!(foo.bar))
+	foo["bar"] = "foobar"
+	should(equal(foo.bar, "foobar"))
+	delete foo["bar"]
+	should(!(foo.bar))
+}
+
+//[Form: ert-deftest]
+function deletePropertyUsingComputedIndexer() {
+	const bar = "bar"
+	let foo: any = {}
+	should(!(foo[bar]))
+	foo[bar] = "foobar"
+	should(equal(foo.bar, "foobar"))
+	delete foo[bar]
+	should(!(foo.bar))
+}
+
+//[Form: ert-deftest]
+function deletePropertyTwoLevels() {
+	let foo: any = { bar: {}}
+	should(!(foo.bar.baz))
+	foo.bar.baz = "foobar"
+	should(equal(foo.bar.baz, "foobar"))
+	delete foo.bar.baz
+	should(!(foo.bar.baz))
+}
+
+//[Form: ert-deftest]
+function deletePropertyTwoLevelsIndexer() {
+	let foo: any = { bar: {}}
+	should(!(foo.bar["baz"]))
+	foo.bar["baz"] = "foobar"
+	should(equal(foo.bar["baz"], "foobar"))
+	delete foo.bar["baz"]
+	should(!(foo.bar["baz"]))
+}

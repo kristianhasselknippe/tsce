@@ -56,14 +56,16 @@ function decodeResponseString(resp: string) {
 	console.log('Decoding response string: ' + resp)
 	if (emacs.length(resp) > 0) {
 		const item = json.jsonReadFromString(resp) as Response | undefined
-		console.log('We got item: ' + item)
+		console.log('  We got item: ' + item)
 		if (item) {
-			if ((item.event) {
-				console.log('Foobar')
+			if ((<ResponseEvent>item).event) {
+				console.log('    It was an event')
 			} else {
 				const response = item as ResponseItem
-				if (responseHandlers[item.id]) {
-					responseHandlers[item.id](resp)
+				console.log('    It was an item, with id: ' + response.id)
+				console.log('      the response handler?: ' + responseHandlers[response.id])
+				if (responseHandlers[response.id]) {
+					responseHandlers[response.id](item)
 				}
 			}
 		}
@@ -71,10 +73,8 @@ function decodeResponseString(resp: string) {
 }
 
 function dartParseMessage() {
-	console.log('Parsing message from buffer: ' + buffer)
 	const split = s.sSplit('\n', buffer)
 	for (const s of split) {
-		console.log("Split item: " + s)
 		decodeResponseString(s)
 	}
 }
@@ -126,14 +126,15 @@ let idCounter = 0
 function dartGetVersion() {
 	interactive()
 	const id = (idCounter++) + ''
-	dartMakeRequest({
-		id,
-		method: 'server.getVersion'
-	})
 	responseHandlers[id] = (msg: Response) => {
 		console.log('Handling response for message id: ' + id)
 		console.log('    Message was: ' + json.jsonEncode(msg))
 	}
+	console.log('Response handlers: ' + responseHandlers)
+	dartMakeRequest({
+		id,
+		method: 'server.getVersion'
+	})
 }
 
 dartGetVersion()

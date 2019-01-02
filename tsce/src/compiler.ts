@@ -636,6 +636,10 @@ function toElispNode(node: ts.Node, context: Context) {
 					context.resolveTo(lambda);
 				}
 				break;
+			case ts.SyntaxKind.TypeAssertionExpression:
+				const typeAssertion = <ts.TypeAssertion>node;
+				toElispNode(typeAssertion.expression, context)
+				break
 			case ts.SyntaxKind.AsExpression:
 				const asExpression = <ts.AsExpression>node;
 				toElispNode(asExpression.expression, context)

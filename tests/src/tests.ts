@@ -433,3 +433,29 @@ function ifElseIfTest3() {
 	}
 	should(foo)
 }
+
+interface Foo {
+	foo: string
+}
+
+interface Bar {
+	bar: string
+}
+
+type FooBar = Foo | Bar
+
+function createFooBar(): FooBar {
+	return { foo: "testing" }
+}
+
+//[Form: ert-deftest]
+function typeAssertions() {
+	const foo = createFooBar()
+	if ((<Bar>foo).bar) {
+		should(false)
+	} else if ((<Foo>foo).foo) {
+		should(true)
+	} else {
+		should(false)
+	}
+}

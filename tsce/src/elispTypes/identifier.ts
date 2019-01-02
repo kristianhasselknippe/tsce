@@ -8,7 +8,7 @@ function isUpper(character: string) {
 }
 
 export class Identifier extends Expression {
-	type = 'Identifier';
+	type: string = 'Identifier';
 
 	isPredicate = false
 	customName?: string

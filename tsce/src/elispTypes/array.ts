@@ -21,6 +21,7 @@ export class ArrayLiteral extends Expression {
 }
 
 export class ArrayIndexer extends Expression {
+	type: string = "ArrayIndexer"
 	constructor(readonly leftHand: Expression, readonly indexer: Expression) {
 		super()
 	}
@@ -37,8 +38,17 @@ export class ArrayIndexer extends Expression {
 }
 
 export class ElementIndexer extends Expression {
+	type: string = "ElementIndexer"
 	constructor(readonly leftHand: Expression, readonly indexer: Expression) {
 		super()
+	}
+
+	emitLeft() {
+		return this.leftHand.emit(0)
+	}
+
+	emitLeftAndRight() {
+		return this.emitLeft() + " " + this.emitIndexer()
 	}
 
 	isElementIndexer() { return true }
@@ -57,6 +67,8 @@ export class ElementIndexer extends Expression {
 }
 
 export class StringIndexer extends Expression {
+	type: string = "StringIndexer"
+
 	constructor(readonly leftHand: Expression, readonly indexer: Expression) {
 		super()
 	}

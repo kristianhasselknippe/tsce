@@ -64,8 +64,12 @@ export class PropertyAccess extends Expression {
 
 	isPropertyAccess() { return true }
 
+	emitLeft() {
+		return this.leftHand.emit(0)
+	}
+
 	emitLeftAndRight() {
-		return `${this.leftHand.emit(0)} ${this.rightHand.emit(0)}`
+		return `${this.leftHand.emit(0)} '${this.rightHand.emit(0)}`
 	}
 
 	emitQuoted(indent: number) {

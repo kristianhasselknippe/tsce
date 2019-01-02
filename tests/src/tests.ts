@@ -422,3 +422,14 @@ function ifElseIfTest2() {
 	should(bar)
 	should(foo)
 }
+
+//[Form: ert-deftest]
+function ifElseIfTest3() {
+	let foo
+	if (false) {
+		foo = false
+	} else {
+		foo = true
+	}
+	should(foo)
+}

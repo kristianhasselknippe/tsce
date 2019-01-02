@@ -410,7 +410,7 @@ function toElispNode(node: ts.Node, context: Context) {
 					) {
 						toElispNode(ifExp.elseStatement, context);
 					} else {
-						for (let expr of (<ts.Block>ifExp.thenStatement)
+						for (let expr of (<ts.Block>ifExp.elseStatement)
 							.statements) {
 							toElispNode(expr, context);
 						}

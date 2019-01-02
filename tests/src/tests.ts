@@ -391,6 +391,33 @@ function forOfTest2() {
 }
 
 //[Form: ert-deftest]
+function forLoopTestWithMoreAfter() {
+	const items = [0,1,2,3]
+	let counter = 0
+	let foo = 0
+	for (let i = 0; i < 4; i++) {
+		should(equal(i, items[i]))
+	}
+
+	foo++
+	should(equal(foo, 1))
+}
+
+
+//[Form: ert-deftest]
+function forOfTestWithMoreAfter() {
+	const items = [1,2,3,4]
+	let counter = 0
+	let foo = 0
+	for (const item of items) {
+		should(equal(item, items[counter++]))
+	}
+
+	foo++
+	should(equal(foo, 1))
+}
+
+//[Form: ert-deftest]
 function ifElseTest1() {
 	let foo
 	if (true) {

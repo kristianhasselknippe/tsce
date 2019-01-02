@@ -460,9 +460,10 @@ function toElispNode(node: ts.Node, context: Context) {
 				const variableInitializer = parseAndExpect<Elisp.LetBinding>(forOfInitializer, context)
 				const loopExpression = parseAndExpect<Elisp.Expression>(forOfExpression, context)
 
-				context.push(new Elisp.ForOf(variableInitializer, loopExpression))
+				const forOfItem = context.push(new Elisp.ForOf(variableInitializer, loopExpression))
 
 				toElispNode(forOf.statement, context)
+				context.resolveToParentOf(forOfItem)
 				break
 			case ts.SyntaxKind.ForInStatement:
 				throw new Error('For-In statements are currently not supported')
@@ -502,7 +503,7 @@ function toElispNode(node: ts.Node, context: Context) {
 					);
 
 					toElispNode(forStatement.statement, context);
-					context.resolveTo(f);
+					context.resolveToParentOf(f);
 				}
 				break;
 			case ts.SyntaxKind.ElementAccessExpression:

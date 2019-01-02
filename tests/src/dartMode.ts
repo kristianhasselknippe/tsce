@@ -50,20 +50,13 @@ type ResponseHandler = (response: Response) => void
 
 let responseHandlers: {[index: string]: ResponseHandler } = {}
 
-
-
 function decodeResponseString(resp: string) {
-	console.log('Decoding response string: ' + resp)
 	if (emacs.length(resp) > 0) {
 		const item = json.jsonReadFromString(resp) as Response | undefined
-		console.log('  We got item: ' + item)
 		if (item) {
 			if ((<ResponseEvent>item).event) {
-				console.log('    It was an event')
 			} else {
 				const response = item as ResponseItem
-				console.log('    It was an item, with id: ' + response.id)
-				console.log('      the response handler?: ' + responseHandlers[response.id])
 				if (responseHandlers[response.id]) {
 					responseHandlers[response.id](item)
 				}
@@ -76,6 +69,13 @@ function dartParseMessage() {
 	const split = s.sSplit('\n', buffer)
 	for (const s of split) {
 		decodeResponseString(s)
+	}
+	const splitLength = emacs.length(split)
+	console.log('Split length: ' + splitLength)
+	console.log("SBlank on empty: " + s.sBlank(""))
+	console.log('The split: ' + split[splitLength - 1])
+	if (s.sBlank(split[splitLength - 1])) {
+		buffer = ''
 	}
 }
 
@@ -127,10 +127,9 @@ function dartGetVersion() {
 	interactive()
 	const id = (idCounter++) + ''
 	responseHandlers[id] = (msg: Response) => {
-		console.log('    Message was: ' + json.jsonEncode(msg))
+		console.log('Handling response from dartGetVersion: ' + msg)
 		delete responseHandlers[id]
 	}
-	console.log('Response handlers: ' + responseHandlers)
 	dartMakeRequest({
 		id,
 		method: 'server.getVersion'

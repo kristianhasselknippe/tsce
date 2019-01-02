@@ -165,7 +165,9 @@ export function writeCompilationResultToStorage(program: ts.Program, result: Com
 		for (const file of result.elispFiles) {
 			const outputFilePath = path.join(outputDir, file.fileName)
 			//console.log('          ' + file.content)
-			fs.writeFile(outputFilePath, file.content, { flag: 'w' }, (err) => {
+			const lexicalBindingDeclaration = ";; -*- lexical-binding: t -*-\n\n"
+			const output = lexicalBindingDeclaration + file.content
+			fs.writeFile(outputFilePath, output, { flag: 'w' }, (err) => {
 				if (err) {
 					console.error(`Error writing file ${file.fileName}, error: ${err}`)
 				}

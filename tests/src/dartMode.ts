@@ -128,7 +128,7 @@ function dartMakeRequest<TOut>(request: any, handler: ResponseHandler) {
 	const id = getNextId()
 	let h = handler
 	responseHandlers[id] = (msg: Response) => {
-		h(msg)
+		handler(msg)
 		delete responseHandlers[id]
 	}
 	console.log('Response handlers; ' + responseHandlers)

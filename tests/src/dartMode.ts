@@ -24,21 +24,33 @@ interface Server {
 
 let buffer = ''
 
-interface Response {
-	event: number
+interface ResponseEvent {
+	event: string
 }
+
+interface ResponseItem {
+	id: string
+}
+
+type Response = ResponseEvent | ResponseItem
 
 type ResponseHandler = (response: Response) => void
 
-let responseHandlers: {[index: number]: ResponseHandler } = {}
+let responseHandlers: {[index: string]: ResponseHandler } = {}
 
 function decodeResponseString(resp: string) {
 	console.log('Decoding response string: ' + resp)
 	if (emacs.length(resp) > 0) {
 		const item = json.jsonReadFromString(resp) as Response | undefined
 		console.log('We got item: ' + item)
-		if (item && item.event) {
-			console.log('Decoding item with id: ' + item.event)
+		if (item) {
+			if (item.event) {
+				console.log('Foobar')
+			} else {
+				if (responseHandlers[item.id]) {
+					responseHandlers[item.id](resp)
+				}
+			}
 		}
 	}
 }
@@ -98,9 +110,9 @@ function dartMakeRequest<TOut>(request: Requests) {
 let idCounter = 0
 function dartGetVersion() {
 	interactive()
-	const id = idCounter++
+	const id = (idCounter++) + ''
 	dartMakeRequest({
-		id: (id) + '',
+		id,
 		method: 'server.getVersion'
 	})
 	responseHandlers[id] = (msg: Response) => {

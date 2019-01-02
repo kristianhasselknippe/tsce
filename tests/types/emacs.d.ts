@@ -14,6 +14,8 @@ declare module 'emacs' {
 	function print(msg: string): void
 	function message(msg: string): void
 
+	function length(item: any[] | string): number
+
 	function doWithCurrentBuffer(buffer: Buffer, action: () => void): void
 
 	type EmacsVersion = string

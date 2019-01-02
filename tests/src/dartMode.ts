@@ -1,7 +1,7 @@
 import * as emacs from 'emacs'
 import * as s from 's'
 import { interactive } from 'emacs'
-import { jsonReadFromString } from 'json';
+import * as json from 'json';
 
 //https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
 
@@ -25,7 +25,7 @@ interface Server {
 let buffer = ''
 
 interface Response {
-	id: number
+	event: number
 }
 
 type ResponseHandler = (response: Response) => void
@@ -34,8 +34,13 @@ let responseHandlers: {[index: number]: ResponseHandler } = {}
 
 function decodeResponseString(resp: string) {
 	console.log('Decoding response string: ' + resp)
-	const item = jsonReadFromString(resp) as Response
-	console.log('Decoding item with id: ' + item)
+	if (emacs.length(resp) > 0) {
+		const item = json.jsonReadFromString(resp) as Response | undefined
+		console.log('We got item: ' + item)
+		if (item && item.event) {
+			console.log('Decoding item with id: ' + item.event)
+		}
+	}
 }
 
 function dartParseMessage() {
@@ -105,3 +110,6 @@ function dartGetVersion() {
 }
 
 dartGetVersion()
+
+
+const foo = { foo: 123 }

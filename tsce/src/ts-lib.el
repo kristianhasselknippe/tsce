@@ -3,9 +3,10 @@
 (setq lexical-binding t)
 
 (defun ts/to-string (item)
-  (if (numberp item)
-	  (number-to-string item)
-	item))
+  (cond
+   ((numberp item) (number-to-string item))
+   ((stringp item) item)
+   (t (format "%s" item))))
 
 (defun ts/+ (a b)
   (if (or (stringp a) (stringp b))
@@ -39,3 +40,9 @@
 
 (cl-defun tsce-test-function-named-arguments (&key foo bar)
   (+ foo bar))
+
+(defun ts/add-or-set-value (key value assocList)
+  (let ((item (cdr (assoc key assocList))))
+	(if item
+		(setf (cdr (assoc key assocList)) value)
+	  (setf foo (cl-acons key value assocList)))))

@@ -34,12 +34,19 @@ function testObjectCreation(){
 
 //[Form: ert-deftest]
 function testArrayCreation(){
+	const arrTig = [1,2,3,4,5]
+	should(equal(arrTig[0], 1))
+	should(equal(arrTig[1], 2))
+	should(equal(arrTig[2], 3))
+	should(equal(arrTig[3], 4))
+	should(equal(arrTig[4], 5))
+}
+
+//[Form: ert-deftest]
+function arrayAssignment(){
 	const arr = [1,2,3,4,5]
-	should(equal(arr[0], 1))
-	should(equal(arr[1], 2))
-	should(equal(arr[2], 3))
-	should(equal(arr[3], 4))
-	should(equal(arr[4], 5))
+	arr[2] = 1000
+	should(equal(arr[2], 1000))
 }
 
 //[Form: ert-deftest]
@@ -49,6 +56,42 @@ function shortHandObjectNotation(){
 		foo
 	}
 	should(equal(baz.foo, 'bar'))
+}
+
+//[Form: ert-deftest]
+function objectItemAssignmentEmptyObj(){
+	let baz321: any = {}
+	baz321.foo = 'bar'
+	should(equal(baz321.foo, 'bar'))
+}
+
+//[Form: ert-deftest]
+function objectItemAssignmentEmptyObjUsingIndexer(){
+	let baz123: any = {}
+	baz123['foo'] = 'bar'
+	should(equal(baz123['foo'], 'bar'))
+}
+
+//[Form: ert-deftest]
+function objectItemAssignment(){
+	let baz = {
+		foo: 'test'
+	}
+	should(equal(baz.foo, 'test'))
+	baz.foo = 'bar'
+	should(equal(baz.foo, 'bar'))
+}
+
+//[Form: ert-deftest]
+function objectItemAssignmentNested(){
+	let baz = {
+		foo: {
+			test: 'test'
+		}
+	}
+	should(equal(baz.foo.test, 'test'))
+	baz.foo.test = 'bar'
+	should(equal(baz.foo.test, 'bar'))
 }
 
 //[Form: ert-deftest]
@@ -153,6 +196,14 @@ function callRootFunctionThroughObjectRefTest() {
 		root: rootFunction
 	}
 	should(theObj.root(val))
+}
+
+//[Form: ert-deftest]
+function stringsAndStringAccess() {
+	const fooString = 'heisann'
+	should(equal(fooString[0], 'h'))
+	should(equal(fooString[1], 'e'))
+	should(equal(fooString[2], 'i'))
 }
 
 //[Form: ert-deftest]

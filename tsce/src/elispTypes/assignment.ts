@@ -7,6 +7,6 @@ export class Assignment extends Expression {
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)}(setq ${this.assignee.emit(0)} ${this.value.emit(0)})`
+		return `${tabs(indent)}(setf ${this.assignee.emit(0)} ${this.value.emit(0)})`
 	}
 }

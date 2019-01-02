@@ -12,8 +12,9 @@ import {
 	getCommentRange,
 	getLeadingCommentRanges,
 	SymbolTable,
-	createLanguageService
-} from 'typescript';
+    createLanguageService,
+
+    getTypeParameterOwner} from 'typescript';
 import { fail } from 'assert';
 import {
 	extractCompilerDirectivesFromString,
@@ -188,7 +189,7 @@ function toElispNode(node: ts.Node, context: Context) {
 					);
 				}
 				if (context.isInRootScope()) {
-					context.push(new Elisp.Setq(identifier, initializer))
+					context.push(new Elisp.Set(identifier, initializer))
 				} else {
 					context.push(new Elisp.LetItem(identifier, initializer));
 				}
@@ -446,14 +447,9 @@ function toElispNode(node: ts.Node, context: Context) {
 				const forOfInitializer = forOf.initializer
 				const forOfExpression = forOf.expression
 
-				console.log('Initializer : ' + forOfInitializer.getText())
-				console.log('Expression : ' + forOfExpression.getText())
-
 				const variableInitializer = parseAndExpect<Elisp.LetBinding>(forOfInitializer, context)
 				const loopExpression = parseAndExpect<Elisp.Expression>(forOfExpression, context)
 
-				console.log('Varialbe initializer: ', variableInitializer)
-				console.log('Loop expression: ', loopExpression)
 				context.push(new Elisp.ForOf(variableInitializer, loopExpression))
 
 				toElispNode(forOf.statement, context)
@@ -512,7 +508,20 @@ function toElispNode(node: ts.Node, context: Context) {
 						context
 					);
 
-					context.push(new Elisp.ArrayIndexer(leftHand, index));
+					const leftHandType = context.typeChecker.getTypeAtLocation(indexer.expression)
+					console.log("THE tiity: " + context.typeChecker.typeToString(leftHandType))
+					
+					if (leftHandType.flags & ts.TypeFlags.Object) {
+						console.log(`    123123123 object: ${leftHandType.flags} ` + indexer.expression.getText())
+						context.push(new Elisp.ElementIndexer(leftHand, index));
+					} else if (leftHandType.flags & ts.TypeFlags.String
+							  || leftHandType.flags & ts.TypeFlags.StringLiteral) {
+						console.log(`    123123123 string: ${leftHandType.flags} ` + indexer.expression.getText())
+						context.push(new Elisp.StringIndexer(leftHand, index))
+					} else {
+						context.push(new Elisp.ElementIndexer(leftHand, index));
+					}
+					
 				}
 				break;
 			case ts.SyntaxKind.ArrayLiteralExpression:

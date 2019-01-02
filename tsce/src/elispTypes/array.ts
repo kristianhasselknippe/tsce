@@ -20,7 +20,7 @@ export class ArrayLiteral extends Expression {
 	}
 }
 
-export class ArrayIndexer extends Expression {
+export class ElementIndexer extends Expression {
 	constructor(readonly leftHand: Expression, readonly indexer: Expression) {
 		super()
 	}
@@ -31,5 +31,24 @@ export class ArrayIndexer extends Expression {
 
 	emitQuoted(indent: number) {
 		return `${tabs(indent)},(nth ${this.indexer.emit(0)} ${this.leftHand.emit(0)})`
+	}
+}
+
+export class StringIndexer extends Expression {
+	constructor(readonly leftHand: Expression, readonly indexer: Expression) {
+		super()
+	}
+
+	emitIndexer(){
+		const index = this.indexer.emit(0)
+		return `${index} (+ ${index} 1)`
+	}
+
+	emit(indent: number) {
+		return `${tabs(indent)}(substring ${this.leftHand.emit(0)} ${this.emitIndexer()})`
+	}
+
+	emitQuoted(indent: number) {
+		return `${tabs(indent)},(substring ${this.leftHand.emit(0)} ${this.emitIndexer()})`
 	}
 }

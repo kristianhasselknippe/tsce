@@ -87,6 +87,6 @@ export class UnaryPostfixExpression extends UnaryExpression {
 		const unquote = quoted ? ',' : ''
 		const operandStr = this.operand.emit(0)
 		const tempBinding = generateTempBindingName()
-		return `${tabs(indent)}${unquote}(let ((${tempBinding} ${operandStr})) (setq ${operandStr} (${this.operator} ${operandStr})) ${tempBinding})`
+		return `${tabs(indent)}${unquote}(let ((${tempBinding} ${operandStr})) (setf ${operandStr} (${this.operator} ${operandStr})) ${tempBinding})`
 	}
 }

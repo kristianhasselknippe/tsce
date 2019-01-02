@@ -1,9 +1,18 @@
 import * as emacs from 'emacs'
 import * as s from 's'
 import { interactive, withCurrentBuffer } from 'emacs'
-import * as json from 'json';
+import { jsonEncode, jsonReadFromString} from 'json';
 
 //https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
+
+const console = {
+	log: writeLineToDartModeBuffer
+}
+
+const JSON = {
+	stringify: jsonEncode,
+	parse: jsonReadFromString
+}
 
 let dartPath = "c:/tools/dart-sdk/bin/dart.exe"
 let snapshotPath = "c:/tools/dart-sdk/bin/snapshots/analysis_server.dart.snapshot"
@@ -24,10 +33,6 @@ function writeToDartModeBuffer(str: string) {
 
 function writeLineToDartModeBuffer(str: string) {
 	writeToDartModeBuffer(str + "\n")
-}
-
-const console = {
-	log: writeLineToDartModeBuffer
 }
 
 interface Server {
@@ -53,7 +58,7 @@ let responseHandlers: {[index: string]: ResponseHandler } = {}
 function decodeResponseString(resp: string) {
 	console.log('Decoding response strin: ' + resp)
 	if (emacs.length(resp) > 0) {
-		const item = json.jsonReadFromString(resp) as Response | undefined
+		const item = JSON.parse(resp) as Response | undefined
 		console.log('Got item')
 		if (item) {
 			if ((<ResponseEvent>item).event) {
@@ -84,7 +89,6 @@ function dartParseMessage() {
 }
 
 function dartFilter(proc: emacs.Process, msg: string) {
-	console.log('Filter called with msg: ' + msg)
 	buffer = buffer + msg
 	dartParseMessage()
 }
@@ -124,17 +128,14 @@ function getNextId() {
 }
 
 function dartMakeRequest<TOut>(request: any, handler: ResponseHandler) {
-	console.log("Creating request with handler" + handler)
 	const id = getNextId()
 	let h = handler
 	responseHandlers[id] = (msg: Response) => {
 		handler(msg)
 		delete responseHandlers[id]
 	}
-	console.log('Response handlers; ' + responseHandlers)
 	request.id = id
-	const jsonString = json.jsonEncode(request) + '\n'
-	console.log('Json string ' + jsonString)
+	const jsonString = JSON.stringify(request) + '\n'
 	if (server) {
 		emacs.processSendString(server.process, jsonString)
 	}

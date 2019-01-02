@@ -389,3 +389,36 @@ function forOfTest2() {
 		should(equal(item.name, items[counter++].name))
 	}
 }
+
+//[Form: ert-deftest]
+function ifElseTest1() {
+	let foo
+	if (true) {
+		foo = true
+	} else {
+		foo = false
+	}
+	should(foo)
+}
+
+//[Form: ert-deftest]
+function ifElseIfTest2() {
+	let bar = false
+	let foo = true
+	if (false) {
+
+	} else if (true) {
+		if (false) {
+		} else if (true) {
+			bar = true
+			foo = true
+			if (false){
+			} else if (false){
+				foo = false
+			}
+		}
+	}
+
+	should(bar)
+	should(foo)
+}

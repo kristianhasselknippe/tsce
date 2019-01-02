@@ -391,8 +391,13 @@ function toElispNode(node: ts.Node, context: Context) {
 
 				const ifBody = context.push(new Elisp.Body());
 
-				for (let expr of (<ts.Block>ifExp.thenStatement).statements) {
-					toElispNode(expr, context);
+				const thenStatement = (<ts.Block>ifExp.thenStatement)
+				if (thenStatement.statements.length === 0) {
+					context.push(new Elisp.Null())
+				} else {
+					for (let expr of thenStatement.statements) {
+						toElispNode(expr, context);
+					}
 				}
 				context.resolveTo(ifBody);
 				context.pop();

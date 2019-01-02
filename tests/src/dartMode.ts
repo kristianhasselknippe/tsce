@@ -38,6 +38,8 @@ type ResponseHandler = (response: Response) => void
 
 let responseHandlers: {[index: string]: ResponseHandler } = {}
 
+
+
 function decodeResponseString(resp: string) {
 	console.log('Decoding response string: ' + resp)
 	if (emacs.length(resp) > 0) {
@@ -116,8 +118,8 @@ function dartGetVersion() {
 		method: 'server.getVersion'
 	})
 	responseHandlers[id] = (msg: Response) => {
-		emacs.print('Handling response for message id: ' + id)
-		emacs.print('    Message was: ' + json.jsonEncode(msg))
+		console.log('Handling response for message id: ' + id)
+		console.log('    Message was: ' + json.jsonEncode(msg))
 	}
 }
 

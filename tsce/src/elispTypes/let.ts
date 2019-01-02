@@ -26,7 +26,7 @@ export class LetBinding extends Scope {
 
 		let quotation = quoted ? ',' : ''
 
-		return `${tabs(indent)}${quotation}(let (${bindings})
+		return `${tabs(indent)}${quotation}(lexical-let (${bindings})
 ${body}
 ${tabs(indent)})`;
 	}

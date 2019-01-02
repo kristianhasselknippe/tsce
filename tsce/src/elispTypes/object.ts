@@ -62,6 +62,12 @@ export class PropertyAccess extends Expression {
 		super()
 	}
 
+	isPropertyAccess() { return true }
+
+	emitLeftAndRight() {
+		return `${this.leftHand.emit(0)} ${this.rightHand.emit(0)}`
+	}
+
 	emitQuoted(indent: number) {
 		return `${tabs(indent)},(map-elt ${this.leftHand.emit(0)} ${this.rightHand.emitUnquoted(0)})`
 	}

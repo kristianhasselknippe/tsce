@@ -1,4 +1,4 @@
-import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral } from './'
+import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess } from './'
 
 export abstract class Node {
 	abstract type: string
@@ -19,6 +19,8 @@ export abstract class Node {
 	isRootScope(): this is RootScope {
 		return this.type === 'RootScope'
 	}
+
+	isPropertyAccess(): this is PropertyAccess { return false }
 
 	isStringLiteral(): this is StringLiteral {
 		return false

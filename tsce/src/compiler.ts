@@ -356,6 +356,11 @@ function toElispNode(node: ts.Node, context: Context) {
 				);
 				break;
 			}
+			case ts.SyntaxKind.DeleteExpression:
+				let delExpr = <ts.DeleteExpression>node;
+				const expr = parseAndExpect<Elisp.Expression>(delExpr.expression, context)
+				context.push(new Elisp.DeleteExpression(expr))
+				break
 			case ts.SyntaxKind.FalseKeyword: {
 				context.printAtStackOffset('FalseKeyword');
 				context.push(new Elisp.BooleanLiteral(false));

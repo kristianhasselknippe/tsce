@@ -127,8 +127,8 @@ function dartGetVersion() {
 	interactive()
 	const id = (idCounter++) + ''
 	responseHandlers[id] = (msg: Response) => {
-		console.log('Handling response for message id: ' + id)
 		console.log('    Message was: ' + json.jsonEncode(msg))
+		delete responseHandlers[id]
 	}
 	console.log('Response handlers: ' + responseHandlers)
 	dartMakeRequest({

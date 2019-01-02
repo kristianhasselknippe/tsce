@@ -14,7 +14,8 @@ import {
 	SymbolTable,
     createLanguageService,
 
-    getTypeParameterOwner} from 'typescript';
+    getTypeParameterOwner,
+    StringLiteral} from 'typescript';
 import { fail } from 'assert';
 import {
 	extractCompilerDirectivesFromString,
@@ -279,6 +280,20 @@ function toElispNode(node: ts.Node, context: Context) {
 				}
 				break;
 			}
+			case ts.SyntaxKind.EnumDeclaration: {
+				const enumDecl = <ts.EnumDeclaration>node;
+				const name = parseAndExpect<Elisp.Identifier>(enumDecl.name, context)
+				const props = []
+				for (const member of enumDecl.members) {
+					const propName = parseAndExpect<Elisp.Identifier | Elisp.StringLiteral>(member.name, context)
+					let initializer
+					if (member.initializer) {
+						initializer = parseAndExpect<Elisp.Expression>(member.initializer, context)
+					}
+					props.push(new Elisp.EnumMember(propName, initializer))
+				}
+				context.push(new Elisp.Enum(name, props))
+			} break
 			case ts.SyntaxKind.Identifier: {
 				context.printAtStackOffset('Identifier', node);
 				const identifierNode = <ts.Identifier>node;

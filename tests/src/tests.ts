@@ -617,3 +617,16 @@ function lexicalScopingOverFunctionArguments() {
 	handlersList.later()
 	should(foo)
 }
+
+enum TestEnum {
+	"Foo",
+	Var1,
+	Var2
+}
+
+//[Form: ert-deftest]
+function enumTest1() {
+	const foo = TestEnum.Var1
+	should(equal(foo, TestEnum.Var1))
+	should(!equal(foo, TestEnum.Var2))
+}

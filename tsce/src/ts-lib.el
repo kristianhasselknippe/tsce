@@ -1,4 +1,5 @@
 (require 'cl)
+(require 'map)
 
 (setq lexical-binding t)
 
@@ -40,9 +41,3 @@
 
 (cl-defun tsce-test-function-named-arguments (&key foo bar)
   (+ foo bar))
-
-(defun ts/add-or-set-value (key value assocList)
-  (let ((item (cdr (assoc key assocList))))
-	(if item
-		(setf (cdr (assoc key assocList)) value)
-	  (setf foo (cl-acons key value assocList)))))

@@ -63,10 +63,10 @@ export class PropertyAccess extends Expression {
 	}
 
 	emitQuoted(indent: number) {
-		return `${tabs(indent)},(cdr (assoc ${this.rightHand.emitUnquoted(0)} ${this.leftHand.emit(0)}))`
+		return `${tabs(indent)},(map-elt ${this.leftHand.emit(0)} ${this.rightHand.emitUnquoted(0)})`
 	}
 	
 	emit(indent: number) {
-		return `${tabs(indent)}(cdr (assoc ${this.rightHand.emitUnquoted(0)} ${this.leftHand.emit(0)}))`
+		return `${tabs(indent)}(map-elt ${this.leftHand.emit(0)} ${this.rightHand.emitUnquoted(0)})`
 	}
 }

@@ -5,6 +5,7 @@ export class Defun extends Block {
 	type = 'Function';
 
 	private customForm?: string
+	private isInteractive?: boolean
 
 	constructor(identifier: Identifier, readonly args: string[], compilerDirectives: CompilerDirective[]) {
 		super(identifier);
@@ -14,6 +15,9 @@ export class Defun extends Block {
 				switch (compDir.kind) {
 					case "Form":
 						this.customForm = compDir.form
+						break
+					case "Interactive":
+						this.isInteractive = true
 						break
 				}
 			}
@@ -36,8 +40,13 @@ export class Defun extends Block {
 		}
 	}
 
+	emitInteractive() {
+		return this.isInteractive ? "(interactive)" : ""
+	}
+
 	emit(indent: number) {
 		return `${tabs(indent)}(${this.getForm()} ${this.identifier.emit(0)} (${this.emitArgs()})
+${tabs(indent+1)}${this.emitInteractive()}
 ${this.emitBlock(indent + 1, this.emitBody(indent+2))}
 ${tabs(indent)})`
 	}

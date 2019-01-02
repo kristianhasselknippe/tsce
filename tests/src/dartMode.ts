@@ -153,8 +153,8 @@ interface GetVersionResponse extends ResponseItem {
 	}
 }
 
+//[Interactive]
 function dartGetVersion() {
-	interactive()
 	dartMakeRequest({
 		method: 'server.getVersion'
 	}, (msg: Response) => {
@@ -193,8 +193,25 @@ interface GetErrorsResponse extends ResponseItem {
 	}
 }
 
-function dartGetError() {
-	
+function dartGetErrors(filePath: string) {
+	dartMakeRequest({
+		method: 'server.getVersion',
+		params: {
+			file: filePath
+		}
+	}, (msg: Response) => {
+		const ger = <GetErrorsResponse>msg
+		console.log('Errors for file: ' + filePath)
+		for (const error of ger.result.errors) {
+			console.log('Error: ' + error)
+		}
+	})
+}
+
+//[Interactive]
+function dartGetErrorsForCurrentFile() {
+	const currentFile = emacs.bufferFileName()
+	console.log('Current file: ' + currentFile)
 }
 
 //request: {

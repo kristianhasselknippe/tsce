@@ -44,6 +44,10 @@ declare module 'emacs' {
 	function withTempBuffer(body: any): void
 	function saveExcursion(body: any): void
 
+	function bufferFileName(buffer?: Buffer): string
+	function getFileBuffer(filename: string): Buffer
+	function findBufferVisiting(filename: string, predicate?: (arg: Buffer) => boolean): Buffer
+
 	// Text
 	function insert(...args: string[]): void
 	function insertBeforeMarkers(...args: string[]): void

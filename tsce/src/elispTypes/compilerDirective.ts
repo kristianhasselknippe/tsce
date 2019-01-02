@@ -1,4 +1,4 @@
-export type CompilerDirectiveKind = 'Name' | 'Form' | 'Predicate' | 'NamedArguments'
+export type CompilerDirectiveKind = 'Name' | 'Form' | 'Predicate' | 'NamedArguments' | 'Interactive'
 
 interface CompilerDirectiveBase {
 	kind: CompilerDirectiveKind
@@ -22,7 +22,11 @@ export interface NamedArguments extends CompilerDirectiveBase {
 	kind: 'NamedArguments'
 }
 
-export type CompilerDirective = Name | Predicate | NamedArguments | Form
+export interface Interactive extends CompilerDirectiveBase {
+	kind: 'Interactive'
+}
+
+export type CompilerDirective = Name | Predicate | NamedArguments | Form | Interactive
 
 function expectNumArgs(directive: string, args: string[], num: number) {
 	if (args.length !== num) {
@@ -59,6 +63,10 @@ function parseBody(body: string): CompilerDirective {
 		case "Predicate":
 			return {
 				kind: 'Predicate'
+			}
+		case "Interactive":
+			return {
+				kind: 'Interactive'
 			}
 		case "NamedArguments":
 			return {

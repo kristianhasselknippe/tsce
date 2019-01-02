@@ -55,10 +55,16 @@ function decodeResponseString(resp: string) {
 		const item = json.jsonReadFromString(resp) as Response | undefined
 		if (item) {
 			if ((<ResponseEvent>item).event) {
+				console.log('    Response string was event')
+				console.log('    Response string was event')
 			} else {
+				console.log('    Response string was item')
 				const response = item as ResponseItem
-				if (responseHandlers[response.id]) {
-					responseHandlers[response.id](item)
+				console.log('    Response string was item: ' + response.id)
+				const handler = responseHandlers[response.id]
+				console.log('      Handler for it: ' + handler)
+				if (handler) {
+					handler(item)
 				}
 			}
 		}
@@ -71,9 +77,6 @@ function dartParseMessage() {
 		decodeResponseString(s)
 	}
 	const splitLength = emacs.length(split)
-	console.log('Split length: ' + splitLength)
-	console.log("SBlank on empty: " + s.sBlank(""))
-	console.log('The split: ' + split[splitLength - 1])
 	if (s.sBlank(split[splitLength - 1])) {
 		buffer = ''
 	}
@@ -114,7 +117,19 @@ type GetVersionRequest = Request<"server.getVersion">
 
 type Requests = GetVersionRequest
 
-function dartMakeRequest<TOut>(request: Requests) {
+let idCounter = 0
+function getNextId() {
+	return (idCounter++) + ''
+}
+
+function dartMakeRequest<TOut>(request: { method: string }, handler: ResponseHandler) {
+	const id = getNextId()
+	responseHandlers[id] = (msg: Response) => {
+		handler(msg)
+		delete responseHandlers[id]
+	}
+	console.log('Response handlers; ' + responseHandlers)
+	(request as any).id = id
 	const jsonString = json.jsonEncode(request) + '\n'
 	console.log('Json string ' + jsonString)
 	if (server) {
@@ -122,18 +137,75 @@ function dartMakeRequest<TOut>(request: Requests) {
 	}
 }
 
-let idCounter = 0
+interface RequestError {
+	code: string
+	message: string
+	stackTrace?: string
+}
+
+interface GetVersionResponse extends ResponseItem {
+	error?: RequestError
+	result: {
+		version: String
+	}
+}
+
 function dartGetVersion() {
 	interactive()
-	const id = (idCounter++) + ''
-	responseHandlers[id] = (msg: Response) => {
-		console.log('Handling response from dartGetVersion: ' + msg)
-		delete responseHandlers[id]
-	}
 	dartMakeRequest({
-		id,
 		method: 'server.getVersion'
+	}, (msg: Response) => {
+		console.log("Handling response in handler")
+		const gvr = msg as GetVersionResponse
+		console.log('Got version back: ' + gvr.result.version)
 	})
 }
 
 dartGetVersion()
+
+interface Location {
+	file: string
+	offset: number
+	length: number
+	startLine: number
+	startColumn: number
+}
+
+type GetErrorsRequest = Request<'analysis.GetErros'>
+
+interface AnalysisError {
+	severity: string
+	type: string
+	location: Location
+	message: string
+	correction?: string
+	code: string
+	hasFix?: boolean
+}
+
+interface GetErrorsResponse extends ResponseItem {
+	error?: RequestError
+	result: {
+		errors: AnalysisError[]
+	}
+}
+
+function dartGetError() {
+	
+}
+
+//request: {
+//  "id": String
+//  "method": "analysis.getErrors"
+//  "params": {
+//	"file": FilePath
+//  }
+//}
+//
+//response: {
+//  "id": String
+//  "error": optional RequestError
+//  "result": {
+//	"errors": List<AnalysisError>
+//  }
+//}

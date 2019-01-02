@@ -585,3 +585,16 @@ function deletePropertyTwoLevelsIndexer() {
 	delete foo.bar["baz"]
 	should(!(foo.bar["baz"]))
 }
+
+//[Form: ert-deftest]
+function testIfElseWithMoreThanOneItemInBody() {
+	let theAssert = false
+	if (true) {
+		theAssert = false
+		theAssert = true
+	} else {
+		theAssert = false
+	}
+
+	should(theAssert)
+}

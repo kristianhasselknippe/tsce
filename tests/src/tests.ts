@@ -491,3 +491,29 @@ function insertIntoEmptyObjAndCall() {
 
 	items[foo](true)
 }
+
+let responseHandlers: any = {}
+function callTheResponseHandler(foo: string) {
+	responseHandlers[foo](foo)
+}
+
+//[Form: ert-deftest]
+function lambdaInsertionTest() {
+	let idCounter = 0
+	const id = (idCounter++) + ''
+	responseHandlers[id] = (foo:any) => {
+		should(equal(id, "0"))
+		should(equal(id, foo))
+	}
+	responseHandlers[id](id)
+}
+
+//[Form: ert-deftest]
+function deleteProperty() {
+	let foo: any = {}
+	should(!(foo.bar))
+	foo.bar = "foobar"
+	should(equal(foo.bar, "foobar"))
+	delete foo.bar
+	should(!(foo.bar))
+}

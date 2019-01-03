@@ -2,17 +2,17 @@
 
 Typescript to Elisp compiler
 
-Just started, so it is very hacky and crude atm.
-
 ** Missing features
 
 - Enums
 - Async/await
-- Proper module resolution
-- Namespaces
+- Classes
+- NPM package support
+- A bunch of smaller things
+- Documentation
 
 ** Why?
-I wanted to write more emacs packages, but I hate working without static type checking. Typescript has a flexible enough type system that i could be viable as a compiler frontend, and the typescript compiler API is very accessible.
+I wanted to write more emacs packages, but I hate working without static type checking. Typescript has a flexible enough type system that it could be viable as a compiler frontend, and the typescript compiler API is very accessible.
 
 ** Sorry about the mess
 

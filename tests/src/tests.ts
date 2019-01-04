@@ -619,7 +619,6 @@ function lexicalScopingOverFunctionArguments() {
 }
 
 enum TestEnum {
-	"Foo",
 	Var1,
 	Var2
 }
@@ -629,4 +628,23 @@ function enumTest1() {
 	const foo = TestEnum.Var1
 	should(equal(foo, TestEnum.Var1))
 	should(!equal(foo, TestEnum.Var2))
+}
+
+enum TestEnum2 {
+	"Var1",
+	Var2 = 1
+}
+
+//[Form: ert-deftest]
+function enumTest2() {
+	const foo = TestEnum2.Var1
+	should(equal(foo, TestEnum2.Var1))
+	should(!equal(foo, TestEnum2.Var2))
+}
+
+//[Form: ert-deftest]
+function enumTest3() {
+	const foo = TestEnum2.Var2
+	should(equal(foo, TestEnum2.Var2))
+	should(!equal(foo, TestEnum2.Var1))
 }

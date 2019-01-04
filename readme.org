@@ -4,9 +4,8 @@ Typescript to Elisp compiler
 
 ** Missing features
 
-- Enums
-- Async/await
 - Classes
+- Async/await
 - NPM package support
 - A bunch of smaller things
 - Documentation

@@ -189,11 +189,7 @@ function toElispNode(node: ts.Node, context: Context) {
 						context
 					);
 				}
-				if (context.isInRootScope()) {
-					context.push(new Elisp.Set(identifier, initializer))
-				} else {
-					context.push(new Elisp.LetItem(identifier, initializer));
-				}
+				context.push(new Elisp.LetItem(identifier, initializer, context.isInRootScope()));
 				break;
 
 			case ts.SyntaxKind.VariableDeclarationList:
@@ -210,7 +206,7 @@ function toElispNode(node: ts.Node, context: Context) {
 
 				if (!context.isInRootScope()) {
 					const bindings = context.popToMarker<Elisp.LetItem>(marker!)
-					let letBinding = new Elisp.LetBinding(bindings);
+					let letBinding = new Elisp.LetBinding(bindings, context.isInRootScope());
 					context.push(letBinding);
 				}
 				break;
@@ -292,7 +288,7 @@ function toElispNode(node: ts.Node, context: Context) {
 					}
 					props.push(new Elisp.EnumMember(propName, initializer))
 				}
-				context.push(new Elisp.Enum(name, props))
+				context.push(new Elisp.Enum(name, props, context.isInRootScope()))
 			} break
 			case ts.SyntaxKind.Identifier: {
 				context.printAtStackOffset('Identifier', node);

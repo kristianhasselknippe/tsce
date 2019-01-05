@@ -1,12 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-	compileProject,
-	writeCompilationResultToStorage,
-	addFileToResult,
-	appendCompilationResult,
-	createProgramFromDir
-} from './projectFormat';
+import { loadProject, compileProject } from './projectFormat';
 
 function parseCliArguments() {
 	const args = process.argv.slice(2);
@@ -25,15 +19,13 @@ function parseCliArguments() {
 let cliArgs = parseCliArguments();
 
 console.log('== Compiling project');
-const compilerProgram = createProgramFromDir(cliArgs.projectPath);
+const compilerProgram = loadProject(cliArgs.projectPath);
 
 const projectResults = compileProject(compilerProgram);
 
 const results = projectResults;
 
-//TODO: Make sure this works after we've packaged the code
-const libPath = path.join(__dirname, '../src', 'ts-lib.el');
-addFileToResult(results, libPath);
+//TODO: Add ts-lib.el
 
 console.log('== Writing result');
-writeCompilationResultToStorage(compilerProgram, results);
+writeCompilationResultToStorage(projectResults);

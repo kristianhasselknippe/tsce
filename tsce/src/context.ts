@@ -1,6 +1,6 @@
 import Stack from './stack';
 import { tabs, Node, Expression } from './elispTypes';
-import * as ts from 'typescript';
+import { ts, SourceFile } from 'ts-simple-ast';
 
 export enum SymbolType {
 	Function,
@@ -47,11 +47,10 @@ export class Context extends Stack {
 	private sourceTexts: { [index: string]: string } = {};
 
 	constructor(
-		readonly sourceFiles: ReadonlyArray<ts.SourceFile>,
-		readonly typeChecker: ts.TypeChecker
+		readonly sourceFiles: ReadonlyArray<SourceFile>
 	) {
 		super();
-		sourceFiles.forEach(x => (this.sourceTexts[x.fileName] = x.getText()));
+		sourceFiles.forEach(x => (this.sourceTexts[x.getFilePath()] = x.getText()));
 	}
 
 	pushMarker() {

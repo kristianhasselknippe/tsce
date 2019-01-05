@@ -262,7 +262,7 @@ class CompilerProcess {
 						);
 					}
 					this.context.push(
-						new Elisp.LetItem(identifier, initializer)
+						new Elisp.LetItem(identifier, initializer, context.isInRootScope())
 					);
 					break;
 
@@ -871,7 +871,7 @@ class CompilerProcess {
 										if (declaration) {
 											if (
 												declaration.getKind() ===
-												ts.SyntaxKind
+												ts.SyntaxKind.FunctionDeclaration
 											) {
 												const funDecl = <
 													FunctionDeclaration
@@ -948,7 +948,7 @@ class CompilerProcess {
 		const ret = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
 			const root = new Elisp.RootScope();
-			//this.addCommonLibs(root);
+			this.addCommonLibs(root)
 			this.context.push(root);
 			for (var statement of sourceFile.getStatements()) {
 				this.toElispNode(statement);

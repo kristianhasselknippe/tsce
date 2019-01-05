@@ -27,6 +27,12 @@ const projectResults = compileProject(project);
 const results = projectResults;
 
 //TODO: Add ts-lib.el
+const libPath = path.join(__dirname, '../src', 'ts-lib.el');
+const libContent = fs.readFileSync(libPath).toString()
+results.push({
+	fileName: 'ts-lib',
+	source: libContent
+})
 
 console.log('== Writing result');
 writeCompilationResultToStorage(project, results);

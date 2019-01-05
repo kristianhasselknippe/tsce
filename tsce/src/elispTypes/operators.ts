@@ -1,4 +1,4 @@
-import * as ts from 'typescript'
+import { ts } from 'ts-simple-ast'
 import { Expression, tabs, generateTempBindingName } from ".";
 
 let operatorsMap = {

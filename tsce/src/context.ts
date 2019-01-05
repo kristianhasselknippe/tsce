@@ -1,6 +1,6 @@
 import Stack from './stack';
 import { tabs, Node, Expression } from './elispTypes';
-import { ts, SourceFile } from 'ts-simple-ast';
+import { SourceFile, Node as SimpleNode } from 'ts-simple-ast';
 
 export enum SymbolType {
 	Function,
@@ -75,20 +75,15 @@ export class Context extends Stack {
 		});
 	}
 
-	getCommentsForNode(node: ts.Node, debug = false) {
+	getCommentsForNode(node: SimpleNode, debug = false) {
 		const ret = [];
 		const sourceFile = node.getSourceFile()
-		const start = node.getFullStart();
-		const comments = ts.getLeadingCommentRanges(
-			sourceFile.getText(),
-			start
-		);
-
+		const comments = node.getLeadingCommentRanges()
 		if (comments) {
 			for (const comment of comments) {
 				const commentText = sourceFile
 					.getText()
-					.substring(comment.pos, comment.end);
+					.substring(comment.getPos(), comment.getEnd());
 				ret.push(commentText);
 			}
 		}
@@ -114,8 +109,8 @@ export class Context extends Stack {
 		return tabs(stackSize);
 	}
 
-	printAtStackOffset(text: string, node?: ts.Node) {
-		/*let scope = '<no scope>';
+	printAtStackOffset(text: string, node?: SimpleNode) {
+		let scope = '<no scope>';
 		try {
 			scope = this.getCurrentScope().type;
 		} catch (e) {
@@ -125,11 +120,16 @@ export class Context extends Stack {
 			this.stackSizeTabs() +
 				text +
 				' - ' +
-				(node ? node.getText() : '') +
+				//(node ? node.getText() : '') +
 				' scope: ' +
 				scope +
 				', size: ' +
 				this.size
-		);*/
+		);
+
+
+
+
+
 	}
 }

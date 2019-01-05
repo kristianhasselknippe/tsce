@@ -1,10 +1,9 @@
-import * as ts from 'typescript'
-import * as process from 'process'
 import * as fs from 'fs';
 import * as path from 'path'
 import * as shell from 'shelljs'
 
 import { Project } from 'ts-simple-ast'
+import { CompilationResult } from './compiler';
 
 function ensurePathExists(pathString: string) {
 	shell.mkdir('-p', pathString)
@@ -22,15 +21,15 @@ export function loadProject(pathToTsConfig: string): TsceProject {
 	}
 }
 
-export function writeCompilationResultToStorage(project: TsceProject) {
+export function writeCompilationResultToStorage(project: TsceProject, compilationResult: CompilationResult[]) {
 	const outputDir = project.project.getCompilerOptions().outDir
 	if (outputDir) {
 		ensurePathExists(outputDir)
-		for (const file of result.elispFiles) {
-			const outputFilePath = path.join(outputDir, file.fileName)
+		for (const file of compilationResult) {
+			const outputFilePath = path.join(outputDir, file.fileName + '.el')
 			//console.log('          ' + file.content)
 			const lexicalBindingDeclaration = ";; -*- lexical-binding: t -*-\n\n"
-			const output = lexicalBindingDeclaration + file.content
+			const output = lexicalBindingDeclaration + file.source
 			fs.writeFile(outputFilePath, output, { flag: 'w' }, (err) => {
 				if (err) {
 					console.error(`Error writing file ${file.fileName}, error: ${err}`)

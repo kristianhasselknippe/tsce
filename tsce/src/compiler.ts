@@ -32,13 +32,13 @@ import {
 	PropertyAccessExpression,
 	TypeAssertion,
 	AsExpression,
-    ImportDeclaration,
+	ImportDeclaration,
 
-    TypeGuards,
-    NamespaceImport,
-    StringLiteral} from 'ts-simple-ast';
+	TypeGuards,
+	NamespaceImport,
+	StringLiteral} from 'ts-simple-ast';
 import * as Elisp from './elispTypes';
-import { Symbol, SymbolType, Context, Marker } from './context';
+import { Context, Marker } from './context';
 import { fail } from 'assert';
 import {
 	extractCompilerDirectivesFromString,
@@ -46,6 +46,7 @@ import {
 	CompilerDirective,
 	CompilerDirectiveKind
 } from './elispTypes/compilerDirective';
+import { SymbolType } from './symbolTable'
 import { LetBinding } from './elispTypes';
 import { TsceProject } from './projectFormat';
 
@@ -250,11 +251,7 @@ class CompilerProcess {
 					const identifier = this.parseAndExpect<Elisp.Identifier>(
 						vd.getNameNode()
 					);
-					let name = vd.getName();
-					context.addSymbol({
-						name,
-						type: SymbolType.Variable
-					});
+					context.pushSymbol(vd, SymbolType.Variable)
 					let initializer;
 					if (vd.getInitializer()) {
 						initializer = this.parseAndExpect<Elisp.Expression>(
@@ -307,13 +304,12 @@ class CompilerProcess {
 					let fd = <FunctionDeclaration>node;
 
 					const inRootScope = context.isInRootScope();
-					let name = fd.getName()!;
-					this.context.addSymbol({
-						name: name,
-						type: inRootScope
+					this.context.pushSymbol(
+						fd,
+						inRootScope
 							? SymbolType.Function
 							: SymbolType.Variable
-					});
+					);
 
 					if (!fd.hasBody()) {
 						break;
@@ -324,11 +320,8 @@ class CompilerProcess {
 						.map(p => p.getName())
 						.filter(x => typeof x !== 'undefined') as string[];
 
-					args.forEach(arg => {
-						this.context.addSymbol({
-							name: arg!,
-							type: SymbolType.Variable
-						});
+					fd.getParameters().forEach(arg => {
+						this.context.pushSymbol(arg, SymbolType.Variable)
 					});
 
 					const functionIdentifier = this.parseAndExpect<
@@ -406,7 +399,7 @@ class CompilerProcess {
 					context.printAtStackOffset('Identifier', node);
 					const identifierNode = <Identifier>node;
 					const symbolName = identifierNode.getText();
-					const symbol = context.getSymbolForName(symbolName);
+					const symbol = context.getSymbolForNode(identifierNode);
 
 					const comments = this.getCommentsForDeclarationOfNode(
 						identifierNode
@@ -709,17 +702,10 @@ class CompilerProcess {
 											property
 										);
 
-										context.addSymbol({
-											name: assignment.getName(),
-											type: SymbolType.Variable
-										});
+										context.pushSymbol(assignment, SymbolType.Variable)
 
-										const identifier = this.parseAndExpect<
-											Elisp.PropertyName
-										>(assignment.getNameNode());
-										const initializer = this.parseAndExpect<
-											Elisp.Expression
-										>(assignment.getInitializer()!);
+										const identifier = this.parseAndExpect<Elisp.PropertyName>(assignment.getNameNode());
+										const initializer = this.parseAndExpect<Elisp.Expression>(assignment.getInitializer()!);
 
 										properties.push(
 											new Elisp.Property(
@@ -761,35 +747,20 @@ class CompilerProcess {
 				case ts.SyntaxKind.PropertyAccessExpression:
 					{
 						const propAccess = <PropertyAccessExpression>node;
-
-						const leftHand = this.parseAndExpect<Elisp.Expression>(
-							propAccess.getExpression()
-						);
-						const rightHand = this.parseAndExpect<Elisp.Identifier>(
-							propAccess.getNameNode()
-						);
-
-						context.push(
-							new Elisp.PropertyAccess(leftHand, rightHand)
-						);
+						const leftHand = this.parseAndExpect<Elisp.Expression>(propAccess.getExpression());
+						const rightHand = this.parseAndExpect<Elisp.Identifier>(propAccess.getNameNode());
+						context.push(new Elisp.PropertyAccess(leftHand, rightHand));
 					}
 					break;
 				case ts.SyntaxKind.ArrowFunction:
 					{
 						const arrowFunc = <ArrowFunction>node;
-						const params = arrowFunc.getParameters();
-						const args = params
-							? params.map(p => p.getName()!)
-							: [];
-
-						args.forEach(arg => {
-							context.addSymbol({
-								name: arg!,
-								type: SymbolType.Variable
-							});
+						const params = arrowFunc.getParameters().map(arg => {
+							context.pushSymbol(arg, SymbolType.Variable)
+							return arg.getName()!
 						});
 
-						const lambda = context.push(new Elisp.Lambda(args));
+						const lambda = context.push(new Elisp.Lambda(params));
 						this.toElispNode(arrowFunc.getBody());
 						context.resolveTo(lambda);
 					}
@@ -832,90 +803,31 @@ class CompilerProcess {
 				case ts.SyntaxKind.ImportDeclaration:
 					{
 						const importDecl = <ImportDeclaration>node;
+
 						const moduleName = this.parseAndExpect<
 							Elisp.StringLiteral
 						>(importDecl.getModuleSpecifier())
 
-						let isRelativePath = true;
+						let isRelativePath = importDecl.isModuleSpecifierRelative()
 						//TODO: Make this more robust! We check here if we are looking at a path or an ambient(?) module import
-						if (
-							moduleName.str.indexOf('/') === -1 &&
-							moduleName.str.indexOf('\\') === -1 &&
-							moduleName.str.indexOf('.') === -1
-						) {
-							isRelativePath = false;
-						}
 
-						if (importDecl.getImportClause()) {
-							if (
-								importDecl.getImportClause()!.getNamedBindings()
-							) {
-								const namedBinding = importDecl
-									.getImportClause()!
-									.getNamedBindings()!;
-								if (
-									namedBinding.getKind() ===
-									ts.SyntaxKind.NamespaceImport
-								) {
+						const importClause = importDecl.getImportClause()
+						if (importClause) {
+							const namedBindings = importDecl.getImportClause()!.getNamedBindings()
+							if (namedBindings) {
+								if (TypeGuards.isNamespaceImport(namedBindings)) {
 									//Need to create an elisp object with the entire namespace
-									const namespaceIdentifier = this.parseAndExpect<
-										Elisp.Identifier
-										>((namedBinding as NamespaceImport).getNameNode());
+									const namespaceImport = <NamespaceImport>namedBindings
+									const namespaceIdentifier = this.parseAndExpect<Elisp.Identifier>(namespaceImport.getNameNode());
 
-									const namespaceType = namedBinding.getType();
-
-									const members = [];
-									const properties = namespaceType.getProperties();
-									for (const p of properties) {
-										const declaration = p.getValueDeclaration();
-										if (declaration) {
-											if (
-												declaration.getKind() ===
-												ts.SyntaxKind.FunctionDeclaration
-											) {
-												const funDecl = <
-													FunctionDeclaration
-												>declaration;
-												if (funDecl.getNameNode()) {
-													const propIdentifier = this.parseAndExpect<
-														Elisp.Identifier
-													>(funDecl.getNameNode()!);
-													members.push(
-														propIdentifier
-													);
-												}
-												//TODO: Handle other types of declarations in namespace imports
-											} else if (
-												declaration.getKind() ===
-												ts.SyntaxKind
-													.VariableDeclaration
-											) {
-												const variableDecl = <
-													VariableDeclaration
-												>declaration;
-												context.addSymbol({
-													name: variableDecl.getName(),
-													type: SymbolType.Variable
-												});
-												const variable = this.parseAndExpect<
-													Elisp.Identifier
-												>(variableDecl.getNameNode());
-												members.push(variable);
-											}
-										}
-									}
 									context.push(
 										new Elisp.NamespaceImport(
 											namespaceIdentifier,
-											members,
 											moduleName,
 											isRelativePath
 										)
 									);
-								} else if (
-									namedBinding.getKind() ===
-									ts.SyntaxKind.NamedImports
-								) {
+								} else if (TypeGuards.isNamedImports(namedBindings)) {
 									context.push(
 										new Elisp.ModuleImport(
 											moduleName,

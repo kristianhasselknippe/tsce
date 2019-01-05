@@ -1,5 +1,5 @@
 import { Expression, tabs } from ".";
-import { Symbol, SymbolType } from "../context";
+import { Symbol, SymbolType } from "../symbolTable";
 import { CompilerDirective } from "./compilerDirective";
 
 function isUpper(character: string) {
@@ -21,7 +21,6 @@ export class Identifier extends Expression {
 
 		if (!symbol) {
 			this.symbol = {
-				name: this.identifierName,
 				type: SymbolType.Variable
 			}
 		} else {

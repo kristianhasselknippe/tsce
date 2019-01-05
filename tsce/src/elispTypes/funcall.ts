@@ -1,6 +1,6 @@
 import { Expression, tabs, ObjectLiteral, LetBinding, LetItem, PropertyAccess, Identifier } from ".";
-import { SymbolType } from "../context";
 import { CompilerDirective } from "./compilerDirective";
+import { SymbolType } from "../symbolTable";
 
 export class FunctionCall extends Expression {
 	type: string = 'FunctionCall'

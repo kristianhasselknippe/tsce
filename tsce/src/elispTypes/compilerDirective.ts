@@ -37,7 +37,7 @@ function expectNumArgs(directive: string, args: string[], num: number) {
 }
 
 // TODO: Use regex or something instead of this nonsense
-function parseBody(body: string): CompilerDirective {
+function parseBody(body: string): CompilerDirective | undefined {
 	const [directive, bodyArgs] = body.split(':')
 
 	let args: string[] = []

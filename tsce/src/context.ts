@@ -1,38 +1,7 @@
 import Stack from './stack';
 import { tabs, Node, Expression } from './elispTypes';
 import { SourceFile, Node as SimpleNode } from 'ts-simple-ast';
-
-export enum SymbolType {
-	Function,
-	Variable,
-	Lambda
-}
-
-export interface Symbol {
-	name: string;
-	type: SymbolType;
-}
-
-export class SymbolTable {
-	private symbols: Symbol[] = [];
-
-	push(symbol: Symbol) {
-		this.symbols.push(symbol);
-	}
-
-	searchBackwards(pred: (symbol: Symbol) => boolean) {
-		for (let i = this.symbols.length - 1; i >= 0; i--) {
-			const sym = this.symbols[i];
-			if (pred(sym)) {
-				return sym;
-			}
-		}
-		return {
-			name: '<missing>',
-			type: SymbolType.Function
-		};
-	}
-}
+import { SymbolTable, SymbolType } from './symbolTable';
 
 export class Marker extends Expression {
     type = 'Marker';
@@ -65,14 +34,12 @@ export class Context extends Stack {
 		return ret
 	}
 
-	addSymbol(sym: Symbol) {
-		this.symTable.push(sym);
+	pushSymbol(node: SimpleNode, sym: SymbolType) {
+		this.symTable.push(node, sym);
 	}
 
-	getSymbolForName(name: string) {
-		return this.symTable.searchBackwards(sym => {
-			return sym.name === name;
-		});
+	getSymbolForNode(node: SimpleNode) {
+		return this.symTable.getSymbolForNode(node)
 	}
 
 	getCommentsForNode(node: SimpleNode, debug = false) {
@@ -110,7 +77,7 @@ export class Context extends Stack {
 	}
 
 	printAtStackOffset(text: string, node?: SimpleNode) {
-		let scope = '<no scope>';
+		/*let scope = '<no scope>';
 		try {
 			scope = this.getCurrentScope().type;
 		} catch (e) {
@@ -120,16 +87,11 @@ export class Context extends Stack {
 			this.stackSizeTabs() +
 				text +
 				' - ' +
-				//(node ? node.getText() : '') +
+				(node ? node.getText() : '') +
 				' scope: ' +
 				scope +
 				', size: ' +
 				this.size
-		);
-
-
-
-
-
+		);*/
 	}
 }

@@ -1,7 +1,8 @@
 import { Block, tabs, hyphenate, Identifier } from "./";
 import { CompilerDirective, extractCompilerDirectivesFromString } from "./compilerDirective";
+import { Declaration } from "./declaration";
 
-export class Defun extends Block {
+export class Defun extends Block implements Declaration {
 	type = 'Function';
 
 	private customForm?: string
@@ -22,6 +23,14 @@ export class Defun extends Block {
 				}
 			}
 		}
+	}
+
+	matchesIdentifier(identifier: Identifier): boolean {
+		return identifier.matchesIdentifier(this.identifier)
+	}
+
+	isDeclaration() {
+		return true
 	}
 
 	hyphenateName() {

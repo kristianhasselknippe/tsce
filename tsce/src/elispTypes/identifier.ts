@@ -1,5 +1,4 @@
 import { Expression, tabs } from ".";
-import { Symbol, SymbolType } from "../symbolTable";
 import { CompilerDirective } from "./compilerDirective";
 
 function isUpper(character: string) {
@@ -14,18 +13,8 @@ export class Identifier extends Expression {
 	customName?: string
 	useNamedArguments = false
 
-	symbol: Symbol
-
-	constructor(public readonly identifierName: string, symbol?: Symbol, readonly declarationDirectives?: CompilerDirective[]) {
+	constructor(public readonly identifierName: string, readonly declarationDirectives?: CompilerDirective[]) {
 		super();
-
-		if (!symbol) {
-			this.symbol = {
-				type: SymbolType.Variable
-			}
-		} else {
-			this.symbol = symbol
-		}
 
 		if (declarationDirectives) {
 			for (const compDir of declarationDirectives) {
@@ -42,6 +31,10 @@ export class Identifier extends Expression {
 				}
 			}
 		}
+	}
+
+	matchesIdentifier(identifier: Identifier) {
+		return identifier.identifierName === this.identifierName
 	}
 
 	hyphenateName() {
@@ -73,13 +66,10 @@ export class Identifier extends Expression {
 	}
 
 	emitQuoted(indent: number) {
-		if (this.symbol.type === SymbolType.Function) {
-			return `${tabs(indent)}${this.formatName()}`
-		}
 		return `${tabs(indent)},${this.formatName()}`
 	}
 
 	emitUnquoted(indent: number){
-		return `${tabs(indent)}'${this.formatName()}`
+		return `${tabs(indent)}\`${this.formatName()}`
 	}
 }

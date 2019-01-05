@@ -1,5 +1,5 @@
 import { Statement, tabs, StringLiteral, Identifier } from '.';
-import { SymbolType } from '../symbolTable';
+import { Declaration } from './declaration';
 
 export class ModuleImport extends Statement {
 	type: string = 'ModuleImport';
@@ -25,12 +25,20 @@ export class ModuleImport extends Statement {
 	}
 }
 
-export class NamespaceImport extends ModuleImport {
+export class NamespaceImport extends ModuleImport implements Declaration {
 	constructor(
 		readonly namespaceObjectIdentifier: Identifier,
 		moduleString: StringLiteral,
 		isRelativePath: boolean
 	) {
 		super(moduleString, isRelativePath);
+	}
+
+	matchesIdentifier(identifier: Identifier): boolean {
+		return this.namespaceObjectIdentifier.matchesIdentifier(identifier)
+	}
+
+	isDeclaration() {
+		return true
 	}
 }

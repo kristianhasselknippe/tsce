@@ -13,7 +13,6 @@ import {
 	FunctionDeclaration,
 	InterfaceDeclaration,
 	CallExpression,
-	createWrappedNode,
 	ExpressionStatement,
 	VariableDeclaration,
 	VariableDeclarationList,
@@ -33,7 +32,6 @@ import {
 	TypeAssertion,
 	AsExpression,
 	ImportDeclaration,
-
 	TypeGuards,
 	NamespaceImport,
 	StringLiteral} from 'ts-simple-ast';
@@ -46,15 +44,13 @@ import {
 	CompilerDirective,
 	CompilerDirectiveKind
 } from './elispTypes/compilerDirective';
-import { SymbolType } from './symbolTable'
-import { LetBinding } from './elispTypes';
 import { TsceProject } from './projectFormat';
 
 class CompilerProcess {
 	context: Context;
 
 	constructor(readonly project: Project) {
-		this.context = new Context(project.getSourceFiles());
+		this.context = new Context();
 	}
 
 	parseAndExpect<T extends Elisp.Node>(node: Node) {
@@ -251,7 +247,6 @@ class CompilerProcess {
 					const identifier = this.parseAndExpect<Elisp.Identifier>(
 						vd.getNameNode()
 					);
-					context.pushSymbol(vd, SymbolType.Variable)
 					let initializer;
 					if (vd.getInitializer()) {
 						initializer = this.parseAndExpect<Elisp.Expression>(
@@ -304,12 +299,6 @@ class CompilerProcess {
 					let fd = <FunctionDeclaration>node;
 
 					const inRootScope = context.isInRootScope();
-					this.context.pushSymbol(
-						fd,
-						inRootScope
-							? SymbolType.Function
-							: SymbolType.Variable
-					);
 
 					if (!fd.hasBody()) {
 						break;
@@ -319,10 +308,6 @@ class CompilerProcess {
 						.getParameters()
 						.map(p => p.getName())
 						.filter(x => typeof x !== 'undefined') as string[];
-
-					fd.getParameters().forEach(arg => {
-						this.context.pushSymbol(arg, SymbolType.Variable)
-					});
 
 					const functionIdentifier = this.parseAndExpect<
 						Elisp.Identifier
@@ -399,7 +384,6 @@ class CompilerProcess {
 					context.printAtStackOffset('Identifier', node);
 					const identifierNode = <Identifier>node;
 					const symbolName = identifierNode.getText();
-					const symbol = context.getSymbolForNode(identifierNode);
 
 					const comments = this.getCommentsForDeclarationOfNode(
 						identifierNode
@@ -412,7 +396,6 @@ class CompilerProcess {
 					context.push(
 						new Elisp.Identifier(
 							symbolName,
-							symbol,
 							compilerDirectives
 						)
 					);
@@ -702,8 +685,6 @@ class CompilerProcess {
 											property
 										);
 
-										context.pushSymbol(assignment, SymbolType.Variable)
-
 										const identifier = this.parseAndExpect<Elisp.PropertyName>(assignment.getNameNode());
 										const initializer = this.parseAndExpect<Elisp.Expression>(assignment.getInitializer()!);
 
@@ -756,7 +737,6 @@ class CompilerProcess {
 					{
 						const arrowFunc = <ArrowFunction>node;
 						const params = arrowFunc.getParameters().map(arg => {
-							context.pushSymbol(arg, SymbolType.Variable)
 							return arg.getName()!
 						});
 
@@ -859,7 +839,7 @@ class CompilerProcess {
 	compile(): CompilationResult[] {
 		const ret = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
-			const root = new Elisp.RootScope();
+			const root = new Elisp.RootScope(sourceFile);
 			this.addCommonLibs(root)
 			this.context.push(root);
 			for (var statement of sourceFile.getStatements()) {

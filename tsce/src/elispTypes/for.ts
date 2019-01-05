@@ -4,7 +4,7 @@ export class ForStatement extends Scope {
 	constructor(readonly initializer?: LetBinding, //Let binding?
 				readonly condition?: Expression,
 				readonly incrementor?: Expression) {
-		super([])
+		super()
 	}
 
 	emit(indent: number) {
@@ -34,7 +34,7 @@ ${tabs(indent)})`
 
 export class ForOf extends Scope {
 	constructor(readonly variable: LetBinding | Identifier, readonly expression: Expression) {
-		super([])
+		super()
 	}
 
 	emitLoopVariable() {

@@ -1,4 +1,5 @@
 import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess } from './'
+import { Declaration } from './declaration';
 
 export abstract class Node {
 	abstract type: string
@@ -10,6 +11,10 @@ export abstract class Node {
 
 	emitQuoted(indent: number): string {
 		return this.emit(indent)
+	}
+
+	isDeclaration(): this is Declaration {
+		return false
 	}
 
 	isBig() {

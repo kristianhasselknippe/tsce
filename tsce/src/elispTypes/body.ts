@@ -3,7 +3,7 @@ import { Scope } from ".";
 export class Body extends Scope {
 	type: string = 'Body'
 	constructor() {
-		super([])
+		super()
 	}
 
 	emit(indent: number) {

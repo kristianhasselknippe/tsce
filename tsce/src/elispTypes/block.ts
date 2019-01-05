@@ -7,7 +7,7 @@ export class Block extends Scope {
 	idNumber: number
 
 	constructor(protected readonly identifier: Identifier) {
-		super([])
+		super()
 		this.idNumber = Math.floor(Math.random() * 100000)
 	}
 

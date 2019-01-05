@@ -1,9 +1,10 @@
 import { Scope } from ".";
+import { SourceFile } from "ts-simple-ast";
 
 export class RootScope extends Scope {
 	type = "RootScope"
-	constructor() {
-		super([])
+	constructor(sourceFile: SourceFile) {
+		super()
 	}
 
 	emit() {

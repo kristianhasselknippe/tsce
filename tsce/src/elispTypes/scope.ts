@@ -3,7 +3,9 @@ import { Expression, Node, tabs } from ".";
 export class Scope extends Expression {
 	type: string = 'Scope'
 
-	constructor(readonly body: Node[]) {
+	body: Node[] = []
+
+	constructor() {
 		super()
 	}
 

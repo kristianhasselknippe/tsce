@@ -288,7 +288,9 @@ function toElispNode(node: ts.Node, context: Context) {
 					}
 					props.push(new Elisp.EnumMember(propName, initializer))
 				}
-				context.push(new Elisp.Enum(name, props, context.isInRootScope()))
+				const elispEnum = new Elisp.Enum(name, props, context.isInRootScope())
+				context.push(elispEnum)
+				context.resolveToParentOf(elispEnum)
 			} break
 			case ts.SyntaxKind.Identifier: {
 				context.printAtStackOffset('Identifier', node);

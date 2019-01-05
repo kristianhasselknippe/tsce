@@ -1,5 +1,6 @@
 import { should, equal } from 'ert'
 import * as emacs from 'emacs'
+import * as otherFileTests from './otherFileTests'
 
 interface TsceTestFunctionNamedArgumentsArg {
 	foo: number
@@ -647,4 +648,9 @@ function enumTest3() {
 	const foo = TestEnum2.Var2
 	should(equal(foo, TestEnum2.Var2))
 	should(!equal(foo, TestEnum2.Var1))
+}
+
+//[Form: ert-deftest]
+function callingFunctionInOtherFile() {
+	should(otherFileTests.testFromAnotherFileUsingTheEmacsApi())
 }

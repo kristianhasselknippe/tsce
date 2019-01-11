@@ -65,7 +65,8 @@ export class Context {
 		throw new Error("Scope had no parent scope: " + JSON.stringify(scope))
 	}
 
-	getDeclarationOfIdentifier(identifier: Identifier) {
+	getDeclarationOfIdentifier(identifierName: string) {
+		const identifier = new Identifier(identifierName)
 		return this.findFirstOrThrow<Node>(this.stack, node => {
 			if (node.isDeclaration()) {
 				return node.matchesIdentifier(identifier)

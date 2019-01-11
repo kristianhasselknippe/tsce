@@ -6,7 +6,7 @@ function isUpper(character: string) {
 		&& (character === character.toUpperCase());
 }
 
-export class Identifier extends Expression {
+export abstract class Identifier extends Expression {
 	type: string = 'Identifier';
 
 	isPredicate = false
@@ -72,4 +72,14 @@ export class Identifier extends Expression {
 	emitUnquoted(indent: number){
 		return `${tabs(indent)}\`${this.formatName()}`
 	}
+}
+
+export class FunctionIdentifier extends Identifier {
+	emitQuoted(indent: number) {
+		return this.emit(indent)
+	}
+}
+
+export class VariableIdentifier extends Identifier {
+	
 }

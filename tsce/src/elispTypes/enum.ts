@@ -19,6 +19,10 @@ export class EnumMember extends Property {
 		}
 	}
 
+	emitQuoted(indent: number) {
+		return `${tabs(indent)}(${this.name.emit(0)} . ${this.emitInitializer()})`
+	}
+
 	emit(indent: number) {
 		return `${tabs(indent)}(${this.name.emit(0)} . ${this.emitInitializer()})`
 	}

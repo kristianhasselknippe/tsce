@@ -1,4 +1,4 @@
-import { Expression, tabs, LetBinding, LetItem, PropertyAccess, Identifier } from ".";
+import { Expression, tabs, StringLiteral, LetBinding, LetItem, PropertyAccess, Identifier } from ".";
 
 abstract class FunctionCall extends Expression {
 	constructor(readonly args: Expression[]) {
@@ -33,7 +33,7 @@ export class FunctionCallVariable extends FunctionCall {
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)}(funcall {this.leftHand.emit(0)} ${this.emitArgs(indent)})`
+		return `${tabs(indent)}(funcall ${this.leftHand.emit(0)} ${this.emitArgs(indent)})`
 	}
 
 	emitQuoted(indent: number) {
@@ -45,7 +45,7 @@ export interface NamedArgument {
 	name: string,
 }
 
-export class NamedArgumentsFunctionCall extends FunctionCallDefun {
+export class NamedArgumentsFunctionCallDefun extends FunctionCallDefun {
 
 	bindingName: string
 	wrappingLet: LetBinding
@@ -66,7 +66,7 @@ export class NamedArgumentsFunctionCall extends FunctionCallDefun {
 		for (const arg of this.namedArguments) {
 			const propAccess = new PropertyAccess(new Identifier(this.bindingName), arg)
 			const propertySelection = quoted ? propAccess.emitQuoted(0) : propAccess.emit(0)
-			ret += `\n${tabs(indent)}:${arg} ${propertySelection}`
+			ret += `\n${tabs(indent)}:${arg.emit(0)} ${propertySelection}`
 		}
 		return ret
 	}
@@ -80,6 +80,45 @@ export class NamedArgumentsFunctionCall extends FunctionCallDefun {
 	emitQuoted(indent: number) {
 		return this.wrappingLet.emitWithBody(indent, (indent) => {
 			return `${tabs(indent)}(${this.leftHand.emit(0)} ${this.emitArgs(indent+1)})`
+		}, true)
+	}
+}
+
+export class NamedArgumentsFunctionCallVariable extends FunctionCallVariable {
+
+	bindingName: string
+	wrappingLet: LetBinding
+
+	constructor(readonly leftHand: Expression, arg: Expression, private namedArguments: Identifier[]) {
+		super(leftHand, [arg])
+
+		this.bindingName = this.randomBindingName()
+		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName), arg)])
+	}
+
+	randomBindingName() {
+		return 'temp' + Math.floor(Math.random() * 100000)
+	}
+
+	emitArgs(indent: number, quoted = false) {
+		let ret = ''
+		for (const arg of this.namedArguments) {
+			const propAccess = new PropertyAccess(new Identifier(this.bindingName), arg)
+			const propertySelection = quoted ? propAccess.emitQuoted(0) : propAccess.emit(0)
+			ret += `\n${tabs(indent)}:${arg.emit(0)} ${propertySelection}`
+		}
+		return ret
+	}
+
+	emit(indent: number) {
+		return this.wrappingLet.emitWithBody(indent, (indent) => {
+			return `${tabs(indent)}(funcall ${this.leftHand.emit(0)} ${this.emitArgs(indent+1)})`
+		})
+	}
+
+	emitQuoted(indent: number) {
+		return this.wrappingLet.emitWithBody(indent, (indent) => {
+			return `${tabs(indent)}(funcall ${this.leftHand.emit(0)} ${this.emitArgs(indent+1)})`
 		}, true)
 	}
 }

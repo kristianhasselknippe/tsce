@@ -145,11 +145,13 @@ class CompilerProcess {
 
 	getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
 		const ret = [];
-		for (const member of node.compilerNode.members) {
-			const name = member.name;
-			if (name) {
-				ret.push(name.getText());
-			}
+		for (const property of node.getProperties()) {
+			const name = property.getNameNode()
+			ret.push(this.parseAndExpect<Elisp.Identifier>(name))
+		}
+		for (const property of node.getMethods()) {
+			const name = property.getNameNode()
+			ret.push(this.parseAndExpect<Elisp.Identifier>(name))
 		}
 		return ret;
 	}
@@ -225,14 +227,28 @@ class CompilerProcess {
 								'Named functions expects 1 and only 1 argument'
 							);
 						}
-						let namedArgsFuncall = new Elisp.NamedArgumentsFunctionCall(
-							leftHand,
-							args[0],
-							this.getNamedArgumentNamesForCallExpression(ce)
-						);
+						let namedArgsFuncall
+						if (leftHand.isIdentifier()) {
+							namedArgsFuncall = new Elisp.NamedArgumentsFunctionCallDefun(
+								leftHand,
+								args[0],
+								this.getNamedArgumentNamesForCallExpression(ce)
+							);
+						} else {
+							namedArgsFuncall = new Elisp.NamedArgumentsFunctionCallVariable(
+								leftHand,
+								args[0],
+								this.getNamedArgumentNamesForCallExpression(ce)
+							);
+						}
 						context.push(namedArgsFuncall);
 					} else {
-						let funcall = new Elisp.FunctionCall(leftHand, args);
+						let funcall
+						if (leftHand.isIdentifier()) {
+							funcall = new Elisp.FunctionCallDefun(leftHand, args);
+						} else {
+							funcall = new Elisp.FunctionCallVariable(leftHand, args);
+						}
 						context.push(funcall);
 					}
 					break;
@@ -360,7 +376,7 @@ class CompilerProcess {
 						for (const member of enumDecl.getMembers()) {
 							const propName = this.parseAndExpect<
 								Elisp.Identifier | Elisp.StringLiteral
-							>(member.getNameNode());
+								>(member.getNameNode());
 							let initializer;
 							if (member.hasInitializer()) {
 								initializer = this.parseAndExpect<
@@ -393,12 +409,20 @@ class CompilerProcess {
 						comments
 					);
 
-					context.push(
-						new Elisp.Identifier(
-							symbolName,
-							compilerDirectives
-						)
-					);
+					const identifierDeclaredType = this.context.getDeclarationOfIdentifier(symbolName)
+
+					if (identifierDeclaredType.isFunctionDeclaration()) {
+						context.push(
+							new Elisp.FunctionIdentifier(
+								symbolName,
+								compilerDirectives
+							)
+						);
+					} else {
+						continue here with variable identifier
+					}
+
+					
 					break;
 				}
 				case ts.SyntaxKind.ParenthesizedExpression:

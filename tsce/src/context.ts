@@ -33,6 +33,15 @@ export class Context {
 		return expr.isBlock()
 	}
 
+	private findFirst<T extends Node>(stack: Node[], pred: (item: Node) => boolean): T | undefined {
+		for (let i = stack.length - 1; i >= 0; i--) {
+			let item = stack[i]
+			if (pred(item)) {
+				return item as T
+			}
+		}
+	}
+
 	private findFirstOrThrow<T extends Node>(stack: Node[], pred: (item: Node) => boolean, error: Error): T {
 		for (let i = stack.length - 1; i >= 0; i--) {
 			let item = stack[i]
@@ -66,14 +75,13 @@ export class Context {
 	}
 
 	getDeclarationOfIdentifier(identifierName: string) {
-		const identifier = new Identifier(identifierName)
-		return this.findFirstOrThrow<Node>(this.stack, node => {
+		return this.findFirst<Node>(this.stack, node => {
 			if (node.isDeclaration()) {
-				return node.matchesIdentifier(identifier)
+				return node.matchesIdentifierName(identifierName)
 			} else {
 				return false
 			}
-		}, new Error("Couldn't find declaration of identifier: " + identifier.emit(0)))
+		})
 	}
 
 	addStatementToCurrentScope(exp: Expression) {

@@ -26,6 +26,8 @@ export class ModuleImport extends Statement {
 }
 
 export class NamespaceImport extends ModuleImport implements Declaration {
+	type: string = 'ModuleImport';
+
 	constructor(
 		readonly namespaceObjectIdentifier: Identifier,
 		moduleString: StringLiteral,
@@ -34,8 +36,8 @@ export class NamespaceImport extends ModuleImport implements Declaration {
 		super(moduleString, isRelativePath);
 	}
 
-	matchesIdentifier(identifier: Identifier): boolean {
-		return this.namespaceObjectIdentifier.matchesIdentifier(identifier)
+	matchesIdentifierName(identifierName: string): boolean {
+		return this.namespaceObjectIdentifier.matchesIdentifierName(identifierName)
 	}
 
 	isDeclaration() {

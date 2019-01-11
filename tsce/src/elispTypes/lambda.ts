@@ -1,8 +1,8 @@
-import { Block, tabs, Identifier } from "./";
+import { Block, tabs, VariableIdentifier } from "./";
 
 export class Lambda extends Block {
 	constructor(readonly args: string[]) {
-		super(new Identifier("lambda", []))
+		super(new VariableIdentifier("lambda", []))
 	}
 
 	emitArgs() {

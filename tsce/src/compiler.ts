@@ -45,6 +45,7 @@ import {
 	CompilerDirectiveKind
 } from './elispTypes/compilerDirective';
 import { TsceProject } from './projectFormat';
+import { VariableIdentifier } from './elispTypes';
 
 class CompilerProcess {
 	context: Context;
@@ -411,7 +412,8 @@ class CompilerProcess {
 
 					const identifierDeclaredType = this.context.getDeclarationOfIdentifier(symbolName)
 
-					if (identifierDeclaredType.isFunctionDeclaration()) {
+					if (identifierDeclaredType && identifierDeclaredType.isFunctionDeclaration()) {
+						console.log("123123 Identifier declared type: " + identifierDeclaredType.isFunctionDeclaration())
 						context.push(
 							new Elisp.FunctionIdentifier(
 								symbolName,
@@ -419,10 +421,13 @@ class CompilerProcess {
 							)
 						);
 					} else {
-						continue here with variable identifier
+						context.push(
+							new Elisp.VariableIdentifier(
+								symbolName,
+								compilerDirectives
+							)
+						);
 					}
-
-					
 					break;
 				}
 				case ts.SyntaxKind.ParenthesizedExpression:

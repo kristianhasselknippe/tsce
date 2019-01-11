@@ -8,14 +8,14 @@ export class LetBinding extends Scope implements Declaration {
 		super()
 	}
 
-	matchesIdentifier(identifier: Identifier): boolean {
+	matchesIdentifierName(identifierName: string): boolean {
 		for (const binding of this.bindings) {
-			if (binding.matchesIdentifier(identifier)) {
+			if (binding.matchesIdentifierName(identifierName)) {
 				return true
 			}
 		}
 		return false
-    }
+	}
 
 	isDeclaration() {
 		return true
@@ -80,9 +80,9 @@ export class LetItem extends Expression implements Declaration {
 		super()
 	}
 
-	matchesIdentifier(identifier: Identifier): boolean {
-        return identifier.matchesIdentifier(this.identifier)
-    }
+	matchesIdentifierName(identifierName: string): boolean {
+		return this.identifier.matchesIdentifierName(identifierName)
+	}
 
 	isDeclaration() { return true }
 

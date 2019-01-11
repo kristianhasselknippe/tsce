@@ -25,8 +25,15 @@ export class Defun extends Block implements Declaration {
 		}
 	}
 
-	matchesIdentifier(identifier: Identifier): boolean {
-		return identifier.matchesIdentifier(this.identifier)
+	matchesIdentifierName(identifierName: string): boolean {
+		if (this.identifier.matchesIdentifierName(identifierName)) {
+			console.log("1122233: " + identifierName + ",,,, " + this.identifier.identifierName)
+		}
+		return this.identifier.matchesIdentifierName(identifierName)
+	}
+
+	isFunctionDeclaration() {
+		return true
 	}
 
 	isDeclaration() {

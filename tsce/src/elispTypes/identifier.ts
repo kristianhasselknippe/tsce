@@ -33,8 +33,9 @@ export abstract class Identifier extends Expression {
 		}
 	}
 
-	matchesIdentifier(identifier: Identifier) {
-		return identifier.identifierName === this.identifierName
+	matchesIdentifierName(identifierName: string) {
+		//console.log(`A(${identifierName}) -- B(${this.identifierName}): ${identifierName === this.identifierName}`)
+		return identifierName === this.identifierName
 	}
 
 	hyphenateName() {
@@ -76,6 +77,7 @@ export abstract class Identifier extends Expression {
 
 export class FunctionIdentifier extends Identifier {
 	emitQuoted(indent: number) {
+		console.log("123123 Emitting function ident: " + this.identifierName)
 		return this.emit(indent)
 	}
 }

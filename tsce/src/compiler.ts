@@ -323,8 +323,9 @@ class CompilerProcess {
 
 					let args = fd
 						.getParameters()
-						.map(p => p.getName())
-						.filter(x => typeof x !== 'undefined') as string[];
+						.map(p => p.getNameNode())
+						.filter(x => typeof x !== 'undefined')
+						.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
 
 					const functionIdentifier = this.parseAndExpect<
 						Elisp.Identifier
@@ -765,9 +766,11 @@ class CompilerProcess {
 				case ts.SyntaxKind.ArrowFunction:
 					{
 						const arrowFunc = <ArrowFunction>node;
-						const params = arrowFunc.getParameters().map(arg => {
-							return arg.getName()!
-						});
+						let params = arrowFunc
+							.getParameters()
+							.map(p => p.getNameNode())
+							.filter(x => typeof x !== 'undefined')
+							.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
 
 						const lambda = context.push(new Elisp.Lambda(params));
 						this.toElispNode(arrowFunc.getBody());

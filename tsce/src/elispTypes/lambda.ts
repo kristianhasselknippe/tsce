@@ -1,12 +1,12 @@
-import { Block, tabs, VariableIdentifier } from "./";
+import { Block, tabs, VariableIdentifier, Identifier } from "./";
 
 export class Lambda extends Block {
-	constructor(readonly args: string[]) {
+	constructor(readonly args: Identifier[]) {
 		super(new VariableIdentifier("lambda", []))
 	}
 
 	emitArgs() {
-		return this.args.reduce((prev, curr) => prev + " " + curr, "")
+		return this.args.reduce((prev, curr) => prev + " " + curr.emit(0), "")
 	}
 
 	emitIt(indent: number) {

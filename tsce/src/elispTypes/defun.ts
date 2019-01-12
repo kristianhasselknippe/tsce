@@ -8,7 +8,7 @@ export class Defun extends Block implements Declaration {
 	private customForm?: string
 	private isInteractive?: boolean
 
-	constructor(identifier: Identifier, readonly args: string[], compilerDirectives: CompilerDirective[]) {
+	constructor(identifier: Identifier, readonly args: Identifier[], compilerDirectives: CompilerDirective[]) {
 		super(identifier);
 
 		if (compilerDirectives && compilerDirectives.length > 0) {
@@ -40,12 +40,8 @@ export class Defun extends Block implements Declaration {
 		return true
 	}
 
-	hyphenateName() {
-		return hyphenate(this.identifier.emit(0))
-	}
-
 	emitArgs() {
-		return this.args.reduce((prev, curr) => prev + " " + hyphenate(curr), "")
+		return this.args.reduce((prev, curr) => prev + " " + curr.emit(0), "")
 	}
 
 	getForm() {

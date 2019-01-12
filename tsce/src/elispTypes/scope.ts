@@ -1,6 +1,6 @@
 import { Expression, Node, tabs } from ".";
 
-export class Scope extends Expression {
+export abstract class Scope extends Expression {
 	type: string = 'Scope'
 
 	body: Node[] = []
@@ -8,6 +8,8 @@ export class Scope extends Expression {
 	constructor() {
 		super()
 	}
+
+	abstract getDeclarations(): Node[]
 
 	toString() {
 		return 'Scope(' + this.type

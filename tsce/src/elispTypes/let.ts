@@ -1,24 +1,10 @@
 import { Scope, Expression, tabs, Identifier } from ".";
-import { Declaration } from "./declaration";
 
-export class LetBinding extends Scope implements Declaration {
+export class LetBinding extends Scope {
 	type = 'LetBinding';
 
 	constructor(readonly bindings: LetItem[], readonly inRootScope = false) {
 		super()
-	}
-
-	matchesIdentifierName(identifierName: string): boolean {
-		for (const binding of this.bindings) {
-			if (binding.matchesIdentifierName(identifierName)) {
-				return true
-			}
-		}
-		return false
-	}
-
-	isDeclaration() {
-		return true
 	}
 
 	toString() {
@@ -73,18 +59,12 @@ function isUpper(character: string) {
 		&& (character === character.toUpperCase());
 }
 
-export class LetItem extends Expression implements Declaration {
+export class LetItem extends Expression {
 	type = 'LetItem';
 
 	constructor(public readonly identifier: Identifier, readonly initializer?: Expression, readonly isInRootScope = false) {
 		super()
 	}
-
-	matchesIdentifierName(identifierName: string): boolean {
-		return this.identifier.matchesIdentifierName(identifierName)
-	}
-
-	isDeclaration() { return true }
 
 	hyphenateName() {
 		return this.identifier.hyphenateName()

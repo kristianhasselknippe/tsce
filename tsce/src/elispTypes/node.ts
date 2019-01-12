@@ -1,5 +1,4 @@
 import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
-import { Declaration } from './declaration';
 
 export abstract class Node {
 	abstract type: string
@@ -14,10 +13,6 @@ export abstract class Node {
 	}
 
 	isFunctionDeclaration(): this is Defun {
-		return false
-	}
-
-	isDeclaration(): this is Declaration {
 		return false
 	}
 

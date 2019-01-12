@@ -10,6 +10,10 @@ export class Marker extends Node {
 	}
 }
 
+interface DeclarationList {
+	daclaratoins: Identifier
+}
+
 export class Context {
 	private stack: Node[] = [];
 

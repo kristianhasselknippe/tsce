@@ -1,8 +1,7 @@
 import { Block, tabs, hyphenate, Identifier } from "./";
 import { CompilerDirective, extractCompilerDirectivesFromString } from "./compilerDirective";
-import { Declaration } from "./declaration";
 
-export class Defun extends Block implements Declaration {
+export class Defun extends Block {
 	type = 'Function';
 
 	private customForm?: string
@@ -25,18 +24,7 @@ export class Defun extends Block implements Declaration {
 		}
 	}
 
-	matchesIdentifierName(identifierName: string): boolean {
-		if (this.identifier.matchesIdentifierName(identifierName)) {
-			console.log("1122233: " + identifierName + ",,,, " + this.identifier.identifierName)
-		}
-		return this.identifier.matchesIdentifierName(identifierName)
-	}
-
 	isFunctionDeclaration() {
-		return true
-	}
-
-	isDeclaration() {
 		return true
 	}
 

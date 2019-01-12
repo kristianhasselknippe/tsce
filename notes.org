@@ -1,0 +1,3 @@
+*  Finding the variable declarations
+Each scope should be able to give a list of its declarations so that as the context searches upwards through its items
+each scope it gets to can give us the declarations that are visible

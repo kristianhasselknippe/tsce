@@ -1,13 +1,14 @@
-import { Scope } from ".";
+import { Scope, Node } from ".";
 import { SourceFile } from "ts-simple-ast";
+import { Declaration } from "./declaration";
 
 export class RootScope extends Scope {
 	type = "RootScope"
-	constructor(sourceFile: SourceFile) {
+	constructor(readonly sourceFile: SourceFile) {
 		super()
 	}
 
-	emit() {
-		return this.emitBody(0, false)
+	getDeclarations(): (Node & Declaration)[] {
+		return []
 	}
 }

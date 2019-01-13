@@ -1,10 +1,19 @@
-import { Scope, tabs, LetBinding, Expression, Identifier } from ".";
+import { Scope, tabs, LetBinding, Expression, Node, Identifier } from ".";
+import { Declaration } from "./declaration";
 
 export class ForStatement extends Scope {
 	constructor(readonly initializer?: LetBinding, //Let binding?
 				readonly condition?: Expression,
 				readonly incrementor?: Expression) {
 		super()
+	}
+
+	getDeclarations(): (Node & Declaration)[] {
+		if (this.initializer) {
+			return this.initializer.getDeclarations()
+		} else {
+			return []
+		}
 	}
 
 	emit(indent: number) {
@@ -33,8 +42,12 @@ ${tabs(indent)})`
 }
 
 export class ForOf extends Scope {
-	constructor(readonly variable: LetBinding | Identifier, readonly expression: Expression) {
+	constructor(readonly variable: LetBinding, readonly expression: Expression) {
 		super()
+	}
+
+	getDeclarations(): (Node & Declaration)[] {
+		return this.variable.getDeclarations()
 	}
 
 	emitLoopVariable() {
@@ -54,7 +67,7 @@ export class ForOf extends Scope {
 
 
 	emit(indent: number) {
-		return `${tabs(indent)}(cl-loop for ${this.emitLoopVariable()} in ${this.expression.emit(0)} do 
+		return `${tabs(indent)}(cl-loop for ${this.emitLoopVariable()} in ${this.expression.emit(0)} do
 ${tabs(indent+1)}(progn
 ${tabs(indent+2)}${this.emitBody(0)}
 ${tabs(indent+1)})

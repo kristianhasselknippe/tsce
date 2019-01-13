@@ -46,6 +46,10 @@ export abstract class Scope extends Expression {
 		return body
 	}
 
+	emit(indent: number) {
+		return this.emitBody(indent, false)
+	}
+
 	pushExpression(statement: Expression) {
 		this.body.push(statement)
 	}

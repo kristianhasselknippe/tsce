@@ -1,7 +1,6 @@
 export * from './utils'
 export * from './node'
 export * from './expression'
-export * from './statement'
 export * from './scope'
 export * from './body'
 export * from './literals'

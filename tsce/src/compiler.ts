@@ -414,17 +414,26 @@ class CompilerProcess {
 
 					const identifierDeclaredType = this.context.getDeclarationOfIdentifier(symbolName)
 
-					if (identifierDeclaredType && identifierDeclaredType.isFunctionDeclaration()) {
+					if (identifierDeclaredType) {
 						console.log("123123 Identifier declared type: " + identifierDeclaredType.isFunctionDeclaration())
-						context.push(
-							new Elisp.FunctionIdentifier(
-								symbolName,
-								compilerDirectives
-							)
-						);
+						if (identifierDeclaredType.isFunctionDeclaration()) {
+							context.push(
+								new Elisp.FunctionIdentifier(
+									symbolName,
+									compilerDirectives
+								)
+							);
+						} else {
+							context.push(
+								new Elisp.VariableIdentifier(
+									symbolName,
+									compilerDirectives
+								)
+							);
+						}
 					} else {
 						context.push(
-							new Elisp.VariableIdentifier(
+							new Elisp.FunctionIdentifier(
 								symbolName,
 								compilerDirectives
 							)
@@ -836,7 +845,7 @@ class CompilerProcess {
 
 									context.push(
 										new Elisp.NamespaceImport(
-											namespaceIdentifier,
+											new Elisp.VariableDeclaration(namespaceIdentifier),
 											moduleName,
 											isRelativePath
 										)
@@ -893,6 +902,7 @@ class CompilerProcess {
 				fileName: sourceFile.getBaseNameWithoutExtension(),
 				source: elispSource
 			});
+			this.context.pop()
 		}
 		return ret;
 	}

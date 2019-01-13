@@ -1,8 +1,8 @@
-import { Statement, tabs, StringLiteral, Identifier, Node, Scope, VariableIdentifier } from '.';
-import { Declaration } from './declaration';
+import { tabs, Node, StringLiteral, Identifier, Scope, VariableIdentifier, Expression } from '.';
+import { Declaration, DeclarationsSource } from './declaration';
 import { VariableDeclaration } from './variableDeclaration';
 
-export class ModuleImport extends Scope {
+export class ModuleImport extends Expression {
 	type: string = 'ModuleImport';
 
 	constructor(
@@ -14,6 +14,7 @@ export class ModuleImport extends Scope {
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
+		console.log("Items in the module: ", this.items)
 		return this.items
 	}
 
@@ -22,35 +23,39 @@ export class ModuleImport extends Scope {
 			return `${tabs(indent)}(load-file ${this.moduleString.emitWith(
 				0,
 				'.el'
-			)})\n`;
+)})\n`
 		} else {
 			/* TODO: We don't emit modules outside our own project.
 			   This might not be enough in the future. */
-			return '';
+			return ''
 		}
 	}
 }
 
-export class NamespaceImport extends Scope implements Declaration {
-	type: string = 'ModuleImport';
+export class NamespaceImport extends Expression implements DeclarationsSource {
+	type: string = 'NamespaceImport';
 
 	constructor(
-		readonly namespaceObjectIdentifier: VariableIdentifier,
+		readonly namespaceObjectIdentifier: VariableDeclaration,
 		moduleString: StringLiteral,
 		isRelativePath: boolean
 	) {
 		super()
 	}
 
-	getDeclarations(): (Node & Declaration)[] {
-		return [this]
+	emit(indent: number): string {
+		return ''
 	}
 
-	isDeclaration(): this is Declaration {
+	isDeclarationsSource(): this is DeclarationsSource {
 		return true
 	}
 
+	getDeclarations(): (Node & Declaration)[] {
+		return [this.namespaceObjectIdentifier]
+	}
+
 	matchesIdentifier(identifierName: string): boolean {
-		return identifierName === this.namespaceObjectIdentifier.identifierName
+		return this.namespaceObjectIdentifier.matchesIdentifier(identifierName)
 	}
 }

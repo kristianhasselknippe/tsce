@@ -1,5 +1,5 @@
 import Stack from './stack';
-import { tabs, Node, Expression, Scope, Block, Identifier } from './elispTypes';
+import { tabs, Node, Expression, Scope, Block, Identifier, RootScope } from './elispTypes';
 import { SourceFile, Node as SimpleNode } from 'ts-simple-ast';
 
 export class Marker extends Node {
@@ -128,6 +128,7 @@ export class Context {
 	}
 
 	printStack() {
+		console.log((this.stack[0] as RootScope).sourceFile.getBaseName())
 		this.visualizeStack(this.stack)
 	}
 
@@ -193,6 +194,7 @@ export class Context {
 	}
 
 	getElispSource() {
+		//this.printStack()
 		return this.peek()!.emit(0);
 	}
 

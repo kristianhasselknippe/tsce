@@ -1,13 +1,34 @@
-import { Block, tabs, hyphenate, Identifier } from "./";
+import { Block, Node, tabs, hyphenate, Identifier } from "./";
 import { CompilerDirective, extractCompilerDirectivesFromString } from "./compilerDirective";
+import { Declaration } from "./declaration";
 
-export class Defun extends Block {
+export class FunctionArg extends Node implements Declaration {
+	type: string = "FunctionArg"
+
+	constructor(readonly name: Identifier) {
+		super()
+	}
+
+	isDeclaration(): this is Declaration {
+		return true
+	}
+
+	matchesIdentifier(identifierName: string): boolean {
+		return this.name.identifierName === identifierName
+	}
+
+	emit(indent: number) {
+		return this.name.emit(indent)
+	}
+}
+
+export class Defun extends Block implements Declaration {
 	type = 'Function';
 
 	private customForm?: string
 	private isInteractive?: boolean
 
-	constructor(identifier: Identifier, readonly args: Identifier[], compilerDirectives: CompilerDirective[]) {
+	constructor(identifier: Identifier, readonly args: FunctionArg[], compilerDirectives: CompilerDirective[]) {
 		super(identifier);
 
 		if (compilerDirectives && compilerDirectives.length > 0) {
@@ -22,6 +43,18 @@ export class Defun extends Block {
 				}
 			}
 		}
+	}
+
+	getDeclarations(): (Node & Declaration)[] {
+		return this.args
+	}
+
+	isDeclaration() {
+		return true
+	}
+
+	matchesIdentifier(identifierName: string) {
+		return this.identifier.identifierName === identifierName
 	}
 
 	isFunctionDeclaration() {

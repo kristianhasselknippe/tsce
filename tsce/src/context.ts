@@ -79,13 +79,13 @@ export class Context {
 	}
 
 	getDeclarationOfIdentifier(identifierName: string) {
-		return this.findFirst<Node>(this.stack, node => {
-			if (node.isDeclaration()) {
-				return node.matchesIdentifierName(identifierName)
-			} else {
-				return false
+		const scopes = this.stack.filter(x => x.isScope()) as Scope[]
+		for (const scope of scopes.reverse()) {
+			const decl = scope.getDeclarationOfIdentifier(identifierName)
+			if (decl) {
+				return decl
 			}
-		})
+		}
 	}
 
 	addStatementToCurrentScope(exp: Expression) {

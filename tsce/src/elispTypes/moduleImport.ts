@@ -1,13 +1,20 @@
-import { Statement, tabs, StringLiteral, Identifier } from '.';
+import { Statement, tabs, StringLiteral, Identifier, Node, Scope, VariableIdentifier } from '.';
+import { Declaration } from './declaration';
+import { VariableDeclaration } from './variableDeclaration';
 
-export class ModuleImport extends Statement {
+export class ModuleImport extends Scope {
 	type: string = 'ModuleImport';
 
 	constructor(
 		readonly moduleString: StringLiteral,
+		readonly items: VariableDeclaration[],
 		readonly isRelativePath: boolean
 	) {
 		super();
+	}
+
+	getDeclarations(): (Node & Declaration)[] {
+		return this.items
 	}
 
 	emit(indent: number) {
@@ -24,14 +31,26 @@ export class ModuleImport extends Statement {
 	}
 }
 
-export class NamespaceImport extends ModuleImport {
+export class NamespaceImport extends Scope implements Declaration {
 	type: string = 'ModuleImport';
 
 	constructor(
-		readonly namespaceObjectIdentifier: Identifier,
+		readonly namespaceObjectIdentifier: VariableIdentifier,
 		moduleString: StringLiteral,
 		isRelativePath: boolean
 	) {
-		super(moduleString, isRelativePath);
+		super()
+	}
+
+	getDeclarations(): (Node & Declaration)[] {
+		return [this]
+	}
+
+	isDeclaration(): this is Declaration {
+		return true
+	}
+
+	matchesIdentifier(identifierName: string): boolean {
+		return identifierName === this.namespaceObjectIdentifier.identifierName
 	}
 }

@@ -326,6 +326,7 @@ class CompilerProcess {
 						.map(p => p.getNameNode())
 						.filter(x => typeof x !== 'undefined')
 						.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
+						.map(x => new Elisp.FunctionArg(x))
 
 					const functionIdentifier = this.parseAndExpect<
 						Elisp.Identifier
@@ -771,6 +772,7 @@ class CompilerProcess {
 							.map(p => p.getNameNode())
 							.filter(x => typeof x !== 'undefined')
 							.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
+							.map(x => new Elisp.FunctionArg(x))
 
 						const lambda = context.push(new Elisp.Lambda(params));
 						this.toElispNode(arrowFunc.getBody());
@@ -840,9 +842,16 @@ class CompilerProcess {
 										)
 									);
 								} else if (TypeGuards.isNamedImports(namedBindings)) {
+									const elements =
+										namedBindings
+										.getElements()
+										.map(x => x.getNameNode())
+										.map(x => this.parseAndExpect<Elisp.Identifier>(x))
+										.map(x => new Elisp.VariableDeclaration(x))
 									context.push(
 										new Elisp.ModuleImport(
 											moduleName,
+											elements,
 											isRelativePath
 										)
 									);
@@ -864,7 +873,8 @@ class CompilerProcess {
 
 	addCommonLibs(root: Elisp.RootScope) {
 		root.pushExpression(
-			new Elisp.ModuleImport(new Elisp.StringLiteral('./ts-lib'), true)
+			//TODO Make sure it is ok to send in empty array here
+			new Elisp.ModuleImport(new Elisp.StringLiteral('./ts-lib'),[], true)
 		);
 	}
 

@@ -1,8 +1,15 @@
-import { Block, tabs, VariableIdentifier, Identifier } from "./";
+import { Block, tabs, VariableIdentifier, Identifier, Node, FunctionArg } from "./";
+import { Declaration } from "./declaration";
 
 export class Lambda extends Block {
-	constructor(readonly args: Identifier[]) {
+	type: string = "Block"
+
+	constructor(readonly args: FunctionArg[]) {
 		super(new VariableIdentifier("lambda", []))
+	}
+
+	getDeclarations(): (Node & Declaration)[] {
+		return this.args
 	}
 
 	emitArgs() {

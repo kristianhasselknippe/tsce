@@ -246,7 +246,13 @@ class CompilerProcess {
 					} else {
 						let funcall
 						if (leftHand.isIdentifier()) {
-							funcall = new Elisp.FunctionCallDefun(leftHand, args);
+							const declaration = context.getDeclarationOfIdentifier(leftHand.identifierName)
+							//TODO: Clean up this function, it is getting too big at this point
+							if (declaration && declaration.isFunctionDeclaration()) {
+								funcall = new Elisp.FunctionCallDefun(leftHand, args);
+							} else {
+								funcall = new Elisp.FunctionCallVariable(leftHand, args);
+							}
 						} else {
 							funcall = new Elisp.FunctionCallVariable(leftHand, args);
 						}
@@ -414,9 +420,12 @@ class CompilerProcess {
 
 					const identifierDeclaredType = this.context.getDeclarationOfIdentifier(symbolName)
 
+					console.log(`123123 Identifier ${symbolName}`)
+
 					if (identifierDeclaredType) {
-						console.log("123123 Identifier declared type: " + identifierDeclaredType.isFunctionDeclaration())
+						console.log(`    123123 Identifier declared type ${symbolName}: ` + identifierDeclaredType.type)
 						if (identifierDeclaredType.isFunctionDeclaration()) {
+							console.log(`      123123 function identifier ${symbolName}: `)
 							context.push(
 								new Elisp.FunctionIdentifier(
 									symbolName,
@@ -424,6 +433,7 @@ class CompilerProcess {
 								)
 							);
 						} else {
+							console.log(`      123123 variable identifier ${symbolName}: `)
 							context.push(
 								new Elisp.VariableIdentifier(
 									symbolName,
@@ -432,6 +442,8 @@ class CompilerProcess {
 							);
 						}
 					} else {
+						console.log(`    123123 no declaration`)
+						console.log(`        123123 variable identifier ${symbolName}: `)
 						context.push(
 							new Elisp.FunctionIdentifier(
 								symbolName,
@@ -857,6 +869,7 @@ class CompilerProcess {
 										.map(x => x.getNameNode())
 										.map(x => this.parseAndExpect<Elisp.Identifier>(x))
 										.map(x => new Elisp.VariableDeclaration(x))
+									console.log("123123 Named imports: ", elements)
 									context.push(
 										new Elisp.ModuleImport(
 											moduleName,
@@ -867,8 +880,9 @@ class CompilerProcess {
 								}
 							}
 						}
-
-						context.resolveToCurrentScope();
+						//context.printStack()
+						//context.resolveToCurrentScope();
+						context.printStack()
 					}
 					break;
 				default:

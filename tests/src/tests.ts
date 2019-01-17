@@ -1,6 +1,5 @@
 import { should, equal } from 'ert'
 import * as emacs from 'emacs'
-import * as otherFileTests from './otherFileTests'
 
 interface TsceTestFunctionNamedArgumentsArg {
 	foo: number
@@ -150,14 +149,14 @@ function callingFunctionFromLambda(){
 //[Form: ert-deftest]
 function callingArrowFunctionFromLambda(){
 	let test = 'test'
-	const tester = () => {
+	const tester1 = () => {
 		return true
 	}
 	let more = 'more'
 	const foo = {
-		tester: () => tester()
+		tester2: () => tester1()
 	}
-	should(foo.tester())
+	should(foo.tester2())
 }
 
 const foo = 'bar'

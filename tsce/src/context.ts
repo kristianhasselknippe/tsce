@@ -1,6 +1,7 @@
 import Stack from './stack';
 import { tabs, Node, Expression, Scope, Block, Identifier, RootScope } from './elispTypes';
 import { SourceFile, Node as SimpleNode } from 'ts-simple-ast';
+import { DeclarationsSource } from './elispTypes/declaration';
 
 export class Marker extends Node {
 	type = 'Marker';
@@ -79,11 +80,20 @@ export class Context {
 	}
 
 	getDeclarationOfIdentifier(identifierName: string) {
-		const scopes = this.stack.filter(x => x.isScope()) as Scope[]
-		for (const scope of scopes.reverse()) {
-			const decl = scope.getDeclarationOfIdentifier(identifierName)
-			if (decl) {
-				return decl
+		const scopes = this.stack.filter(x => x.isScope() || x.isDeclarationsSource()) as (Node & (Scope | DeclarationsSource))[]
+		for (const node of scopes.reverse()) {
+			if (node.isScope()) {
+				const decl = node.getDeclarationOfIdentifier(identifierName)
+				if (decl) {
+					return decl
+				}
+			} else {
+				const decls = node.getDeclarations()
+				for (const decl of decls) {
+					if (decl.matchesIdentifier(identifierName)) {
+						return decl
+					}
+				}
 			}
 		}
 	}
@@ -128,6 +138,9 @@ export class Context {
 	}
 
 	printStack() {
+		if (this.stack.length == 0) {
+			return
+		}
 		console.log((this.stack[0] as RootScope).sourceFile.getBaseName())
 		this.visualizeStack(this.stack)
 	}

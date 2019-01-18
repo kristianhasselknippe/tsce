@@ -9,7 +9,6 @@ export class RootScope extends Scope {
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
-		continue here: get declarations if item is declaration source
 		return []
 	}
 }

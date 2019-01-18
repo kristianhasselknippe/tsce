@@ -880,8 +880,6 @@ class CompilerProcess {
 								}
 							}
 						}
-						//context.printStack()
-						//context.resolveToCurrentScope();
 						context.printStack()
 					}
 					break;
@@ -894,8 +892,8 @@ class CompilerProcess {
 		context.decStackCount();
 	}
 
-	addCommonLibs(root: Elisp.RootScope) {
-		root.pushExpression(
+	addCommonLibs() {
+		this.context.push(
 			//TODO Make sure it is ok to send in empty array here
 			new Elisp.ModuleImport(new Elisp.StringLiteral('./ts-lib'),[], true)
 		);
@@ -904,9 +902,8 @@ class CompilerProcess {
 	compile(): CompilationResult[] {
 		const ret = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
-			const root = new Elisp.RootScope(sourceFile);
-			this.addCommonLibs(root)
-			this.context.push(root);
+			const root = this.context.push(new Elisp.RootScope(sourceFile))
+			this.addCommonLibs()
 			for (var statement of sourceFile.getStatements()) {
 				this.toElispNode(statement);
 			}

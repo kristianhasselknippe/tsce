@@ -2,7 +2,7 @@ import { tabs, Node, StringLiteral, Identifier, Scope, VariableIdentifier, Expre
 import { Declaration, DeclarationsSource } from './declaration';
 import { VariableDeclaration } from './variableDeclaration';
 
-export class ModuleImport extends Expression {
+export class ModuleImport extends Expression implements DeclarationsSource {
 	type: string = 'ModuleImport';
 
 	constructor(
@@ -14,8 +14,12 @@ export class ModuleImport extends Expression {
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
-		console.log("Items in the module: ", this.items)
+		console.log("0000 Items in the module: ", this.items)
 		return this.items
+	}
+
+	isDeclarationsSource(): this is DeclarationsSource {
+		return true
 	}
 
 	emit(indent: number) {

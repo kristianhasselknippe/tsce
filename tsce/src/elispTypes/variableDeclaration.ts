@@ -1,26 +1,34 @@
-import { Node, Identifier } from './'
+import { Node, Identifier } from './';
 import { Declaration } from './declaration';
 
-export class VariableDeclaration extends Node implements Declaration {
-	type: string = "VariableDeclaration"
+export enum VariableDeclarationType {
+	Variable,
+	Function
+}
 
-	constructor(readonly name: Identifier) {
-		super()
+export class VariableDeclaration extends Node implements Declaration {
+	type: string = 'VariableDeclaration';
+
+	constructor(
+		readonly name: Identifier,
+		readonly declType: VariableDeclarationType = VariableDeclarationType.Variable
+	) {
+		super();
 	}
 
 	isDeclaration(): this is Declaration {
-		return true
+		return true;
 	}
 
 	isVariableDeclaration(): this is VariableDeclaration {
-		return true
+		return true;
 	}
 
 	matchesIdentifier(identifierName: string): boolean {
-		return this.name.identifierName === identifierName
+		return this.name.identifierName === identifierName;
 	}
 
 	emit(indent: number): string {
-		return this.name.emit(indent)
+		return this.name.emit(indent);
 	}
 }

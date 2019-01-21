@@ -80,6 +80,10 @@ export class FunctionIdentifier extends Identifier {
 		console.log("123123 Emitting function ident: " + this.identifierName)
 		return this.emit(indent)
 	}
+
+	isFunctionIdentifier(): this is FunctionIdentifier {
+		return true
+	}
 }
 
 export class VariableIdentifier extends Identifier {

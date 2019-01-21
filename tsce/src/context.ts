@@ -223,7 +223,7 @@ export class Context {
 		return ret
 	} 
 
-	getCommentsForNode(node: SimpleNode, debug = false) {
+	getCommentsForNode(node: SimpleNode) {
 		const ret = [];
 		const sourceFile = node.getSourceFile()
 		const comments = node.getLeadingCommentRanges()

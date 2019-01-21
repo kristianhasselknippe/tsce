@@ -1,11 +1,25 @@
 import { Expression, Node, tabs } from ".";
+import { Declaration } from "./declaration";
 
-export class Scope extends Expression {
+export abstract class Scope extends Expression {
 	type: string = 'Scope'
 
-	constructor(readonly body: Node[]) {
+	body: Node[] = []
+
+	constructor() {
 		super()
 	}
+
+	getDeclarationOfIdentifier(identifierName: string): Node | undefined {
+		const decls = this.getDeclarations()
+		for (const decl of decls) {
+			if (decl.matchesIdentifier(identifierName)) {
+				return decl
+			}
+		}
+	}
+
+	abstract getDeclarations(): (Node & Declaration)[]
 
 	toString() {
 		return 'Scope(' + this.type
@@ -30,6 +44,10 @@ export class Scope extends Expression {
 			body += `${tabs(indent-1)})\n`
 		}
 		return body
+	}
+
+	emit(indent: number) {
+		return this.emitBody(indent, false)
 	}
 
 	pushExpression(statement: Expression) {

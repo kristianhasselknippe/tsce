@@ -1,5 +1,4 @@
 import { Expression, tabs } from ".";
-import { Symbol, SymbolType } from "../context";
 import { CompilerDirective } from "./compilerDirective";
 
 function isUpper(character: string) {
@@ -7,26 +6,15 @@ function isUpper(character: string) {
 		&& (character === character.toUpperCase());
 }
 
-export class Identifier extends Expression {
+export abstract class Identifier extends Expression {
 	type: string = 'Identifier';
 
 	isPredicate = false
 	customName?: string
 	useNamedArguments = false
 
-	symbol: Symbol
-
-	constructor(public readonly identifierName: string, symbol?: Symbol, readonly declarationDirectives?: CompilerDirective[]) {
+	constructor(public readonly identifierName: string, readonly declarationDirectives?: CompilerDirective[]) {
 		super();
-
-		if (!symbol) {
-			this.symbol = {
-				name: this.identifierName,
-				type: SymbolType.Variable
-			}
-		} else {
-			this.symbol = symbol
-		}
 
 		if (declarationDirectives) {
 			for (const compDir of declarationDirectives) {
@@ -43,6 +31,11 @@ export class Identifier extends Expression {
 				}
 			}
 		}
+	}
+
+	matchesIdentifierName(identifierName: string) {
+		//console.log(`A(${identifierName}) -- B(${this.identifierName}): ${identifierName === this.identifierName}`)
+		return identifierName === this.identifierName
 	}
 
 	hyphenateName() {
@@ -74,13 +67,25 @@ export class Identifier extends Expression {
 	}
 
 	emitQuoted(indent: number) {
-		if (this.symbol.type === SymbolType.Function) {
-			return `${tabs(indent)}${this.formatName()}`
-		}
 		return `${tabs(indent)},${this.formatName()}`
 	}
 
 	emitUnquoted(indent: number){
-		return `${tabs(indent)}'${this.formatName()}`
+		return `${tabs(indent)}\`${this.formatName()}`
 	}
+}
+
+export class FunctionIdentifier extends Identifier {
+	emitQuoted(indent: number) {
+		console.log("123123 Emitting function ident: " + this.identifierName)
+		return this.emit(indent)
+	}
+
+	isFunctionIdentifier(): this is FunctionIdentifier {
+		return true
+	}
+}
+
+export class VariableIdentifier extends Identifier {
+	
 }

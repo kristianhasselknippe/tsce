@@ -37,7 +37,7 @@ function expectNumArgs(directive: string, args: string[], num: number) {
 }
 
 // TODO: Use regex or something instead of this nonsense
-function parseBody(body: string): CompilerDirective {
+function parseBody(body: string): CompilerDirective | undefined {
 	const [directive, bodyArgs] = body.split(':')
 
 	let args: string[] = []
@@ -73,7 +73,8 @@ function parseBody(body: string): CompilerDirective {
 				kind: 'NamedArguments'
 			}
 		default:
-			throw new Error(`Error parsing directive body, didn't recognize diretive type: ${body}`)
+			//TODO: Handle this case more gracefully (comments with [] in it which aren't a directive causes errors)
+			//throw new Error(`Error parsing directive body, didn't recognize diretive type: ${body}`)
 	}
 }
 

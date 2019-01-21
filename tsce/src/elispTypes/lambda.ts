@@ -1,16 +1,19 @@
-import { Block, tabs, Identifier } from "./";
-import { SymbolType } from "../context";
+import { Block, tabs, VariableIdentifier, Identifier, Node, FunctionArg } from "./";
+import { Declaration } from "./declaration";
 
 export class Lambda extends Block {
-	constructor(readonly args: string[]) {
-		super(new Identifier("lambda", {
-			name: "lambda",
-			type: SymbolType.Lambda
-		}, []))
+	type: string = "Block"
+
+	constructor(readonly args: FunctionArg[]) {
+		super(new VariableIdentifier("lambda", []))
+	}
+
+	getDeclarations(): (Node & Declaration)[] {
+		return this.args
 	}
 
 	emitArgs() {
-		return this.args.reduce((prev, curr) => prev + " " + curr, "")
+		return this.args.reduce((prev, curr) => prev + " " + curr.emit(0), "")
 	}
 
 	emitIt(indent: number) {

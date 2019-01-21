@@ -1,14 +1,24 @@
-import { Statement, tabs, StringLiteral, Identifier } from '.';
-import { SymbolType } from '../context';
+import { tabs, Node, StringLiteral, Expression } from '.';
+import { Declaration, DeclarationsSource } from './declaration';
+import { VariableDeclaration } from './variableDeclaration';
 
-export class ModuleImport extends Statement {
+export class ModuleImport extends Expression implements DeclarationsSource {
 	type: string = 'ModuleImport';
 
 	constructor(
 		readonly moduleString: StringLiteral,
+		readonly items: VariableDeclaration[],
 		readonly isRelativePath: boolean
 	) {
 		super();
+	}
+
+	getDeclarations(): (Node & Declaration)[] {
+		return this.items;
+	}
+
+	isDeclarationsSource(): this is DeclarationsSource {
+		return true;
 	}
 
 	emit(indent: number) {
@@ -25,35 +35,39 @@ export class ModuleImport extends Statement {
 	}
 }
 
-export class NamespaceImport extends ModuleImport {
+export class NamespaceImport extends Expression implements DeclarationsSource {
+	type: string = 'NamespaceImport';
+
 	constructor(
-		readonly namespaceObjectIdentifier: Identifier,
-		readonly namespaceMembers: Identifier[],
-		moduleString: StringLiteral,
-		isRelativePath: boolean
+		readonly namespaceObjectIdentifier: VariableDeclaration,
+		readonly moduleString: StringLiteral,
+		readonly isRelativePath: boolean
 	) {
-		super(moduleString, isRelativePath);
+		super();
 	}
 
-	emitMembers(indent: number) {
-		let ret = ''
-		for (const member of this.namespaceMembers) {
-			let quotation = ""
-			if (member.symbol.type === SymbolType.Variable) {
-				quotation = ","
-			}
-			ret += `${tabs(indent)}(${member.emit(0)} . ${quotation}${member.emit(0)})\n`
+	emit(indent: number): string {
+		if (this.isRelativePath) {
+			return `${tabs(indent)}(load-file ${this.moduleString.emitWith(
+				0,
+				'.el'
+			)})\n`;
+		} else {
+			/* TODO: We don't emit modules outside our own project.
+			   This might not be enough in the future. */
+			return '';
 		}
-		return ret
 	}
 
-	emitNamespaceObject(indent: number) {
-		return `${tabs(indent)}(setq ${this.namespaceObjectIdentifier.emit(0)} \`(\n${this.emitMembers(indent + 1)}))`
+	isDeclarationsSource(): this is DeclarationsSource {
+		return true;
 	}
 
-	emit(indent: number) {
-		const loadingTheModule = super.emit(indent) + '\n'
-		const namespaceObject = this.emitNamespaceObject(indent)
-		return loadingTheModule + namespaceObject
+	getDeclarations(): (Node & Declaration)[] {
+		return [this.namespaceObjectIdentifier];
+	}
+
+	matchesIdentifier(identifierName: string): boolean {
+		return this.namespaceObjectIdentifier.matchesIdentifier(identifierName);
 	}
 }

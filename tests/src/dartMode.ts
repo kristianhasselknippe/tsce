@@ -2,6 +2,7 @@ import * as emacs from 'emacs'
 import * as s from 's'
 import { interactive, withCurrentBuffer } from 'emacs'
 import { jsonEncode, jsonReadFromString} from 'json';
+import { Request } from './dartModeApi'
 
 //https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
 
@@ -48,8 +49,6 @@ interface ResponseEvent {
 interface ResponseItem {
 	id: string
 }
-
-type Response = ResponseEvent | ResponseItem
 
 type ResponseHandler = (response: Response) => void
 
@@ -113,14 +112,7 @@ function dartStartServer() {
 
 server = dartStartServer()
 
-interface Request<T extends string> {
-	id: string
-	method: T
-}
-
 type GetVersionRequest = Request<"server.getVersion">
-
-type Requests = GetVersionRequest
 
 let idCounter = 0
 function getNextId() {

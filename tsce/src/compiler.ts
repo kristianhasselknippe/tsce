@@ -34,7 +34,8 @@ import {
 	ImportDeclaration,
 	TypeGuards,
 	NamespaceImport,
-	StringLiteral
+	StringLiteral,
+	NamespaceDeclaration,
 } from 'ts-simple-ast';
 import * as Elisp from './elispTypes';
 import { Context, Marker } from './context';
@@ -49,7 +50,8 @@ import { TsceProject } from './projectFormat';
 import {
 	VariableIdentifier,
 	VariableDeclarationType,
-	FunctionIdentifier
+	FunctionIdentifier,
+	,
 } from './elispTypes';
 
 class CompilerProcess {
@@ -860,6 +862,15 @@ class CompilerProcess {
 				case ts.SyntaxKind.TypeAliasDeclaration:
 					break;
 				case ts.SyntaxKind.ModuleDeclaration:
+				case ts.SyntaxKind.NamespaceExportDeclaration:
+					const mod = <NamespaceDeclaration>node
+					let name = mod.getName()
+					if (name.indexOf('"') > -1
+						|| name.indexOf("'") > -1) {
+						name = name.substring(1, name.length - 1)
+					}
+					console.log('Fooo: ' + mod.getNameNode().getText())
+					context.push(new Elisp.ModuleDeclaration(name))
 					break;
 				case ts.SyntaxKind.ClassDeclaration:
 					break;

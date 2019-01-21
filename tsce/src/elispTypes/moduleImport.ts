@@ -14,11 +14,11 @@ export class ModuleImport extends Expression implements DeclarationsSource {
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
-		return this.items
+		return this.items;
 	}
 
 	isDeclarationsSource(): this is DeclarationsSource {
-		return true
+		return true;
 	}
 
 	emit(indent: number) {
@@ -26,11 +26,11 @@ export class ModuleImport extends Expression implements DeclarationsSource {
 			return `${tabs(indent)}(load-file ${this.moduleString.emitWith(
 				0,
 				'.el'
-)})\n`
+			)})\n`;
 		} else {
 			/* TODO: We don't emit modules outside our own project.
 			   This might not be enough in the future. */
-			return ''
+			return '';
 		}
 	}
 }
@@ -40,25 +40,34 @@ export class NamespaceImport extends Expression implements DeclarationsSource {
 
 	constructor(
 		readonly namespaceObjectIdentifier: VariableDeclaration,
-		moduleString: StringLiteral,
-		isRelativePath: boolean
+		readonly moduleString: StringLiteral,
+		readonly isRelativePath: boolean
 	) {
-		super()
+		super();
 	}
 
 	emit(indent: number): string {
-		return ''
+		if (this.isRelativePath) {
+			return `${tabs(indent)}(load-file ${this.moduleString.emitWith(
+				0,
+				'.el'
+			)})\n`;
+		} else {
+			/* TODO: We don't emit modules outside our own project.
+			   This might not be enough in the future. */
+			return '';
+		}
 	}
 
 	isDeclarationsSource(): this is DeclarationsSource {
-		return true
+		return true;
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
-		return [this.namespaceObjectIdentifier]
+		return [this.namespaceObjectIdentifier];
 	}
 
 	matchesIdentifier(identifierName: string): boolean {
-		return this.namespaceObjectIdentifier.matchesIdentifier(identifierName)
+		return this.namespaceObjectIdentifier.matchesIdentifier(identifierName);
 	}
 }

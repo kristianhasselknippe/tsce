@@ -1,9 +1,9 @@
-import * as s from "s"
+import * as emacs from "emacs"
 import { should, equal } from 'ert'
 
 export function testFromAnotherFileUsingTheEmacsApi() {
 	const foo = "bar"
-	const upped = s.sUpcase(foo)
-	should(equal(upped, "BAR"))
+	const l = emacs.length(foo)
+	should(equal(l, 3))
 	return true
 }

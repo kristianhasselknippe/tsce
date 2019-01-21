@@ -281,7 +281,7 @@ function testQuotationOfOperatorsInObject() {
 	should(equal(foobar.bar, 120))
 	should(equal(foobar.baz, 121))
 	should(equal(foobar.multi, 240))
-	should(equal(foobar.div, 60))
+	should(equal(foobar.div, 60.0))
 	should(equal(foobar.sub, 20))
 }
 

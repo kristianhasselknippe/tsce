@@ -1,6 +1,6 @@
 import { Scope, Node } from ".";
 import { SourceFile } from "ts-simple-ast";
-import { Declaration } from "./declaration";
+import { Declaration, DeclarationsSource } from "./declaration";
 
 export class RootScope extends Scope {
 	type = "RootScope"
@@ -9,6 +9,14 @@ export class RootScope extends Scope {
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
-		return []
+		let ret: (Node & Declaration)[] = []
+		for (const node of this.body) {
+			if (node.isDeclarationsSource()) {
+				ret = ret.concat(node.getDeclarations())
+			} else if (node.isDeclaration()) {
+				ret.push(node)
+			}
+		}
+		return ret
 	}
 }

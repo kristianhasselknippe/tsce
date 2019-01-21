@@ -1,4 +1,4 @@
-import { tabs, Node, StringLiteral, Identifier, Scope, VariableIdentifier, Expression } from '.';
+import { tabs, Node, StringLiteral, Expression } from '.';
 import { Declaration, DeclarationsSource } from './declaration';
 import { VariableDeclaration } from './variableDeclaration';
 
@@ -14,7 +14,6 @@ export class ModuleImport extends Expression implements DeclarationsSource {
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
-		console.log("0000 Items in the module: ", this.items)
 		return this.items
 	}
 

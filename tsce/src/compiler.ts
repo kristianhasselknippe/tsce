@@ -248,7 +248,12 @@ class CompilerProcess {
 						if (leftHand.isIdentifier()) {
 							const declaration = context.getDeclarationOfIdentifier(leftHand.identifierName)
 							//TODO: Clean up this function, it is getting too big at this point
-							if (declaration && declaration.isFunctionDeclaration()) {
+							//TODO: Also, we the way we decide if its call defun or call variable needs to change
+							// at least the naming of things. It has just been forced to work at this point.
+							if (declaration &&
+								(declaration.isFunctionDeclaration()
+								 || declaration.isVariableDeclaration()
+								)) {
 								funcall = new Elisp.FunctionCallDefun(leftHand, args);
 							} else {
 								funcall = new Elisp.FunctionCallVariable(leftHand, args);
@@ -420,12 +425,9 @@ class CompilerProcess {
 
 					const identifierDeclaredType = this.context.getDeclarationOfIdentifier(symbolName)
 
-					console.log(`123123 Identifier ${symbolName}`)
-
 					if (identifierDeclaredType) {
-						console.log(`    123123 Identifier declared type ${symbolName}: ` + identifierDeclaredType.type)
-						if (identifierDeclaredType.isFunctionDeclaration()) {
-							console.log(`      123123 function identifier ${symbolName}: `)
+						if (identifierDeclaredType.isFunctionDeclaration()
+							|| identifierDeclaredType.isVariableDeclaration()) {
 							context.push(
 								new Elisp.FunctionIdentifier(
 									symbolName,
@@ -433,7 +435,6 @@ class CompilerProcess {
 								)
 							);
 						} else {
-							console.log(`      123123 variable identifier ${symbolName}: `)
 							context.push(
 								new Elisp.VariableIdentifier(
 									symbolName,
@@ -442,8 +443,6 @@ class CompilerProcess {
 							);
 						}
 					} else {
-						console.log(`    123123 no declaration`)
-						console.log(`        123123 variable identifier ${symbolName}: `)
 						context.push(
 							new Elisp.FunctionIdentifier(
 								symbolName,
@@ -782,6 +781,14 @@ class CompilerProcess {
 						const propAccess = <PropertyAccessExpression>node;
 						const leftHand = this.parseAndExpect<Elisp.Expression>(propAccess.getExpression());
 						const rightHand = this.parseAndExpect<Elisp.Identifier>(propAccess.getNameNode());
+						if (leftHand.isIdentifier()) {
+							const leftHandDecl = context.getDeclarationOfIdentifier(leftHand.identifierName)
+							if (leftHandDecl && leftHandDecl.isVariableDeclaration()) {
+								console.log("1231928310293823")
+								context.push(rightHand)
+								break
+							}
+						}
 						context.push(new Elisp.PropertyAccess(leftHand, rightHand));
 					}
 					break;

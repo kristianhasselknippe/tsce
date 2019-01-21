@@ -1,5 +1,5 @@
-import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
-import { DeclarationsSource } from './declaration';
+import { Lambda, Identifier, VariableDeclaration, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
+import { DeclarationsSource, Declaration } from './declaration';
 
 export abstract class Node {
 	abstract type: string
@@ -11,6 +11,10 @@ export abstract class Node {
 
 	emitQuoted(indent: number): string {
 		return this.emit(indent)
+	}
+
+	isDeclaration(): this is Declaration {
+		return false
 	}
 
 	isFunctionDeclaration(): this is Defun {
@@ -41,6 +45,10 @@ export abstract class Node {
 
 	isIdentifier(): this is Identifier {
 		return this.type === 'Identifier'
+	}
+
+	isVariableDeclaration(): this is VariableDeclaration {
+		return false
 	}
 
 	isScope(): this is Scope {

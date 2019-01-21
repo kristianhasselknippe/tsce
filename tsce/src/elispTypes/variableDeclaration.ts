@@ -12,6 +12,10 @@ export class VariableDeclaration extends Node implements Declaration {
 		return true
 	}
 
+	isVariableDeclaration(): this is VariableDeclaration {
+		return true
+	}
+
 	matchesIdentifier(identifierName: string): boolean {
 		return this.name.identifierName === identifierName
 	}

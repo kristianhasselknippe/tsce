@@ -173,12 +173,13 @@ declare module "s" {
 	function sAppend(suffix: string, s: string): string;
 
 	//To and from lists
+	function sSplit(separator: string, s: string, omitNulls?: number): string[];
 	function sLines(s: string): string;
 	function sMatch(regexp: string, s: string, start?: number): string;
 	function sMatchStringsAll(regex: string): string;
 	function sMatchedPositionsAll(regexp: string, subexpDepth?: number): string;
 	function sSliceAt(regexp: string, s: string): string;
-	function sSplit(separator: string, s: string, omitNulls?: number): string[];
+
 	function sSplitUpTo(
 		separator: string,
 		s: string,

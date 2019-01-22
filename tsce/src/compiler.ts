@@ -970,7 +970,7 @@ class CompilerProcess {
 					break;
 				default:
 					throw new Error(
-						'Unsupported ast item: ' + node.getKindName()
+						`Unsupported ast item: ${node.getKindName()}  - ${node.getText()}`
 					);
 			}
 		})();

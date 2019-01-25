@@ -211,6 +211,10 @@ class CompilerProcess {
 		return [];
 	}
 
+	parseExpressionStatement(es: ExpressionStatement) {
+		this.toElispNode(es.getExpression());
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -220,8 +224,7 @@ class CompilerProcess {
 			const compilerDirectives = this.getCompilerDirectivesForNode(node);
 			switch (node.getKind()) {
 				case ts.SyntaxKind.ExpressionStatement:
-					let es = <ExpressionStatement>node;
-					this.toElispNode(es.getExpression());
+					this.parseExpressionStatement(<ExpressionStatement>node)
 					break;
 
 				case ts.SyntaxKind.CallExpression: {

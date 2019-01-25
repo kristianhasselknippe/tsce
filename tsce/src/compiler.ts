@@ -51,7 +51,6 @@ import {
 	VariableIdentifier,
 	VariableDeclarationType,
 	FunctionIdentifier,
-	,
 } from './elispTypes';
 
 class CompilerProcess {
@@ -215,6 +214,74 @@ class CompilerProcess {
 		this.toElispNode(es.getExpression());
 	}
 
+	parseCallExpression(ce: CallExpression) {
+		const leftHand = this.parseAndExpect<Elisp.Expression>(
+			ce.getExpression()
+		);
+		let args = ce.getArguments().map(a => {
+			return this.parseAndExpect<Elisp.Expression>(a);
+		});
+
+		const isNamedArgumentsFunction = this.declarationOfNodeHasCompilerDirectiveKind(
+			ce.getExpression(),
+			'NamedArguments'
+		);
+		if (isNamedArgumentsFunction) {
+			if (args.length !== 1) {
+				throw new Error(
+					'Named functions expects 1 and only 1 argument'
+				);
+			}
+			let namedArgsFuncall;
+			if (leftHand.isIdentifier()) {
+				namedArgsFuncall = new Elisp.NamedArgumentsFunctionCallDefun(
+					leftHand,
+					args[0],
+					this.getNamedArgumentNamesForCallExpression(ce)
+				);
+			} else {
+				namedArgsFuncall = new Elisp.NamedArgumentsFunctionCallVariable(
+					leftHand,
+					args[0],
+					this.getNamedArgumentNamesForCallExpression(ce)
+				);
+			}
+			this.context.push(namedArgsFuncall);
+		} else {
+			let funcall;
+			if (leftHand.isIdentifier()) {
+				const declaration = this.context.getDeclarationOfIdentifier(
+					leftHand.identifierName
+				);
+				//TODO: Clean up this function, it is getting too big at this point
+				//TODO: Also, we the way we decide if its call defun or call variable needs to change
+				// at least the naming of things. It has just been forced to work at this point.
+				if (
+					leftHand.isFunctionIdentifier() ||
+						(declaration &&
+						 (declaration.isFunctionDeclaration() ||
+						  declaration.isVariableDeclaration()))
+				) {
+					funcall = new Elisp.FunctionCallDefun(
+						leftHand,
+						args
+					);
+				} else {
+					funcall = new Elisp.FunctionCallVariable(
+						leftHand,
+						args
+					);
+				}
+			} else {
+				funcall = new Elisp.FunctionCallVariable(
+					leftHand,
+					args
+				);
+			}
+			this.context.push(funcall);
+		}
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -228,72 +295,7 @@ class CompilerProcess {
 					break;
 
 				case ts.SyntaxKind.CallExpression: {
-					let ce = <CallExpression>node;
-					const leftHand = this.parseAndExpect<Elisp.Expression>(
-						ce.getExpression()
-					);
-					let args = ce.getArguments().map(a => {
-						return this.parseAndExpect<Elisp.Expression>(a);
-					});
-
-					const isNamedArgumentsFunction = this.declarationOfNodeHasCompilerDirectiveKind(
-						ce.getExpression(),
-						'NamedArguments'
-					);
-					if (isNamedArgumentsFunction) {
-						if (args.length !== 1) {
-							throw new Error(
-								'Named functions expects 1 and only 1 argument'
-							);
-						}
-						let namedArgsFuncall;
-						if (leftHand.isIdentifier()) {
-							namedArgsFuncall = new Elisp.NamedArgumentsFunctionCallDefun(
-								leftHand,
-								args[0],
-								this.getNamedArgumentNamesForCallExpression(ce)
-							);
-						} else {
-							namedArgsFuncall = new Elisp.NamedArgumentsFunctionCallVariable(
-								leftHand,
-								args[0],
-								this.getNamedArgumentNamesForCallExpression(ce)
-							);
-						}
-						context.push(namedArgsFuncall);
-					} else {
-						let funcall;
-						if (leftHand.isIdentifier()) {
-							const declaration = context.getDeclarationOfIdentifier(
-								leftHand.identifierName
-							);
-							//TODO: Clean up this function, it is getting too big at this point
-							//TODO: Also, we the way we decide if its call defun or call variable needs to change
-							// at least the naming of things. It has just been forced to work at this point.
-							if (
-								leftHand.isFunctionIdentifier() ||
-								(declaration &&
-									(declaration.isFunctionDeclaration() ||
-										declaration.isVariableDeclaration()))
-							) {
-								funcall = new Elisp.FunctionCallDefun(
-									leftHand,
-									args
-								);
-							} else {
-								funcall = new Elisp.FunctionCallVariable(
-									leftHand,
-									args
-								);
-							}
-						} else {
-							funcall = new Elisp.FunctionCallVariable(
-								leftHand,
-								args
-							);
-						}
-						context.push(funcall);
-					}
+					this.parseCallExpression(<CallExpression>node)
 					break;
 				}
 				case ts.SyntaxKind.VariableDeclaration:

@@ -478,6 +478,30 @@ class CompilerProcess {
 		}
 	}
 
+	parsePostfixUnaryExpression(pue: PostfixUnaryExpression) {
+		const operator = pue.getOperatorToken();
+
+		const operand = this.parseAndExpect<Elisp.Expression>(
+			pue.getOperand()
+		);
+
+		this.context.push(
+			new Elisp.UnaryPostfixExpression(operator, operand)
+		);
+	}
+
+	parsePrefixUnaryExpression(pue: PrefixUnaryExpression) {
+		let operator = ts.tokenToString(pue.getOperatorToken());
+
+		const operand = this.parseAndExpect<Elisp.Expression>(
+			pue.getOperand()
+		);
+
+		this.context.push(
+			new Elisp.UnaryPrefixExpression(operator!, operand)
+		);
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -521,28 +545,10 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.PostfixUnaryExpression:
-					const pue = <PostfixUnaryExpression>node;
-					const operator = pue.getOperatorToken();
-
-					const operand = this.parseAndExpect<Elisp.Expression>(
-						pue.getOperand()
-					);
-
-					context.push(
-						new Elisp.UnaryPostfixExpression(operator, operand)
-					);
+					this.parsePostfixUnaryExpression(<PostfixUnaryExpression>node)
 					break;
 				case ts.SyntaxKind.PrefixUnaryExpression: {
-					let pue = <PrefixUnaryExpression>node;
-					let operator = ts.tokenToString(pue.getOperatorToken());
-
-					const operand = this.parseAndExpect<Elisp.Expression>(
-						pue.getOperand()
-					);
-
-					context.push(
-						new Elisp.UnaryPrefixExpression(operator!, operand)
-					);
+					this.parsePrefixUnaryExpression(<PrefixUnaryExpression>node)
 					break;
 				}
 				case ts.SyntaxKind.DeleteExpression:

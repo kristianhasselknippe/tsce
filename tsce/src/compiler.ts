@@ -379,13 +379,40 @@ class CompilerProcess {
 		this.toElispNode(vs.getDeclarationList());
 	}
 
+	parseEnumDeclaration(enumDecl: EnumDeclaration) {
+		const name = this.parseAndExpect<Elisp.Identifier>(
+			enumDecl.getNameNode()
+		);
+		const props = [];
+		for (const member of enumDecl.getMembers()) {
+			const propName = this.parseAndExpect<
+				Elisp.Identifier | Elisp.StringLiteral
+				>(member.getNameNode());
+			let initializer;
+			if (member.hasInitializer()) {
+				initializer = this.parseAndExpect<
+					Elisp.Expression
+					>(member.getInitializer()!);
+			}
+			props.push(
+				new Elisp.EnumMember(propName, initializer)
+			);
+		}
+		const elispEnum = new Elisp.Enum(
+			name,
+			props,
+			this.context.isInRootScope()
+		);
+		this.context.push(elispEnum);
+		this.context.resolveToParentOf(elispEnum);
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
 
 		(() => {
 			context.printAtStackOffset(node.getKindName(), node);
-			const compilerDirectives = this.getCompilerDirectivesForNode(node);
 			switch (node.getKind()) {
 				case ts.SyntaxKind.ExpressionStatement:
 					this.parseExpressionStatement(<ExpressionStatement>node)
@@ -409,34 +436,7 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.EnumDeclaration:
-					{
-						const enumDecl = <EnumDeclaration>node;
-						const name = this.parseAndExpect<Elisp.Identifier>(
-							enumDecl.getNameNode()
-						);
-						const props = [];
-						for (const member of enumDecl.getMembers()) {
-							const propName = this.parseAndExpect<
-								Elisp.Identifier | Elisp.StringLiteral
-							>(member.getNameNode());
-							let initializer;
-							if (member.hasInitializer()) {
-								initializer = this.parseAndExpect<
-									Elisp.Expression
-								>(member.getInitializer()!);
-							}
-							props.push(
-								new Elisp.EnumMember(propName, initializer)
-							);
-						}
-						const elispEnum = new Elisp.Enum(
-							name,
-							props,
-							context.isInRootScope()
-						);
-						context.push(elispEnum);
-						context.resolveToParentOf(elispEnum);
-					}
+					this.parseEnumDeclaration(<EnumDeclaration>node)
 					break;
 				case ts.SyntaxKind.Identifier: {
 					const identifierNode = <Identifier>node;

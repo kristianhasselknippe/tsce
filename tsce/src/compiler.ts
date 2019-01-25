@@ -301,6 +301,24 @@ class CompilerProcess {
 		);
 	}
 
+	parseVariableDeclarationList(vdl: VariableDeclarationList) {
+		let marker: Marker;
+		if (!this.context.isInRootScope()) {
+			marker = this.context.pushMarker();
+		}
+		for (let variable of vdl.getDeclarations()) {
+			this.toElispNode(variable);
+		}
+
+		if (!this.context.isInRootScope()) {
+			const bindings = this.context.popToMarker<Elisp.LetItem>(
+				marker!
+			);
+			let letBinding = new Elisp.LetBinding(bindings);
+			this.context.push(letBinding);
+		}
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -312,7 +330,6 @@ class CompilerProcess {
 				case ts.SyntaxKind.ExpressionStatement:
 					this.parseExpressionStatement(<ExpressionStatement>node)
 					break;
-
 				case ts.SyntaxKind.CallExpression: {
 					this.parseCallExpression(<CallExpression>node)
 					break;
@@ -320,27 +337,9 @@ class CompilerProcess {
 				case ts.SyntaxKind.VariableDeclaration:
 					this.parseVariableDeclaration(<VariableDeclaration>node)
 					break;
-
 				case ts.SyntaxKind.VariableDeclarationList:
-					const vdl = <VariableDeclarationList>node;
-
-					let marker: Marker;
-					if (!context.isInRootScope()) {
-						marker = context.pushMarker();
-					}
-					for (let variable of vdl.getDeclarations()) {
-						this.toElispNode(variable);
-					}
-
-					if (!context.isInRootScope()) {
-						const bindings = context.popToMarker<Elisp.LetItem>(
-							marker!
-						);
-						let letBinding = new Elisp.LetBinding(bindings);
-						context.push(letBinding);
-					}
+					this.parseVariableDeclarationList(<VariableDeclarationList>node)
 					break;
-
 				case ts.SyntaxKind.VariableStatement: {
 					let vs = <VariableStatement>node;
 					this.toElispNode(vs.getDeclarationList());

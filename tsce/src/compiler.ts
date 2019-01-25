@@ -455,6 +455,29 @@ class CompilerProcess {
 		this.toElispNode(pe.getExpression());
 	}
 
+	parseBinaryExpression(be: BinaryExpression) {
+		const left = this.parseAndExpect<Elisp.Expression>(
+			be.getLeft()
+		);
+		const right = this.parseAndExpect<Elisp.Expression>(
+			be.getRight()
+		);
+
+		let op = be.getOperatorToken();
+		if (op.getText() === '=') {
+			//TODO Not use string literal
+			this.context.push(new Elisp.Assignment(left, right));
+		} else {
+			this.context.push(
+				new Elisp.BinaryExpression(
+					op.getText(),
+					left,
+					right
+				)
+			);
+		}
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -494,28 +517,7 @@ class CompilerProcess {
 					this.parseParenthesizedExpression(<ParenthesizedExpression>node)
 					break;
 				case ts.SyntaxKind.BinaryExpression: {
-					let be = <BinaryExpression>node;
-
-					const left = this.parseAndExpect<Elisp.Expression>(
-						be.getLeft()
-					);
-					const right = this.parseAndExpect<Elisp.Expression>(
-						be.getRight()
-					);
-
-					let op = be.getOperatorToken();
-					if (op.getText() === '=') {
-						//TODO Not use string literal
-						context.push(new Elisp.Assignment(left, right));
-					} else {
-						context.push(
-							new Elisp.BinaryExpression(
-								op.getText(),
-								left,
-								right
-							)
-						);
-					}
+					this.parseBinaryExpression(<BinaryExpression>node)
 					break;
 				}
 				case ts.SyntaxKind.PostfixUnaryExpression:

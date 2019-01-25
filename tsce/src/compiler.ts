@@ -502,6 +502,21 @@ class CompilerProcess {
 		);
 	}
 
+	parseDeleteExpression(delExpr: DeleteExpression) {
+		const expr = this.parseAndExpect<Elisp.Expression>(
+			delExpr.getExpression()
+		);
+		this.context.push(new Elisp.DeleteExpression(expr));
+	}
+
+	parseFalseKeyword() {
+		this.context.push(new Elisp.BooleanLiteral(false));
+	}
+
+	parseTrueKeyword() {
+		this.context.push(new Elisp.BooleanLiteral(true));
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -552,18 +567,14 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.DeleteExpression:
-					let delExpr = <DeleteExpression>node;
-					const expr = this.parseAndExpect<Elisp.Expression>(
-						delExpr.getExpression()
-					);
-					context.push(new Elisp.DeleteExpression(expr));
+					this.parseDeleteExpression(<DeleteExpression>node)
 					break;
 				case ts.SyntaxKind.FalseKeyword: {
-					context.push(new Elisp.BooleanLiteral(false));
+					this.parseFalseKeyword()
 					break;
 				}
 				case ts.SyntaxKind.TrueKeyword: {
-					context.push(new Elisp.BooleanLiteral(true));
+					this.parseTrueKeyword()
 					break;
 				}
 				case ts.SyntaxKind.NumericLiteral: {

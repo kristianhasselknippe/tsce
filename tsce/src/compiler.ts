@@ -319,6 +319,66 @@ class CompilerProcess {
 		}
 	}
 
+	parseFunctionDeclaration(fd: FunctionDeclaration) {
+		const compilerDirectives = this.getCompilerDirectivesForNode(fd);
+		const inRootScope = this.context.isInRootScope();
+
+		if (!fd.hasBody()) {
+			return;
+		}
+
+		let args = fd
+			.getParameters()
+			.map(p => p.getNameNode())
+			.filter(x => typeof x !== 'undefined')
+			.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
+			.map(x => new Elisp.FunctionArg(x));
+
+		const functionIdentifier = this.parseAndExpect<
+			Elisp.Identifier
+			>(fd.getNameNode()!);
+
+		let marker;
+		if (inRootScope) {
+			marker = this.context.push(
+				new Elisp.Defun(
+					functionIdentifier,
+					args,
+					compilerDirectives
+				)
+			);
+		} else {
+			marker = this.context.push(new Elisp.Lambda(args));
+		}
+
+		fd.getStatements().forEach(x => {
+			this.toElispNode(x);
+		});
+
+		this.context.resolveTo(marker);
+		const functionDecl = this.context.pop() as
+			| Elisp.Defun
+			| Elisp.Lambda;
+
+		if (!inRootScope) {
+			this.context.push(
+				new Elisp.LetBinding([
+					new Elisp.LetItem(
+						functionIdentifier,
+						functionDecl
+					)
+				])
+			);
+		} else {
+			this.context.push(functionDecl);
+			this.context.resolveToParentOf(functionDecl);
+		}
+	}
+
+	parseVariableStatement(vs: VariableStatement) {
+		this.toElispNode(vs.getDeclarationList());
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -341,65 +401,11 @@ class CompilerProcess {
 					this.parseVariableDeclarationList(<VariableDeclarationList>node)
 					break;
 				case ts.SyntaxKind.VariableStatement: {
-					let vs = <VariableStatement>node;
-					this.toElispNode(vs.getDeclarationList());
+					this.parseVariableStatement(<VariableStatement>node)
 					break;
 				}
 				case ts.SyntaxKind.FunctionDeclaration: {
-					let fd = <FunctionDeclaration>node;
-
-					const inRootScope = context.isInRootScope();
-
-					if (!fd.hasBody()) {
-						break;
-					}
-
-					let args = fd
-						.getParameters()
-						.map(p => p.getNameNode())
-						.filter(x => typeof x !== 'undefined')
-						.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
-						.map(x => new Elisp.FunctionArg(x));
-
-					const functionIdentifier = this.parseAndExpect<
-						Elisp.Identifier
-					>(fd.getNameNode()!);
-
-					let marker;
-					if (inRootScope) {
-						marker = context.push(
-							new Elisp.Defun(
-								functionIdentifier,
-								args,
-								compilerDirectives
-							)
-						);
-					} else {
-						marker = context.push(new Elisp.Lambda(args));
-					}
-
-					fd.getStatements().forEach(x => {
-						this.toElispNode(x);
-					});
-
-					context.resolveTo(marker);
-					const functionDecl = context.pop() as
-						| Elisp.Defun
-						| Elisp.Lambda;
-
-					if (!inRootScope) {
-						context.push(
-							new Elisp.LetBinding([
-								new Elisp.LetItem(
-									functionIdentifier,
-									functionDecl
-								)
-							])
-						);
-					} else {
-						context.push(functionDecl);
-						context.resolveToParentOf(functionDecl);
-					}
+					this.parseFunctionDeclaration(<FunctionDeclaration>node)
 					break;
 				}
 				case ts.SyntaxKind.EnumDeclaration:

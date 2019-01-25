@@ -451,6 +451,10 @@ class CompilerProcess {
 		}
 	}
 
+	parseParenthesizedExpression(pe: ParenthesizedExpression) {
+		this.toElispNode(pe.getExpression());
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -487,8 +491,7 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.ParenthesizedExpression:
-					let pe = <ParenthesizedExpression>node;
-					this.toElispNode(pe.getExpression());
+					this.parseParenthesizedExpression(<ParenthesizedExpression>node)
 					break;
 				case ts.SyntaxKind.BinaryExpression: {
 					let be = <BinaryExpression>node;

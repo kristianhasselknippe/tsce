@@ -216,16 +216,15 @@ class CompilerProcess {
 		context.incStackCount();
 
 		(() => {
+			context.printAtStackOffset(node.getKindName(), node);
 			const compilerDirectives = this.getCompilerDirectivesForNode(node);
 			switch (node.getKind()) {
 				case ts.SyntaxKind.ExpressionStatement:
-					context.printAtStackOffset('ExpressionStatement', node);
 					let es = <ExpressionStatement>node;
 					this.toElispNode(es.getExpression());
 					break;
 
 				case ts.SyntaxKind.CallExpression: {
-					context.printAtStackOffset('CallExpression', node);
 					let ce = <CallExpression>node;
 					const leftHand = this.parseAndExpect<Elisp.Expression>(
 						ce.getExpression()
@@ -295,7 +294,6 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.VariableDeclaration:
-					context.printAtStackOffset('VariableDeclaration: ', node);
 					const vd = <VariableDeclaration>node;
 
 					const identifier = this.parseAndExpect<Elisp.Identifier>(
@@ -317,7 +315,6 @@ class CompilerProcess {
 					break;
 
 				case ts.SyntaxKind.VariableDeclarationList:
-					context.printAtStackOffset('VariableDeclarationList', node);
 					const vdl = <VariableDeclarationList>node;
 
 					let marker: Marker;
@@ -338,13 +335,11 @@ class CompilerProcess {
 					break;
 
 				case ts.SyntaxKind.VariableStatement: {
-					context.printAtStackOffset('VariableStatement', node);
 					let vs = <VariableStatement>node;
 					this.toElispNode(vs.getDeclarationList());
 					break;
 				}
 				case ts.SyntaxKind.FunctionDeclaration: {
-					context.printAtStackOffset('FunctionDeclaration', node);
 					let fd = <FunctionDeclaration>node;
 
 					const inRootScope = context.isInRootScope();
@@ -432,7 +427,6 @@ class CompilerProcess {
 					}
 					break;
 				case ts.SyntaxKind.Identifier: {
-					context.printAtStackOffset('Identifier', node);
 					const identifierNode = <Identifier>node;
 					const symbolName = identifierNode.getText();
 
@@ -478,15 +472,10 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.ParenthesizedExpression:
-					context.printAtStackOffset(
-						'ParenthesizedExpression: ',
-						node
-					);
 					let pe = <ParenthesizedExpression>node;
 					this.toElispNode(pe.getExpression());
 					break;
 				case ts.SyntaxKind.BinaryExpression: {
-					context.printAtStackOffset('BinaryExpression: ', node);
 					let be = <BinaryExpression>node;
 
 					const left = this.parseAndExpect<Elisp.Expression>(
@@ -512,7 +501,6 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.PostfixUnaryExpression:
-					context.printAtStackOffset('PostfixUnaryExpression', node);
 					const pue = <PostfixUnaryExpression>node;
 					const operator = pue.getOperatorToken();
 
@@ -525,7 +513,6 @@ class CompilerProcess {
 					);
 					break;
 				case ts.SyntaxKind.PrefixUnaryExpression: {
-					context.printAtStackOffset('PrefixUnaryExpression');
 					let pue = <PrefixUnaryExpression>node;
 					let operator = ts.tokenToString(pue.getOperatorToken());
 
@@ -546,22 +533,18 @@ class CompilerProcess {
 					context.push(new Elisp.DeleteExpression(expr));
 					break;
 				case ts.SyntaxKind.FalseKeyword: {
-					context.printAtStackOffset('FalseKeyword');
 					context.push(new Elisp.BooleanLiteral(false));
 					break;
 				}
 				case ts.SyntaxKind.TrueKeyword: {
-					context.printAtStackOffset('TrueKeyword');
 					context.push(new Elisp.BooleanLiteral(true));
 					break;
 				}
 				case ts.SyntaxKind.NumericLiteral: {
-					context.printAtStackOffset('NumericLiteral');
 					context.push(new Elisp.NumberLiteral(node.getText()));
 					break;
 				}
 				case ts.SyntaxKind.StringLiteral: {
-					context.printAtStackOffset('StringLiteral');
 					const stringLiteral = <StringLiteral>node;
 					context.push(
 						new Elisp.StringLiteral(stringLiteral.getLiteralValue())
@@ -569,7 +552,6 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.IfStatement: {
-					context.printAtStackOffset('IfStatement');
 					let ifExp = <IfStatement>node;
 
 					const predicate = this.parseAndExpect<Elisp.Expression>(

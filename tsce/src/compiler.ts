@@ -282,6 +282,25 @@ class CompilerProcess {
 		}
 	}
 
+	parseVariableDeclaration(vd: VariableDeclaration) {
+		const identifier = this.parseAndExpect<Elisp.Identifier>(
+			vd.getNameNode()
+		);
+		let initializer;
+		if (vd.getInitializer()) {
+			initializer = this.parseAndExpect<Elisp.Expression>(
+				vd.getInitializer()!
+			);
+		}
+		this.context.push(
+			new Elisp.LetItem(
+				identifier,
+				initializer,
+				this.context.isInRootScope()
+			)
+		);
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -299,24 +318,7 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.VariableDeclaration:
-					const vd = <VariableDeclaration>node;
-
-					const identifier = this.parseAndExpect<Elisp.Identifier>(
-						vd.getNameNode()
-					);
-					let initializer;
-					if (vd.getInitializer()) {
-						initializer = this.parseAndExpect<Elisp.Expression>(
-							vd.getInitializer()!
-						);
-					}
-					this.context.push(
-						new Elisp.LetItem(
-							identifier,
-							initializer,
-							context.isInRootScope()
-						)
-					);
+					this.parseVariableDeclaration(<VariableDeclaration>node)
 					break;
 
 				case ts.SyntaxKind.VariableDeclarationList:

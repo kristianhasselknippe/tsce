@@ -407,6 +407,50 @@ class CompilerProcess {
 		this.context.resolveToParentOf(elispEnum);
 	}
 
+	parseIdentifier(identifierNode: Identifier) {
+		const symbolName = identifierNode.getText();
+
+		const comments = this.getCommentsForDeclarationOfNode(
+			identifierNode
+		);
+
+		const compilerDirectives = extractCompilerDirectivesFromStrings(
+			comments
+		);
+
+		const identifierDeclaredType = this.context.getDeclarationOfIdentifier(
+			symbolName
+		);
+
+		if (identifierDeclaredType) {
+			if (
+				identifierDeclaredType.isFunctionDeclaration() ||
+					identifierDeclaredType.isVariableDeclaration()
+			) {
+				this.context.push(
+					new Elisp.FunctionIdentifier(
+						symbolName,
+						compilerDirectives
+					)
+				);
+			} else {
+				this.context.push(
+					new Elisp.VariableIdentifier(
+						symbolName,
+						compilerDirectives
+					)
+				);
+			}
+		} else {
+			this.context.push(
+				new Elisp.FunctionIdentifier(
+					symbolName,
+					compilerDirectives
+				)
+			);
+		}
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -439,48 +483,7 @@ class CompilerProcess {
 					this.parseEnumDeclaration(<EnumDeclaration>node)
 					break;
 				case ts.SyntaxKind.Identifier: {
-					const identifierNode = <Identifier>node;
-					const symbolName = identifierNode.getText();
-
-					const comments = this.getCommentsForDeclarationOfNode(
-						identifierNode
-					);
-
-					const compilerDirectives = extractCompilerDirectivesFromStrings(
-						comments
-					);
-
-					const identifierDeclaredType = this.context.getDeclarationOfIdentifier(
-						symbolName
-					);
-
-					if (identifierDeclaredType) {
-						if (
-							identifierDeclaredType.isFunctionDeclaration() ||
-							identifierDeclaredType.isVariableDeclaration()
-						) {
-							context.push(
-								new Elisp.FunctionIdentifier(
-									symbolName,
-									compilerDirectives
-								)
-							);
-						} else {
-							context.push(
-								new Elisp.VariableIdentifier(
-									symbolName,
-									compilerDirectives
-								)
-							);
-						}
-					} else {
-						context.push(
-							new Elisp.FunctionIdentifier(
-								symbolName,
-								compilerDirectives
-							)
-						);
-					}
+					this.parseIdentifier(<Identifier>node)
 					break;
 				}
 				case ts.SyntaxKind.ParenthesizedExpression:

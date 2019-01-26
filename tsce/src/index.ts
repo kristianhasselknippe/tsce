@@ -19,7 +19,7 @@ function parseCliArguments() {
 
 let cliArgs = parseCliArguments();
 
-console.log('== Compiling project');
+console.log('== Compiling project: ' + cliArgs.projectPath);
 const project = loadProject(cliArgs.projectPath);
 
 const projectResults = compileProject(project);

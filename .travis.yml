@@ -12,7 +12,9 @@ install:
 - evm install $EVM_EMACS --use --skip
 before_script:
 - "./scripts/installDependencies.sh"
-script: "./scripts/run-travis-ci.sh ./scripts/create-release.sh"
+script:
+  - "./scripts/run-travis-ci.sh
+  - ./scripts/create-release.sh"
 deploy:
   provider: releases
   api_key:

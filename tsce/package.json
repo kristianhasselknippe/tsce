@@ -4,7 +4,7 @@
 	"description": "A TypeScript to Elisp compiler",
 	"main": "./dist/index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "jest"
 	},
 	"bin": {
 		"tsce": "./bin/tsce"
@@ -17,5 +17,11 @@
 		"linqts": "^1.10.0",
 		"shelljs": "^0.8.3",
 		"ts-simple-ast": "*"
+	},
+	"devDependencies": {
+		"typescript": "*",
+		"@types/jest": "^23.3.13",
+		"jest": "^24.0.0",
+		"ts-jest": "^23.10.5"
 	}
 }

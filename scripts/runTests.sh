@@ -4,6 +4,7 @@ set -e
 
 pushd ../tsce
 tsc
+npm test
 popd
 node ../tsce/dist/index.js ../tests/tsconfig.json
 pushd ../tests/dist

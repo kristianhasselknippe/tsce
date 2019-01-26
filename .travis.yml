@@ -15,7 +15,6 @@ install:
   - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > travis.sh && source ./travis.sh
   - evm install $EVM_EMACS --use --skip
 before_script:
-  - npm i -g typescript
-  - ./installDependencies.sh
+  - ./scripts/installDependencies.sh
 script:
-  ./run-travis-ci.sh
+  ./scripts/run-travis-ci.sh

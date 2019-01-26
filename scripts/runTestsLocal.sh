@@ -1,6 +1,6 @@
 echo "Building test project"
-node tsce/dist/index.js "./tests/tsconfig.json"
+node ../tsce/dist/index.js "../tests/tsconfig.json"
 echo "Pushing output dir"
-pushd ./tests/dist
+pushd ../tests/dist
 echo "Running elisp tests"
 emacs --debug-init --batch --directory ./ --script ./tests.el -f ert-run-tests-batch-and-exit

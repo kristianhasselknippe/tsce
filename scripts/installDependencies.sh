@@ -1,4 +1,4 @@
 npm install typescript -g
-pushd ./tsce
+pushd ../tsce
 npm install
 popd

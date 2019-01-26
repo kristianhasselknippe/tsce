@@ -517,6 +517,47 @@ class CompilerProcess {
 		this.context.push(new Elisp.BooleanLiteral(true));
 	}
 
+	parseIfStatement(ifExp: IfStatement) {
+		const predicate = this.parseAndExpect<Elisp.Expression>(
+			ifExp.getExpression()
+		);
+
+		const ifBody = this.context.push(new Elisp.Body());
+
+		const thenStatement = <Block>ifExp.getThenStatement();
+		if (thenStatement.getStatements().length === 0) {
+			this.context.push(new Elisp.Null());
+		} else {
+			for (let expr of thenStatement.getStatements()) {
+				this.toElispNode(expr);
+			}
+		}
+		this.context.resolveTo(ifBody);
+		this.context.pop();
+
+		let elseBody;
+		if (ifExp.getElseStatement()) {
+			elseBody = this.context.push(new Elisp.Body());
+			if (
+				ifExp.getElseStatement()!.getKind() ===
+					ts.SyntaxKind.IfStatement
+			) {
+				this.toElispNode(ifExp.getElseStatement()!);
+			} else {
+				const elseStatement = ifExp.getElseStatement();
+				if (elseStatement) {
+					this.toElispNode(elseStatement);
+				}
+			}
+			this.context.resolveTo(elseBody);
+			this.context.pop();
+		}
+
+		this.context.push(
+			new Elisp.IfExpression(predicate, ifBody, elseBody)
+		);
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -589,46 +630,7 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.IfStatement: {
-					let ifExp = <IfStatement>node;
-
-					const predicate = this.parseAndExpect<Elisp.Expression>(
-						ifExp.getExpression()
-					);
-
-					const ifBody = context.push(new Elisp.Body());
-
-					const thenStatement = <Block>ifExp.getThenStatement();
-					if (thenStatement.getStatements().length === 0) {
-						context.push(new Elisp.Null());
-					} else {
-						for (let expr of thenStatement.getStatements()) {
-							this.toElispNode(expr);
-						}
-					}
-					context.resolveTo(ifBody);
-					context.pop();
-
-					let elseBody;
-					if (ifExp.getElseStatement()) {
-						elseBody = context.push(new Elisp.Body());
-						if (
-							ifExp.getElseStatement()!.getKind() ===
-							ts.SyntaxKind.IfStatement
-						) {
-							this.toElispNode(ifExp.getElseStatement()!);
-						} else {
-							const elseStatement = ifExp.getElseStatement();
-							if (elseStatement) {
-								this.toElispNode(elseStatement);
-							}
-						}
-						context.resolveTo(elseBody);
-						context.pop();
-					}
-
-					context.push(
-						new Elisp.IfExpression(predicate, ifBody, elseBody)
-					);
+					this.parseIfStatement(<IfStatement>node)
 					break;
 				}
 				case ts.SyntaxKind.ReturnStatement:

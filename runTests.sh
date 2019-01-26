@@ -1,7 +1,8 @@
-#pushd ./tsce
-#tsc
-#popd
+#!/bin/bash
+
+set -e
 
 node tsce/dist/index.js ./tests/tsconfig.json
 pushd ./tests/dist
 emacs --debug-init --batch --directory ./ --script ./tests.el -f ert-run-tests-batch-and-exit
+popd

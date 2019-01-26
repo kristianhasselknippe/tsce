@@ -11,10 +11,6 @@ export class Marker extends Node {
 	}
 }
 
-interface DeclarationList {
-	daclaratoins: Identifier
-}
-
 export class Context {
 	private stack: Node[] = [];
 
@@ -36,15 +32,6 @@ export class Context {
 
 	private isBlock(expr: Node): expr is Block {
 		return expr.isBlock()
-	}
-
-	private findFirst<T extends Node>(stack: Node[], pred: (item: Node) => boolean): T | undefined {
-		for (let i = stack.length - 1; i >= 0; i--) {
-			let item = stack[i]
-			if (pred(item)) {
-				return item as T
-			}
-		}
 	}
 
 	private findFirstOrThrow<T extends Node>(stack: Node[], pred: (item: Node) => boolean, error: Error): T {

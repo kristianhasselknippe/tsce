@@ -35,23 +35,17 @@ import {
 	TypeGuards,
 	NamespaceImport,
 	StringLiteral,
-	NamespaceDeclaration,
+	NamespaceDeclaration
 } from 'ts-simple-ast';
 import * as Elisp from './elispTypes';
 import { Context, Marker } from './context';
-import { fail } from 'assert';
 import {
-	extractCompilerDirectivesFromString,
 	extractCompilerDirectivesFromStrings,
 	CompilerDirective,
 	CompilerDirectiveKind
 } from './elispTypes/compilerDirective';
 import { TsceProject } from './projectFormat';
-import {
-	VariableIdentifier,
-	VariableDeclarationType,
-	FunctionIdentifier,
-} from './elispTypes';
+import { VariableDeclarationType } from './elispTypes';
 
 class CompilerProcess {
 	context: Context;
@@ -129,16 +123,19 @@ class CompilerProcess {
 
 	compilerDirectivesOfDeclarationOfNode(node: Node) {
 		const langService = this.project.getLanguageService();
-		const definitions = langService.getDefinitionsAtPosition(node.getSourceFile(), node.getPos())
-		let ret: CompilerDirective[] = []
+		const definitions = langService.getDefinitionsAtPosition(
+			node.getSourceFile(),
+			node.getPos()
+		);
+		let ret: CompilerDirective[] = [];
 		if (definitions) {
 			for (const def of definitions) {
-				let node = def.getNode()
+				let node = def.getNode();
 				if (TypeGuards.isIdentifier(node)) {
-					node = node.getParent()!
+					node = node.getParent()!;
 				}
-				const directives = this.getCompilerDirectivesForNode(node)
-				ret = ret.concat(directives)
+				const directives = this.getCompilerDirectivesForNode(node);
+				ret = ret.concat(directives);
 			}
 		}
 		return ret;
@@ -258,25 +255,16 @@ class CompilerProcess {
 				// at least the naming of things. It has just been forced to work at this point.
 				if (
 					leftHand.isFunctionIdentifier() ||
-						(declaration &&
-						 (declaration.isFunctionDeclaration() ||
-						  declaration.isVariableDeclaration()))
+					(declaration &&
+						(declaration.isFunctionDeclaration() ||
+							declaration.isVariableDeclaration()))
 				) {
-					funcall = new Elisp.FunctionCallDefun(
-						leftHand,
-						args
-					);
+					funcall = new Elisp.FunctionCallDefun(leftHand, args);
 				} else {
-					funcall = new Elisp.FunctionCallVariable(
-						leftHand,
-						args
-					);
+					funcall = new Elisp.FunctionCallVariable(leftHand, args);
 				}
 			} else {
-				funcall = new Elisp.FunctionCallVariable(
-					leftHand,
-					args
-				);
+				funcall = new Elisp.FunctionCallVariable(leftHand, args);
 			}
 			this.context.push(funcall);
 		}
@@ -311,9 +299,7 @@ class CompilerProcess {
 		}
 
 		if (!this.context.isInRootScope()) {
-			const bindings = this.context.popToMarker<Elisp.LetItem>(
-				marker!
-			);
+			const bindings = this.context.popToMarker<Elisp.LetItem>(marker!);
 			let letBinding = new Elisp.LetBinding(bindings);
 			this.context.push(letBinding);
 		}
@@ -334,18 +320,14 @@ class CompilerProcess {
 			.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
 			.map(x => new Elisp.FunctionArg(x));
 
-		const functionIdentifier = this.parseAndExpect<
-			Elisp.Identifier
-			>(fd.getNameNode()!);
+		const functionIdentifier = this.parseAndExpect<Elisp.Identifier>(
+			fd.getNameNode()!
+		);
 
 		let marker;
 		if (inRootScope) {
 			marker = this.context.push(
-				new Elisp.Defun(
-					functionIdentifier,
-					args,
-					compilerDirectives
-				)
+				new Elisp.Defun(functionIdentifier, args, compilerDirectives)
 			);
 		} else {
 			marker = this.context.push(new Elisp.Lambda(args));
@@ -356,17 +338,12 @@ class CompilerProcess {
 		});
 
 		this.context.resolveTo(marker);
-		const functionDecl = this.context.pop() as
-			| Elisp.Defun
-			| Elisp.Lambda;
+		const functionDecl = this.context.pop() as Elisp.Defun | Elisp.Lambda;
 
 		if (!inRootScope) {
 			this.context.push(
 				new Elisp.LetBinding([
-					new Elisp.LetItem(
-						functionIdentifier,
-						functionDecl
-					)
+					new Elisp.LetItem(functionIdentifier, functionDecl)
 				])
 			);
 		} else {
@@ -387,16 +364,14 @@ class CompilerProcess {
 		for (const member of enumDecl.getMembers()) {
 			const propName = this.parseAndExpect<
 				Elisp.Identifier | Elisp.StringLiteral
-				>(member.getNameNode());
+			>(member.getNameNode());
 			let initializer;
 			if (member.hasInitializer()) {
-				initializer = this.parseAndExpect<
-					Elisp.Expression
-					>(member.getInitializer()!);
+				initializer = this.parseAndExpect<Elisp.Expression>(
+					member.getInitializer()!
+				);
 			}
-			props.push(
-				new Elisp.EnumMember(propName, initializer)
-			);
+			props.push(new Elisp.EnumMember(propName, initializer));
 		}
 		const elispEnum = new Elisp.Enum(
 			name,
@@ -410,9 +385,7 @@ class CompilerProcess {
 	parseIdentifier(identifierNode: Identifier) {
 		const symbolName = identifierNode.getText();
 
-		const comments = this.getCommentsForDeclarationOfNode(
-			identifierNode
-		);
+		const comments = this.getCommentsForDeclarationOfNode(identifierNode);
 
 		const compilerDirectives = extractCompilerDirectivesFromStrings(
 			comments
@@ -425,28 +398,19 @@ class CompilerProcess {
 		if (identifierDeclaredType) {
 			if (
 				identifierDeclaredType.isFunctionDeclaration() ||
-					identifierDeclaredType.isVariableDeclaration()
+				identifierDeclaredType.isVariableDeclaration()
 			) {
 				this.context.push(
-					new Elisp.FunctionIdentifier(
-						symbolName,
-						compilerDirectives
-					)
+					new Elisp.FunctionIdentifier(symbolName, compilerDirectives)
 				);
 			} else {
 				this.context.push(
-					new Elisp.VariableIdentifier(
-						symbolName,
-						compilerDirectives
-					)
+					new Elisp.VariableIdentifier(symbolName, compilerDirectives)
 				);
 			}
 		} else {
 			this.context.push(
-				new Elisp.FunctionIdentifier(
-					symbolName,
-					compilerDirectives
-				)
+				new Elisp.FunctionIdentifier(symbolName, compilerDirectives)
 			);
 		}
 	}
@@ -456,12 +420,8 @@ class CompilerProcess {
 	}
 
 	parseBinaryExpression(be: BinaryExpression) {
-		const left = this.parseAndExpect<Elisp.Expression>(
-			be.getLeft()
-		);
-		const right = this.parseAndExpect<Elisp.Expression>(
-			be.getRight()
-		);
+		const left = this.parseAndExpect<Elisp.Expression>(be.getLeft());
+		const right = this.parseAndExpect<Elisp.Expression>(be.getRight());
 
 		let op = be.getOperatorToken();
 		if (op.getText() === '=') {
@@ -469,11 +429,7 @@ class CompilerProcess {
 			this.context.push(new Elisp.Assignment(left, right));
 		} else {
 			this.context.push(
-				new Elisp.BinaryExpression(
-					op.getText(),
-					left,
-					right
-				)
+				new Elisp.BinaryExpression(op.getText(), left, right)
 			);
 		}
 	}
@@ -481,25 +437,17 @@ class CompilerProcess {
 	parsePostfixUnaryExpression(pue: PostfixUnaryExpression) {
 		const operator = pue.getOperatorToken();
 
-		const operand = this.parseAndExpect<Elisp.Expression>(
-			pue.getOperand()
-		);
+		const operand = this.parseAndExpect<Elisp.Expression>(pue.getOperand());
 
-		this.context.push(
-			new Elisp.UnaryPostfixExpression(operator, operand)
-		);
+		this.context.push(new Elisp.UnaryPostfixExpression(operator, operand));
 	}
 
 	parsePrefixUnaryExpression(pue: PrefixUnaryExpression) {
 		let operator = ts.tokenToString(pue.getOperatorToken());
 
-		const operand = this.parseAndExpect<Elisp.Expression>(
-			pue.getOperand()
-		);
+		const operand = this.parseAndExpect<Elisp.Expression>(pue.getOperand());
 
-		this.context.push(
-			new Elisp.UnaryPrefixExpression(operator!, operand)
-		);
+		this.context.push(new Elisp.UnaryPrefixExpression(operator!, operand));
 	}
 
 	parseDeleteExpression(delExpr: DeleteExpression) {
@@ -540,7 +488,7 @@ class CompilerProcess {
 			elseBody = this.context.push(new Elisp.Body());
 			if (
 				ifExp.getElseStatement()!.getKind() ===
-					ts.SyntaxKind.IfStatement
+				ts.SyntaxKind.IfStatement
 			) {
 				this.toElispNode(ifExp.getElseStatement()!);
 			} else {
@@ -553,9 +501,7 @@ class CompilerProcess {
 			this.context.pop();
 		}
 
-		this.context.push(
-			new Elisp.IfExpression(predicate, ifBody, elseBody)
-		);
+		this.context.push(new Elisp.IfExpression(predicate, ifBody, elseBody));
 	}
 
 	toElispNode(node: Node) {
@@ -566,56 +512,64 @@ class CompilerProcess {
 			context.printAtStackOffset(node.getKindName(), node);
 			switch (node.getKind()) {
 				case ts.SyntaxKind.ExpressionStatement:
-					this.parseExpressionStatement(<ExpressionStatement>node)
+					this.parseExpressionStatement(<ExpressionStatement>node);
 					break;
 				case ts.SyntaxKind.CallExpression: {
-					this.parseCallExpression(<CallExpression>node)
+					this.parseCallExpression(<CallExpression>node);
 					break;
 				}
 				case ts.SyntaxKind.VariableDeclaration:
-					this.parseVariableDeclaration(<VariableDeclaration>node)
+					this.parseVariableDeclaration(<VariableDeclaration>node);
 					break;
 				case ts.SyntaxKind.VariableDeclarationList:
-					this.parseVariableDeclarationList(<VariableDeclarationList>node)
+					this.parseVariableDeclarationList(<VariableDeclarationList>(
+						node
+					));
 					break;
 				case ts.SyntaxKind.VariableStatement: {
-					this.parseVariableStatement(<VariableStatement>node)
+					this.parseVariableStatement(<VariableStatement>node);
 					break;
 				}
 				case ts.SyntaxKind.FunctionDeclaration: {
-					this.parseFunctionDeclaration(<FunctionDeclaration>node)
+					this.parseFunctionDeclaration(<FunctionDeclaration>node);
 					break;
 				}
 				case ts.SyntaxKind.EnumDeclaration:
-					this.parseEnumDeclaration(<EnumDeclaration>node)
+					this.parseEnumDeclaration(<EnumDeclaration>node);
 					break;
 				case ts.SyntaxKind.Identifier: {
-					this.parseIdentifier(<Identifier>node)
+					this.parseIdentifier(<Identifier>node);
 					break;
 				}
 				case ts.SyntaxKind.ParenthesizedExpression:
-					this.parseParenthesizedExpression(<ParenthesizedExpression>node)
+					this.parseParenthesizedExpression(<ParenthesizedExpression>(
+						node
+					));
 					break;
 				case ts.SyntaxKind.BinaryExpression: {
-					this.parseBinaryExpression(<BinaryExpression>node)
+					this.parseBinaryExpression(<BinaryExpression>node);
 					break;
 				}
 				case ts.SyntaxKind.PostfixUnaryExpression:
-					this.parsePostfixUnaryExpression(<PostfixUnaryExpression>node)
+					this.parsePostfixUnaryExpression(<PostfixUnaryExpression>(
+						node
+					));
 					break;
 				case ts.SyntaxKind.PrefixUnaryExpression: {
-					this.parsePrefixUnaryExpression(<PrefixUnaryExpression>node)
+					this.parsePrefixUnaryExpression(<PrefixUnaryExpression>(
+						node
+					));
 					break;
 				}
 				case ts.SyntaxKind.DeleteExpression:
-					this.parseDeleteExpression(<DeleteExpression>node)
+					this.parseDeleteExpression(<DeleteExpression>node);
 					break;
 				case ts.SyntaxKind.FalseKeyword: {
-					this.parseFalseKeyword()
+					this.parseFalseKeyword();
 					break;
 				}
 				case ts.SyntaxKind.TrueKeyword: {
-					this.parseTrueKeyword()
+					this.parseTrueKeyword();
 					break;
 				}
 				case ts.SyntaxKind.NumericLiteral: {
@@ -630,7 +584,7 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.IfStatement: {
-					this.parseIfStatement(<IfStatement>node)
+					this.parseIfStatement(<IfStatement>node);
 					break;
 				}
 				case ts.SyntaxKind.ReturnStatement:
@@ -884,14 +838,13 @@ class CompilerProcess {
 					break;
 				case ts.SyntaxKind.ModuleDeclaration:
 				case ts.SyntaxKind.NamespaceExportDeclaration:
-					const mod = <NamespaceDeclaration>node
-					let name = mod.getName()
-					if (name.indexOf('"') > -1
-						|| name.indexOf("'") > -1) {
-						name = name.substring(1, name.length - 1)
+					const mod = <NamespaceDeclaration>node;
+					let name = mod.getName();
+					if (name.indexOf('"') > -1 || name.indexOf("'") > -1) {
+						name = name.substring(1, name.length - 1);
 					}
-					console.log('Fooo: ' + mod.getNameNode().getText())
-					context.push(new Elisp.ModuleDeclaration(name))
+					console.log('Fooo: ' + mod.getNameNode().getText());
+					context.push(new Elisp.ModuleDeclaration(name));
 					break;
 				case ts.SyntaxKind.ClassDeclaration:
 					break;

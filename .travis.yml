@@ -16,6 +16,6 @@ install:
   - evm install $EVM_EMACS --use --skip
 before_script:
   - npm i -g typescript
-  ./installDependencies.sh
+  - ./installDependencies.sh
 script:
   ./run-travis-ci.sh

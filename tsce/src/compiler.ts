@@ -519,6 +519,25 @@ class CompilerProcess {
 		);
 	}
 
+	parseForStatement(forOf: ForOfStatement) {
+		const forOfInitializer = forOf.getInitializer();
+		const forOfExpression = forOf.getExpression();
+
+		const variableInitializer = this.parseAndExpect<
+			Elisp.LetBinding
+			>(forOfInitializer);
+		const loopExpression = this.parseAndExpect<
+			Elisp.Expression
+			>(forOfExpression);
+
+		const forOfItem = this.context.push(
+			new Elisp.ForOf(variableInitializer, loopExpression)
+		);
+
+		this.toElispNode(forOf.getStatement());
+		this.context.resolveToParentOf(forOfItem);
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -613,23 +632,7 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.ForOfStatement:
-					const forOf = <ForOfStatement>node;
-					const forOfInitializer = forOf.getInitializer();
-					const forOfExpression = forOf.getExpression();
-
-					const variableInitializer = this.parseAndExpect<
-						Elisp.LetBinding
-					>(forOfInitializer);
-					const loopExpression = this.parseAndExpect<
-						Elisp.Expression
-					>(forOfExpression);
-
-					const forOfItem = context.push(
-						new Elisp.ForOf(variableInitializer, loopExpression)
-					);
-
-					this.toElispNode(forOf.getStatement());
-					context.resolveToParentOf(forOfItem);
+					this.parseForStatement(<ForOfStatement>node)
 					break;
 				case ts.SyntaxKind.ForInStatement:
 					throw new Error(

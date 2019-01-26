@@ -1,5 +1,7 @@
 * TSCE
 
+[![Build Status](https://travis-ci.org/kristianhasselknippe/tsce.svg?branch=master)](https://travis-ci.org/kristianhasselknippe/tsce)
+
 Typescript to Elisp compiler
 
 ** Missing features

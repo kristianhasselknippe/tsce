@@ -4,6 +4,8 @@
 
 Typescript to Elisp compiler
 
+Requires Emacs version >=25.1
+
 ## Missing features
 
 - Classes

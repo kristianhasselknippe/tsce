@@ -1,4 +1,1 @@
-pushd ./tsce
-npm install
-tsc
-popd
+npm install typescript -g

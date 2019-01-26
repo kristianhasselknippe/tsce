@@ -1,4 +1,4 @@
-import { Expression, tabs } from ".";
+import { Expression, tabs, hyphenate } from ".";
 import { CompilerDirective } from "./compilerDirective";
 
 function isUpper(character: string) {
@@ -38,23 +38,11 @@ export abstract class Identifier extends Expression {
 		return identifierName === this.identifierName
 	}
 
-	hyphenateName() {
-		let ret = ""
-		for (const char of this.identifierName) {
-			if (isUpper(char)) {
-				ret += "-" + char.toLowerCase()
-			} else {
-				ret += char
-			}
-		}
-		return ret
-	}
-
 	formatName() {
 		if (this.customName) {
 			return this.customName
 		} else {
-			let ret = this.hyphenateName()
+			let ret = hyphenate(this.identifierName)
 			if (this.isPredicate) {
 				ret += "?"
 			}
@@ -77,7 +65,6 @@ export abstract class Identifier extends Expression {
 
 export class FunctionIdentifier extends Identifier {
 	emitQuoted(indent: number) {
-		console.log("123123 Emitting function ident: " + this.identifierName)
 		return this.emit(indent)
 	}
 

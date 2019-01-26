@@ -1,5 +1,6 @@
 import { Scope, Expression, tabs, Identifier, Node } from ".";
 import { Declaration } from "./declaration";
+import { hyphenate } from "./utils";
 
 export class LetBinding extends Scope {
 	type = 'LetBinding';
@@ -59,11 +60,6 @@ ${tabs(indent)})`;
 	}
 }
 
-function isUpper(character: string) {
-	return (character !== character.toLowerCase())
-		&& (character === character.toUpperCase());
-}
-
 export class LetItem extends Expression implements Declaration {
 	type = 'LetItem';
 
@@ -80,7 +76,7 @@ export class LetItem extends Expression implements Declaration {
 	}
 
 	hyphenateName() {
-		return this.identifier.hyphenateName()
+		return hyphenate(this.identifier.identifierName)
 	}
 
 	emitInRootScope(indent: number){

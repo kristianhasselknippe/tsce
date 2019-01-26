@@ -10,8 +10,6 @@ function parseCliArguments() {
 		console.error('Expecting file as first argument');
 	}
 
-	const pathExtension = path.parse(args[0]);
-
 	return {
 		projectPath: args[0]
 	};

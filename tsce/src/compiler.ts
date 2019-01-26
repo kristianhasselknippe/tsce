@@ -702,6 +702,76 @@ class CompilerProcess {
 		);
 	}
 
+	parseImportDeclaration(importDecl: ImportDeclaration) {
+		const moduleName = this.parseAndExpect<
+			Elisp.StringLiteral
+			>(importDecl.getModuleSpecifier());
+
+		let isRelativePath = importDecl.isModuleSpecifierRelative();
+		//TODO: Make this more robust! We check here if we are looking at a path or an ambient(?) module import
+
+		const importClause = importDecl.getImportClause();
+		if (importClause) {
+			const namedBindings = importDecl
+				.getImportClause()!
+				.getNamedBindings();
+			if (namedBindings) {
+				if (
+					TypeGuards.isNamespaceImport(namedBindings)
+				) {
+					//Need to create an elisp object with the entire namespace
+					const namespaceImport = <NamespaceImport>(
+						namedBindings
+					);
+					const namespaceIdentifier = this.parseAndExpect<
+						Elisp.Identifier
+						>(namespaceImport.getNameNode());
+					this.context.push(
+						new Elisp.NamespaceImport(
+							new Elisp.VariableDeclaration(
+								namespaceIdentifier
+							),
+							moduleName,
+							isRelativePath
+						)
+					);
+				} else if (
+					TypeGuards.isNamedImports(namedBindings)
+				) {
+					const elements = [];
+					for (const element of namedBindings.getElements()) {
+						const elementType = element.getType();
+						const callSignatures = elementType.getCallSignatures();
+						let variableType =
+							VariableDeclarationType.Variable;
+						if (callSignatures.length > 0) {
+							variableType =
+								VariableDeclarationType.Function;
+						}
+						const nameNode = element.getNameNode();
+						const identifier = this.parseAndExpect<
+							Elisp.Identifier
+							>(nameNode);
+						elements.push(
+							new Elisp.VariableDeclaration(
+								identifier,
+								variableType
+							)
+						);
+					}
+					this.context.push(
+						new Elisp.ModuleImport(
+							moduleName,
+							elements,
+							isRelativePath
+						)
+					);
+				}
+			}
+		}
+		this.context.printStack();
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -876,77 +946,7 @@ class CompilerProcess {
 					}
 					break;
 				case ts.SyntaxKind.ImportDeclaration:
-					{
-						const importDecl = <ImportDeclaration>node;
-
-						const moduleName = this.parseAndExpect<
-							Elisp.StringLiteral
-						>(importDecl.getModuleSpecifier());
-
-						let isRelativePath = importDecl.isModuleSpecifierRelative();
-						//TODO: Make this more robust! We check here if we are looking at a path or an ambient(?) module import
-
-						const importClause = importDecl.getImportClause();
-						if (importClause) {
-							const namedBindings = importDecl
-								.getImportClause()!
-								.getNamedBindings();
-							if (namedBindings) {
-								if (
-									TypeGuards.isNamespaceImport(namedBindings)
-								) {
-									//Need to create an elisp object with the entire namespace
-									const namespaceImport = <NamespaceImport>(
-										namedBindings
-									);
-									const namespaceIdentifier = this.parseAndExpect<
-										Elisp.Identifier
-									>(namespaceImport.getNameNode());
-									context.push(
-										new Elisp.NamespaceImport(
-											new Elisp.VariableDeclaration(
-												namespaceIdentifier
-											),
-											moduleName,
-											isRelativePath
-										)
-									);
-								} else if (
-									TypeGuards.isNamedImports(namedBindings)
-								) {
-									const elements = [];
-									for (const element of namedBindings.getElements()) {
-										const elementType = element.getType();
-										const callSignatures = elementType.getCallSignatures();
-										let variableType =
-											VariableDeclarationType.Variable;
-										if (callSignatures.length > 0) {
-											variableType =
-												VariableDeclarationType.Function;
-										}
-										const nameNode = element.getNameNode();
-										const identifier = this.parseAndExpect<
-											Elisp.Identifier
-										>(nameNode);
-										elements.push(
-											new Elisp.VariableDeclaration(
-												identifier,
-												variableType
-											)
-										);
-									}
-									context.push(
-										new Elisp.ModuleImport(
-											moduleName,
-											elements,
-											isRelativePath
-										)
-									);
-								}
-							}
-						}
-						context.printStack();
-					}
+					this.parseImportDeclaration(<ImportDeclaration>node)
 					break;
 				default:
 					throw new Error(

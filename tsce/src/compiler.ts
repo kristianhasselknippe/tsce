@@ -519,7 +519,7 @@ class CompilerProcess {
 		);
 	}
 
-	parseForStatement(forOf: ForOfStatement) {
+	parseForOfStatement(forOf: ForOfStatement) {
 		const forOfInitializer = forOf.getInitializer();
 		const forOfExpression = forOf.getExpression();
 
@@ -536,6 +536,138 @@ class CompilerProcess {
 
 		this.toElispNode(forOf.getStatement());
 		this.context.resolveToParentOf(forOfItem);
+	}
+
+	parseForStatement(forStatement: ForStatement) {
+		const initializer = forStatement.getInitializer();
+
+		let init;
+		if (initializer) {
+			init = this.parseAndExpect<Elisp.LetBinding>(
+				initializer
+			);
+		}
+
+		const condition = forStatement.getCondition();
+		let cond;
+		if (condition) {
+			cond = this.parseAndExpect<Elisp.Expression>(
+				condition
+			);
+		}
+
+		const incrementor = forStatement.getIncrementor();
+		let inc;
+		if (incrementor) {
+			inc = this.parseAndExpect<Elisp.Expression>(
+				incrementor
+			);
+		}
+
+		const f = this.context.push(
+			new Elisp.ForStatement(init, cond, inc)
+		);
+
+		this.toElispNode(forStatement.getStatement());
+		this.context.resolveToParentOf(f);
+	}
+
+	parseElementAccess(indexer: ElementAccessExpression) {
+		const leftHand = this.parseAndExpect<Elisp.Expression>(
+			indexer.getExpression()
+		);
+		const index = this.parseAndExpect<Elisp.Expression>(
+			indexer.getArgumentExpression()!
+		);
+
+		const leftHandType = indexer.getExpression().getType();
+		const indexType = indexer
+			.getArgumentExpression()!
+			.getType();
+
+		if (
+			leftHandType.isString() ||
+				leftHandType.isStringLiteral()
+		) {
+			this.context.push(
+				new Elisp.StringIndexer(leftHand, index)
+			);
+		} else if (
+			indexType.isNumber() ||
+				indexType.isNumberLiteral()
+		) {
+			this.context.push(
+				new Elisp.ArrayIndexer(leftHand, index)
+			);
+		} else {
+			this.context.push(
+				new Elisp.ElementIndexer(leftHand, index)
+			);
+		}
+	}
+
+	parseArrayLiteralExpression(arrayLiteral: ArrayLiteralExpression) {
+		const items = [];
+		for (const item of arrayLiteral.getElements()) {
+			items.push(
+				this.parseAndExpect<Elisp.Expression>(item)
+			);
+		}
+
+		this.context.push(new Elisp.ArrayLiteral(items));
+	}
+
+	parseObjectLiteralExpression(objectLiteral: ObjectLiteralExpression) {
+		const properties = [];
+		for (const property of objectLiteral.getProperties()) {
+			switch (property.getKind()) {
+				case ts.SyntaxKind.PropertyAssignment:
+					{
+						const assignment = <PropertyAssignment>(
+							property
+						);
+
+						const identifier = this.parseAndExpect<
+							Elisp.PropertyName
+							>(assignment.getNameNode());
+						const initializer = this.parseAndExpect<
+							Elisp.Expression
+							>(assignment.getInitializer()!);
+
+						properties.push(
+							new Elisp.Property(
+								identifier,
+								initializer
+							)
+						);
+					}
+					break;
+				case ts.SyntaxKind.ShorthandPropertyAssignment:
+					{
+						const shorthand = <
+							ShorthandPropertyAssignment
+							>property;
+						this.toElispNode(
+							shorthand.getNameNode()
+						);
+						const identifier = this.context.pop() as Elisp.Identifier;
+						properties.push(
+							new Elisp.Property(
+								identifier,
+								identifier
+							)
+						);
+					}
+					break;
+				case ts.SyntaxKind.SpreadAssignment: {
+					const spread = <SpreadAssignment>property;
+					throw new Error(
+						'Spread operator not currently supported'
+					);
+				}
+			}
+		}
+		this.context.push(new Elisp.ObjectLiteral(properties));
 	}
 
 	toElispNode(node: Node) {
@@ -632,155 +764,23 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.ForOfStatement:
-					this.parseForStatement(<ForOfStatement>node)
+					this.parseForOfStatement(<ForOfStatement>node)
 					break;
 				case ts.SyntaxKind.ForInStatement:
 					throw new Error(
 						'For-In statements are currently not supported'
 					);
 				case ts.SyntaxKind.ForStatement:
-					{
-						const forStatement = <ForStatement>node;
-						const initializer = forStatement.getInitializer();
-
-						let init;
-						if (initializer) {
-							init = this.parseAndExpect<Elisp.LetBinding>(
-								initializer
-							);
-						}
-
-						const condition = forStatement.getCondition();
-						let cond;
-						if (condition) {
-							cond = this.parseAndExpect<Elisp.Expression>(
-								condition
-							);
-						}
-
-						const incrementor = forStatement.getIncrementor();
-						let inc;
-						if (incrementor) {
-							inc = this.parseAndExpect<Elisp.Expression>(
-								incrementor
-							);
-						}
-
-						const f = context.push(
-							new Elisp.ForStatement(init, cond, inc)
-						);
-
-						this.toElispNode(forStatement.getStatement());
-						context.resolveToParentOf(f);
-					}
+					this.parseForStatement(<ForStatement>node)
 					break;
 				case ts.SyntaxKind.ElementAccessExpression:
-					{
-						const indexer = <ElementAccessExpression>node;
-
-						const leftHand = this.parseAndExpect<Elisp.Expression>(
-							indexer.getExpression()
-						);
-						const index = this.parseAndExpect<Elisp.Expression>(
-							indexer.getArgumentExpression()!
-						);
-
-						const leftHandType = indexer.getExpression().getType();
-						const indexType = indexer
-							.getArgumentExpression()!
-							.getType();
-
-						if (
-							leftHandType.isString() ||
-							leftHandType.isStringLiteral()
-						) {
-							context.push(
-								new Elisp.StringIndexer(leftHand, index)
-							);
-						} else if (
-							indexType.isNumber() ||
-							indexType.isNumberLiteral()
-						) {
-							context.push(
-								new Elisp.ArrayIndexer(leftHand, index)
-							);
-						} else {
-							context.push(
-								new Elisp.ElementIndexer(leftHand, index)
-							);
-						}
-					}
+					this.parseElementAccess(<ElementAccessExpression>node)
 					break;
 				case ts.SyntaxKind.ArrayLiteralExpression:
-					{
-						const arrayLiteral = <ArrayLiteralExpression>node;
-
-						const items = [];
-						for (const item of arrayLiteral.getElements()) {
-							items.push(
-								this.parseAndExpect<Elisp.Expression>(item)
-							);
-						}
-
-						context.push(new Elisp.ArrayLiteral(items));
-					}
+					this.parseArrayLiteralExpression(<ArrayLiteralExpression>node)
 					break;
 				case ts.SyntaxKind.ObjectLiteralExpression:
-					{
-						const objectLiteral = <ObjectLiteralExpression>node;
-
-						const properties = [];
-						for (const property of objectLiteral.getProperties()) {
-							switch (property.getKind()) {
-								case ts.SyntaxKind.PropertyAssignment:
-									{
-										const assignment = <PropertyAssignment>(
-											property
-										);
-
-										const identifier = this.parseAndExpect<
-											Elisp.PropertyName
-										>(assignment.getNameNode());
-										const initializer = this.parseAndExpect<
-											Elisp.Expression
-										>(assignment.getInitializer()!);
-
-										properties.push(
-											new Elisp.Property(
-												identifier,
-												initializer
-											)
-										);
-									}
-									break;
-								case ts.SyntaxKind.ShorthandPropertyAssignment:
-									{
-										const shorthand = <
-											ShorthandPropertyAssignment
-										>property;
-										this.toElispNode(
-											shorthand.getNameNode()
-										);
-										const identifier = context.pop() as Elisp.Identifier;
-										properties.push(
-											new Elisp.Property(
-												identifier,
-												identifier
-											)
-										);
-									}
-									break;
-								case ts.SyntaxKind.SpreadAssignment: {
-									const spread = <SpreadAssignment>property;
-									throw new Error(
-										'Spread operator not currently supported'
-									);
-								}
-							}
-							//this.toElispNode
-						}
-						context.push(new Elisp.ObjectLiteral(properties));
-					}
+					this.parseObjectLiteralExpression(<ObjectLiteralExpression>node)
 					break;
 				case ts.SyntaxKind.PropertyAccessExpression:
 					{

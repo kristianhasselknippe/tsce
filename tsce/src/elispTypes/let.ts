@@ -89,9 +89,7 @@ export class LetItem extends Expression implements Declaration {
 
 	emitInitializer(indent: number) {
 		if (this.initializer) {
-			const isBig = this.initializer.isBig()
-			const actualIndent = isBig ? indent + 1 : 0
-			return (isBig ? "\n" : "") +  this.initializer.emit(actualIndent)
+			return this.initializer.emit(indent + 1)
 		} else {
 			return ""
 		}

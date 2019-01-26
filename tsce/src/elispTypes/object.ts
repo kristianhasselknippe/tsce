@@ -31,10 +31,6 @@ export class ObjectLiteral extends Expression {
 		super()
 	}
 
-	isBig() {
-		return true
-	}
-
 	emitProperties(indent: number) {
 		const ret = this.properties.map(prop => prop.emitQuoted(0)).reduce((prev, prop) => {
 			return  prev + `\n${tabs(indent)}` + prop

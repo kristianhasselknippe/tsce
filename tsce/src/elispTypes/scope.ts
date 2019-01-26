@@ -25,10 +25,6 @@ export abstract class Scope extends Expression {
 		return 'Scope(' + this.type
 	}
 
-	isBig() {
-		return true
-	}
-
 	emitBody(indent: number, progn = true) {
 		var body = ""
 		if (this.body.length > 1 && progn) {

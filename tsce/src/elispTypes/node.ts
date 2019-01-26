@@ -29,10 +29,6 @@ export abstract class Node {
 		return false
 	}
 
-	isBig() {
-		return false
-	}
-
 	isRootScope(): this is RootScope {
 		return this.type === 'RootScope'
 	}

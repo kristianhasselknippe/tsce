@@ -6,6 +6,12 @@ Typescript to Elisp compiler
 
 Requires Emacs version >=25.1
 
+## Creating release
+
+- cd tsce
+- tsc
+- npm pack
+
 ## Missing features
 
 - Classes

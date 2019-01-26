@@ -670,6 +670,38 @@ class CompilerProcess {
 		this.context.push(new Elisp.ObjectLiteral(properties));
 	}
 
+	parsePropertyAccessExpression(propAccess: PropertyAccessExpression) {
+		const leftHand = this.parseAndExpect<Elisp.Expression>(
+			propAccess.getExpression()
+		);
+		const rightHand = this.parseAndExpect<Elisp.Identifier>(
+			propAccess.getNameNode()
+		);
+		if (leftHand.isIdentifier()) {
+			const leftHandDecl = this.context.getDeclarationOfIdentifier(
+				leftHand.identifierName
+			);
+			if (
+				leftHandDecl &&
+					leftHandDecl.isVariableDeclaration()
+			) {
+				const compilerDirectives = this.compilerDirectivesOfDeclarationOfNode(
+					propAccess.getNameNode()
+				);
+				this.context.push(
+					new Elisp.FunctionIdentifier(
+						rightHand.identifierName,
+						compilerDirectives
+					)
+				);
+				return
+			}
+		}
+		this.context.push(
+			new Elisp.PropertyAccess(leftHand, rightHand)
+		);
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -783,39 +815,7 @@ class CompilerProcess {
 					this.parseObjectLiteralExpression(<ObjectLiteralExpression>node)
 					break;
 				case ts.SyntaxKind.PropertyAccessExpression:
-					{
-						const propAccess = <PropertyAccessExpression>node;
-
-						const leftHand = this.parseAndExpect<Elisp.Expression>(
-							propAccess.getExpression()
-						);
-						const rightHand = this.parseAndExpect<Elisp.Identifier>(
-							propAccess.getNameNode()
-						);
-						if (leftHand.isIdentifier()) {
-							const leftHandDecl = context.getDeclarationOfIdentifier(
-								leftHand.identifierName
-							);
-							if (
-								leftHandDecl &&
-								leftHandDecl.isVariableDeclaration()
-							) {
-								const compilerDirectives = this.compilerDirectivesOfDeclarationOfNode(
-									propAccess.getNameNode()
-								);
-								context.push(
-									new Elisp.FunctionIdentifier(
-										rightHand.identifierName,
-										compilerDirectives
-									)
-								);
-								break;
-							}
-						}
-						context.push(
-							new Elisp.PropertyAccess(leftHand, rightHand)
-						);
-					}
+					this.parsePropertyAccessExpression(<PropertyAccessExpression>node)
 					break;
 				case ts.SyntaxKind.ArrowFunction:
 					{

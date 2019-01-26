@@ -1,3 +1,3 @@
-pushd ../tsce
+pushd tsce
 npm pack
 popd

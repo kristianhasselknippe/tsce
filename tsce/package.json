@@ -1,10 +1,13 @@
 {
-	"name": "ts-to-elisp",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
+	"name": "tsce",
+	"version": "0.1.0",
+	"description": "A TypeScript to Elisp compiler",
+	"main": "./dist/index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"bin": {
+		"tsce": "./bin/tsce"
 	},
 	"author": "",
 	"license": "ISC",

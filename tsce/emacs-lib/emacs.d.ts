@@ -112,7 +112,7 @@ declare module 'emacs' {
 		command?: string[]
 		/**If coding is a symbol, it specifies the coding system to be used for both reading and writing of data from and to the connection. If coding is a cons cell (decoding . encoding), then decoding will be used for reading and encoding for writing. The coding system used for encoding the data written to the program is also used for encoding the command-line arguments (but not the program itself, whose file name is encoded as any other file name; see file-name-coding-system).
 If coding is nil, the default rules for finding the coding system will apply. See Default Coding Systems. */
-		coding?: Symbol
+		coding?: Symbol<any>
 		/**If stopped is non-nil, start the process in the stopped state. */
 		stop?: boolean
 		/**Initialize the process filter to filter. If not specified, a default filter will be provided, which can be overridden later. See Filter Functions. */

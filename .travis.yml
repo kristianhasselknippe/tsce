@@ -1,20 +1,22 @@
 language: emacs-lisp
-sudo: no
+sudo: false
 env:
-# - EVM_EMACS=emacs-24.1-travis
-# - EVM_EMACS=emacs-24.2-travis
-# - EVM_EMACS=emacs-24.3-travis
-# - EVM_EMACS=emacs-24.4-travis
-# - EVM_EMACS=emacs-24.5-travis
- - EVM_EMACS=emacs-25.1-travis
- - EVM_EMACS=emacs-25.2-travis
- - EVM_EMACS=emacs-25.3-travis
- - EVM_EMACS=emacs-26.1-travis
- - EVM_EMACS=emacs-git-snapshot-travis
+- EVM_EMACS=emacs-25.1-travis
+- EVM_EMACS=emacs-25.2-travis
+- EVM_EMACS=emacs-25.3-travis
+- EVM_EMACS=emacs-26.1-travis
+- EVM_EMACS=emacs-git-snapshot-travis
 install:
-  - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > travis.sh && source ./travis.sh
-  - evm install $EVM_EMACS --use --skip
+- curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > travis.sh
+  && source ./travis.sh
+- evm install $EVM_EMACS --use --skip
 before_script:
-  - ./scripts/installDependencies.sh
-script:
-  ./scripts/run-travis-ci.sh
+- "./scripts/installDependencies.sh"
+script: "./scripts/run-travis-ci.sh ./scripts/create-release.sh"
+deploy:
+  provider: releases
+  api_key:
+    secure: WLpzoduSy+qdWxw5pdvmvtY9jG6xnchgsqjxCFGEIESCJ20BZjkaiGh+uKPWiYc+Vy8i5P2yHRD1dmmajT42DtjhCT6KXQbLHsjHplXXgEmgAdUq126BFPtMYttmu9B2SfUaTCzuerp2LnyooNskLwjy7yUPP+GNNpteeEybtadK7y1WkILFOPRY26fSQ5biRuhrnLkzSxW7KQ8F9OlWaG34KntT8Xg/Me+/1J8TYPRe6Tl2W4eK4lcx2vClrEnwV1UHYRq4HJtcK1BCMVGoxIgH0m6cgSo5YJPDWcWuOY7JC+xpMvtpkgxAzh7wgC1pxdA+nRZk83gGBHic4bGoCAkxmkyqx0g4LJt8ZGmkD7OhtcuELCnML6Ku6T+taXb4XE1aGiX1XBQqfpMQKwytC/Jcz2pSLTZLxip7gE1laZtGJwuFK34oiGA5l8kJE8HTpoBvYAru7VpplcUrqdt64kCZo3tONQkzJ+aUdPw/2jIj88It+MNykrKm94Hb+bkHGcTUbbHPhnZZoZHyNwhVCL4kDB1L0zle1qeDt3r3mra2sL5DoeBhjKGJq7S1eu+j1VzSSZoUbYnCztCAVPzRkE95TrJjJ99GFs86UZe1gw3t31OHwmAv1qOW2P6RUWT+guK/lzh+5m7pDag9GaciIsBvEeNCLwdu0bOJIFbSVao=
+  file: "./tsce/tsce-*.tgz"
+  on:
+    repo: kristianhasselknippe/tsce

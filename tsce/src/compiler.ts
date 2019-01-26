@@ -504,6 +504,21 @@ class CompilerProcess {
 		this.context.push(new Elisp.IfExpression(predicate, ifBody, elseBody));
 	}
 
+	parseReturnStatement(retStatement: ReturnStatement) {
+		let returnValue;
+		if (retStatement.getExpression()) {
+			returnValue = this.parseAndExpect<Elisp.Expression>(
+				retStatement.getExpression()!
+			);
+		}
+		this.context.push(
+			new Elisp.ReturnStatement(
+				this.context.getCurrentBlock().blockId,
+				returnValue
+			)
+		);
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -588,19 +603,7 @@ class CompilerProcess {
 					break;
 				}
 				case ts.SyntaxKind.ReturnStatement:
-					const retStatement = <ReturnStatement>node;
-					let returnValue;
-					if (retStatement.getExpression()) {
-						returnValue = this.parseAndExpect<Elisp.Expression>(
-							retStatement.getExpression()!
-						);
-					}
-					context.push(
-						new Elisp.ReturnStatement(
-							context.getCurrentBlock().blockId,
-							returnValue
-						)
-					);
+					this.parseReturnStatement(<ReturnStatement>node)
 					break;
 				case ts.SyntaxKind.Block: {
 					const block = <Block>node;

@@ -14,10 +14,14 @@ export interface TsceProject {
 }
 
 export function loadProject(pathToTsConfig: string): TsceProject {
-	return {
-		project: new Project({
-			tsConfigFilePath: pathToTsConfig
-		})
+	if (fs.existsSync(pathToTsConfig)) {
+		return {
+			project: new Project({
+				tsConfigFilePath: pathToTsConfig
+			})
+		}
+	} else {
+		throw new Error("Could not locate project file: " + pathToTsConfig)
 	}
 }
 

@@ -20,6 +20,7 @@ function parseCliArguments() {
 let cliArgs = parseCliArguments();
 
 console.log('== Compiling project: ' + cliArgs.projectPath);
+console.log("    Working directory: " + process.cwd())
 const project = loadProject(cliArgs.projectPath);
 
 const projectResults = compileProject(project);

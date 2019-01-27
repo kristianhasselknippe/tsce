@@ -5,7 +5,7 @@ const packageInfo = require('../package.json')
 
 program
 	.version(packageInfo.version)
-	.option('<projectPath>')
+	.option('<projectPath>', 'Path to the TypeScript project file')
 	.action((path) => {
 		compile(path)
 	})

@@ -15,6 +15,9 @@ export function compile(projectPath: string) {
 	console.log(chalk.cyan('== Compiling project: ') + projectPath);
 	const project = loadProject(projectPath);
 
+	const diagnostics = project.project.getPreEmitDiagnostics()
+	console.log(project.project.formatDiagnosticsWithColorAndContext(diagnostics))
+
 	const projectResults = compileProject(project);
 	const endTimeParse = getTime()
 

@@ -1,3 +1,6 @@
+#!/bin/sh
+
+cd "$(dirname "$0")"
 echo "Building test project"
 node ../tsce/dist/index.js "../tests/tsconfig.json"
 echo "Pushing output dir"

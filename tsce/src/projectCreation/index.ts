@@ -28,4 +28,5 @@ export function initNewProject(projectName: string) {
 	createFolder('dist')
 
 	includeSourceFileFromAssets(`${projectName}.ts`, 'helloWorldFile')
+	includeSourceFileFromAssets(`emacs.d.ts`, 'emacs.d.ts')
 }

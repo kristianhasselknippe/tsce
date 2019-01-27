@@ -4,19 +4,28 @@ import * as path from "path"
 const tsconfigTemplate = require('../../assets/tsconfigTemplate.json')
 
 function writeTsConfigFile() {
-	const workingDir = process.cwd()
-	const tsconfigPath = path.join(workingDir, "tsconfig.json")
+	const tsconfigPath = path.join(process.cwd(), "tsconfig.json")
 	fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfigTemplate))
 }
 
+function createFolder(folderName: string) {
+	const srcFolderPath = path.join(process.cwd(), folderName)
+	if (!fs.existsSync(srcFolderPath)) {
+		fs.mkdirSync(srcFolderPath)
+	}
+}
+
+function includeSourceFileFromAssets(name: string, contentFileName: string) {
+	const filePath = path.join(__dirname, '../../assets', contentFileName)
+	const content = fs.readFileSync(filePath).toString()
+	fs.writeFileSync(path.join(process.cwd(), './src', name), content)
+}
+
 export function initNewProject(projectName: string) {
-	const workingDir = process.cwd()
+
 	writeTsConfigFile()
+	createFolder('src')
+	createFolder('dist')
 
-	const srcFolderName = 'src'
-	const distFolderName = 'dist'
-	fs.mkdirSync(path.join(workingDir, srcFolderName))
-	fs.mkdirSync(path.join(workingDir, distFolderName))
-
-	fs.writeFileSync(path.join(workingDir, srcFolderName, `${projectName}.ts`), "function main() {\n    console.log(\'Hello World\')\n}")
+	includeSourceFileFromAssets(`${projectName}.ts`, 'helloWorldFile')
 }

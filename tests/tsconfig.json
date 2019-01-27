@@ -7,7 +7,7 @@
 		/* Basic Options */
 		"target": "elisp",                          /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017','ES2018' or 'ESNEXT'. */
 		"module": "commonjs",                     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
-		 "lib": [],                             /* Specify library files to be included in the compilation. */
+		 //"lib": [],                             /* Specify library files to be included in the compilation. */
 		// "outFile": "./",                       
 		"composite": true,                     /* Enable project compilation */
 		"removeComments": false,                /* Do not emit comments to output. */
@@ -27,7 +27,7 @@
 		// "alwaysStrict": true,                  /* Parse in strict mode and emit "use strict" for each source file. */
 
 		/* Additional Checks */
-		// "noUnusedLocals": true,                /* Report errors on unused locals. */
+		"noUnusedLocals": false,                /* Report errors on unused locals. */
 		// "noUnusedParameters": true,            /* Report errors on unused parameters. */
 		// "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
 		// "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
@@ -36,7 +36,7 @@
 		"moduleResolution": "node",            /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
 		"baseUrl": "./",                       /* Base directory to resolve non-absolute module names. */
 		"paths": {
-			"emacs": ["../tsce/emacs-lib/emacs.d.ts"]
+			"emacs": ["../tsce/assets/emacs.d.ts"]
 		},                           /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
 		// "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
 		// "typeRoots": ["./types"],                       /* List of folders to include type definitions from. */

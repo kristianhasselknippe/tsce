@@ -1,7 +1,8 @@
+
 import * as fs from 'fs';
 import * as path from 'path'
 import * as shell from 'shelljs'
-
+import chalk from 'chalk'
 import { Project } from 'ts-simple-ast'
 import { CompilationResult } from './compiler';
 
@@ -31,9 +32,9 @@ export function writeCompilationResultToStorage(project: TsceProject, compilatio
 		ensurePathExists(outputDir)
 		for (const file of compilationResult) {
 			const outputFilePath = path.join(outputDir, file.fileName + '.el')
-			//console.log('          ' + file.content)
 			const lexicalBindingDeclaration = ";; -*- lexical-binding: t -*-\n\n"
 			const output = lexicalBindingDeclaration + file.source
+			console.log(chalk.green('    - Writing file: ') + outputFilePath)
 			fs.writeFile(outputFilePath, output, { flag: 'w' }, (err) => {
 				if (err) {
 					console.error(`Error writing file ${file.fileName}, error: ${err}`)

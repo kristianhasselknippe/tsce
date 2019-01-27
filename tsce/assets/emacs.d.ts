@@ -1,5 +1,13 @@
 declare function tslog(msg: string | number): void
 
+declare interface Array<T> {
+	[index: number]: T
+}
+
+declare interface String {
+	[index: number]: string
+}
+
 declare interface ElispArray<T> {
 	get(index: number): T
 	forEach<TOut>(mapper: (input: T) => TOut): ElispArray<TOut>

@@ -4,7 +4,7 @@
 		"rootDir": "./src",
 		"target": "elisp",
 		"module": "commonjs",
-		 "lib": [],
+		"lib": [],
 		"composite": true,
 		"removeComments": false,
 		"strict": true,

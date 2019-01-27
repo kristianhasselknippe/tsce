@@ -5,10 +5,6 @@ const packageInfo = require('../package.json')
 
 program
 	.version(packageInfo.version)
-	.option('<projectPath>', 'Path to the TypeScript project file')
-	.action((path) => {
-		compile(path)
-	})
 
 program
 	.command('init <projectName>')
@@ -17,4 +13,14 @@ program
 		initNewProject(projectName)
 	})
 
+program
+	.option('<projectFile>', 'Path to a TypeScript project file')
+	.action((projectFile) => {
+		compile(projectFile)
+	})
+
 program.parse(process.argv)
+
+if (program.args.length === 0) {
+	compile('./tsconfig.json')
+}

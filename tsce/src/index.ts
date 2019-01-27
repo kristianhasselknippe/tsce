@@ -1,37 +1,20 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { loadProject, writeCompilationResultToStorage } from './projectFormat';
-import { compileProject } from './compiler';
+import program from 'commander'
+import { compile } from './compile'
+import { initNewProject } from './projectCreation';
+const packageInfo = require('../package.json')
 
-function parseCliArguments() {
-	const args = process.argv.slice(2);
+program
+	.version(packageInfo.version)
+	.option('<projectPath>')
+	.action((path) => {
+		compile(path)
+	})
 
-	if (args.length === 0) {
-		console.error('Expecting file as first argument');
-	}
+program
+	.command('init <projectName>')
+	.description('Initializes a new project in the current directory')
+	.action((projectName) => {
+		initNewProject(projectName)
+	})
 
-	return {
-		projectPath: args[0]
-	};
-}
-
-let cliArgs = parseCliArguments();
-
-console.log('== Compiling project: ' + cliArgs.projectPath);
-console.log("    Working directory: " + process.cwd())
-const project = loadProject(cliArgs.projectPath);
-
-const projectResults = compileProject(project);
-
-const results = projectResults;
-
-//TODO: Add ts-lib.el
-const libPath = path.join(__dirname, '../src', 'ts-lib.el');
-const libContent = fs.readFileSync(libPath).toString()
-results.push({
-	fileName: 'ts-lib',
-	source: libContent
-})
-
-console.log('== Writing result');
-writeCompilationResultToStorage(project, results);
+program.parse(process.argv)

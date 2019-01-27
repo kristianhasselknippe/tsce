@@ -37,6 +37,7 @@ import {
 	StringLiteral,
 	NamespaceDeclaration
 } from 'ts-simple-ast';
+import chalk from 'chalk'
 import * as Elisp from './elispTypes';
 import { Context, Marker } from './context';
 import {
@@ -769,7 +770,6 @@ class CompilerProcess {
 				}
 			}
 		}
-		this.context.printStack();
 	}
 
 	toElispNode(node: Node) {
@@ -777,7 +777,7 @@ class CompilerProcess {
 		context.incStackCount();
 
 		(() => {
-			context.printAtStackOffset(node.getKindName(), node);
+			//context.printAtStackOffset(node.getKindName(), node);
 			switch (node.getKind()) {
 				case ts.SyntaxKind.ExpressionStatement:
 					this.parseExpressionStatement(<ExpressionStatement>node);
@@ -919,7 +919,6 @@ class CompilerProcess {
 					if (name.indexOf('"') > -1 || name.indexOf("'") > -1) {
 						name = name.substring(1, name.length - 1);
 					}
-					console.log('Fooo: ' + mod.getNameNode().getText());
 					context.push(new Elisp.ModuleDeclaration(name));
 					break;
 				case ts.SyntaxKind.ClassDeclaration:
@@ -971,6 +970,7 @@ class CompilerProcess {
 	compile(): CompilationResult[] {
 		const ret = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
+			console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())
 			const root = this.context.push(new Elisp.RootScope(sourceFile));
 			this.addCommonLibs();
 			for (var statement of sourceFile.getStatements()) {

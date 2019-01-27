@@ -9,13 +9,17 @@
 	"bin": {
 		"tsce": "./bin/tsce"
 	},
-	"directories": ["./assets"],
+	"directories": [
+		"./assets"
+	],
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@types/chalk": "^2.2.0",
 		"@types/commander": "^2.12.2",
 		"@types/node": "^9.4.1",
 		"@types/shelljs": "^0.8.1",
+		"chalk": "^2.4.2",
 		"commander": "^2.19.0",
 		"linqts": "^1.10.0",
 		"shelljs": "^0.8.3",

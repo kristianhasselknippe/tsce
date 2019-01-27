@@ -1,6 +1,5 @@
-import Stack from './stack';
-import { tabs, Node, Expression, Scope, Block, Identifier, RootScope } from './elispTypes';
-import { SourceFile, Node as SimpleNode } from 'ts-simple-ast';
+import { tabs, Node, Expression, Scope, Block, RootScope } from './elispTypes';
+import { Node as SimpleNode } from 'ts-simple-ast';
 import { DeclarationsSource } from './elispTypes/declaration';
 
 export class Marker extends Node {

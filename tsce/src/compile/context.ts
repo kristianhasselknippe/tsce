@@ -25,14 +25,6 @@ export class Context {
 		return this.stack.length;
 	}
 
-	private isScope(expr: Node): expr is Scope {
-		return expr.isScope()
-	}
-
-	private isBlock(expr: Node): expr is Block {
-		return expr.isBlock()
-	}
-
 	private findFirstOrThrow<T extends Node>(stack: Node[], pred: (item: Node) => boolean, error: Error): T {
 		for (let i = stack.length - 1; i >= 0; i--) {
 			let item = stack[i]
@@ -44,7 +36,7 @@ export class Context {
 	}
 
 	getCurrentScopeFor(stack: Node[]): Scope {
-		return this.findFirstOrThrow(stack, this.isScope, new Error("There was no scope in the stack"))
+		return this.findFirstOrThrow(stack, item => item.isScope(), new Error("There was no scope in the stack"))
 	}
 
 	getCurrentScope(): Scope {
@@ -52,7 +44,7 @@ export class Context {
 	}
 
 	getCurrentBlock(): Block {
-		return this.findFirstOrThrow(this.stack, this.isBlock, new Error("There was no block in the stack, did you try to return from outside a function?"))
+		return this.findFirstOrThrow(this.stack, item => item.isBlock(), new Error("There was no block in the stack, did you try to return from outside a function?"))
 	}
 
 	parentScopeOf(scope: Scope) {

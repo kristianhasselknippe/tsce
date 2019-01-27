@@ -1,6 +1,6 @@
 import { should, equal } from "ert";
 import * as emacs from "emacs";
-import * as otherFile from './otherFileTests'
+import * as otherFile from "./otherFileTests";
 
 interface TsceTestFunctionNamedArgumentsArg {
   foo: number;

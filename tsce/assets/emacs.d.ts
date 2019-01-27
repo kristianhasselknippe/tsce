@@ -1,5 +1,14 @@
 declare function tslog(msg: string | number): void
 
+declare interface Boolean { }
+declare interface Function { }
+declare interface Number { }
+declare interface CallableFunction extends Function { }
+declare interface IArguments { }
+declare interface NewableFunction { }
+declare interface Object { }
+declare interface RegExp { }
+
 declare interface Array<T> {
 	[index: number]: T
 }

@@ -772,6 +772,31 @@ class CompilerProcess {
 		}
 	}
 
+	parseArrowFunction(arrowFunc: ArrowFunction) {
+		let params = arrowFunc
+			.getParameters()
+			.map(p => p.getNameNode())
+			.filter(x => typeof x !== 'undefined')
+			.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
+			.map(x => new Elisp.FunctionArg(x));
+
+		const lambda = this.context.push(new Elisp.Lambda(params));
+		this.toElispNode(arrowFunc.getBody());
+		this.context.resolveTo(lambda);
+	}
+
+	parseNamespaceExportDeclaration(mod: NamespaceDeclaration) {
+		let name = mod.getName();
+		if (name.indexOf('"') > -1 || name.indexOf("'") > -1) {
+			name = name.substring(1, name.length - 1);
+		}
+		this.context.push(new Elisp.ModuleDeclaration(name));
+	}
+
+	parseNullKeyword() {
+		this.context.push(new Elisp.Null());
+	}
+
 	toElispNode(node: Node) {
 		const context = this.context;
 		context.incStackCount();
@@ -888,19 +913,7 @@ class CompilerProcess {
 					this.parsePropertyAccessExpression(<PropertyAccessExpression>node)
 					break;
 				case ts.SyntaxKind.ArrowFunction:
-					{
-						const arrowFunc = <ArrowFunction>node;
-						let params = arrowFunc
-							.getParameters()
-							.map(p => p.getNameNode())
-							.filter(x => typeof x !== 'undefined')
-							.map(x => this.parseAndExpect<Elisp.Identifier>(x!))
-							.map(x => new Elisp.FunctionArg(x));
-
-						const lambda = context.push(new Elisp.Lambda(params));
-						this.toElispNode(arrowFunc.getBody());
-						context.resolveTo(lambda);
-					}
+					this.parseArrowFunction(<ArrowFunction>node)
 					break;
 				case ts.SyntaxKind.TypeAssertionExpression:
 					const typeAssertion = <TypeAssertion>node;
@@ -914,25 +927,15 @@ class CompilerProcess {
 					break;
 				case ts.SyntaxKind.ModuleDeclaration:
 				case ts.SyntaxKind.NamespaceExportDeclaration:
-					const mod = <NamespaceDeclaration>node;
-					let name = mod.getName();
-					if (name.indexOf('"') > -1 || name.indexOf("'") > -1) {
-						name = name.substring(1, name.length - 1);
-					}
-					context.push(new Elisp.ModuleDeclaration(name));
+					this.parseNamespaceExportDeclaration(<NamespaceDeclaration>node)
 					break;
 				case ts.SyntaxKind.ClassDeclaration:
 					break;
 				case ts.SyntaxKind.MissingDeclaration:
 					break;
 				case ts.SyntaxKind.InterfaceDeclaration:
-					{
-					}
 					break;
 				case ts.SyntaxKind.SingleLineCommentTrivia:
-					{
-						//const singleLineComment = <ts.SingleLineCommentTrivia>node
-					}
 					break;
 				case ts.SyntaxKind.ConditionalExpression: {
 					throw new Error(
@@ -940,9 +943,7 @@ class CompilerProcess {
 					);
 				}
 				case ts.SyntaxKind.NullKeyword:
-					{
-						context.push(new Elisp.Null());
-					}
+					this.parseNullKeyword()
 					break;
 				case ts.SyntaxKind.ImportDeclaration:
 					this.parseImportDeclaration(<ImportDeclaration>node)

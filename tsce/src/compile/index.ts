@@ -12,7 +12,7 @@ export function compile(projectPath: string) {
 
 	const results = projectResults;
 
-	const libPath = path.join(__dirname, '../src', 'ts-lib.el');
+	const libPath = path.join(__dirname, '../../assets', 'ts-lib.el');
 	const libContent = fs.readFileSync(libPath).toString()
 	results.push({
 		fileName: 'ts-lib',

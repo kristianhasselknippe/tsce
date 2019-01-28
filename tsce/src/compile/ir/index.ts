@@ -238,3 +238,27 @@ export class ReturnStatement extends Node {
 		super(symTable)
 	}
 }
+
+abstract class Import extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly path: StringLiteral) {
+		super(symTable)
+	}
+}
+
+export class NamedImport extends Import {
+	constructor(symTable: SymbolTable<Node>,
+				path: StringLiteral,
+				readonly items: Identifier[],
+				readonly defaultItem?: Identifier) {
+		super(symTable, path)
+	}
+}
+
+export class NamespaceImport extends Import {
+	constructor(symTable: SymbolTable<Node>,
+				path: StringLiteral,
+				readonly variable: Identifier) {
+		super(symTable, path)
+	}
+}

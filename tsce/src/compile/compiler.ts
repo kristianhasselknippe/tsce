@@ -398,42 +398,14 @@ class Parser extends ParserBase {
 	}
 
 	parseElementAccess(indexer: ElementAccessExpression) {
-		const leftHand = this.parse<Elisp.Expression>(
-			indexer.getExpression()
-		);
-		const index = this.parse<Elisp.Expression>(
-			indexer.getArgumentExpression()!
-		);
-
-		const leftHandType = indexer.getExpression().getType();
-		const indexType = indexer
-			.getArgumentExpression()!
-			.getType();
-
-		if (
-			leftHandType.isString() ||
-				leftHandType.isStringLiteral()
-		) {
-			return new Elisp.StringIndexer(leftHand, index)
-		} else if (
-			indexType.isNumber() ||
-				indexType.isNumberLiteral()
-		) {
-			return new Elisp.ArrayIndexer(leftHand, index)
-		} else {
-			return new Elisp.ElementIndexer(leftHand, index)
-		}
+		const left = this.parse<IR.Node>(indexer.getExpression())
+		const index = this.parse<IR.Node>(indexer.getArgumentExpression()!);
+		return new IR.ElementAccess(this.symbols, left, index)
 	}
 
 	parseArrayLiteralExpression(arrayLiteral: ArrayLiteralExpression) {
-		const items = [];
-		for (const item of arrayLiteral.getElements()) {
-			items.push(
-				this.parse<Elisp.Expression>(item)
-			);
-		}
-
-		return new Elisp.ArrayLiteral(items);
+		const items = arrayLiteral.getElements().map(x => this.parse<IR.Node>(x))
+		return new IR.ArrayLiteral(this.symbols, items);
 	}
 
 	parseObjectLiteralExpression(objectLiteral: ObjectLiteralExpression) {
@@ -442,19 +414,14 @@ class Parser extends ParserBase {
 			switch (property.getKind()) {
 				case ts.SyntaxKind.PropertyAssignment:
 					{
-						const assignment = <PropertyAssignment>(
-							property
-						);
+						const assignment = <PropertyAssignment>property;
 
-						const identifier = this.parse<
-							Elisp.PropertyName
-							>(assignment.getNameNode());
-						const initializer = this.parse<
-							Elisp.Expression
-							>(assignment.getInitializer()!);
+						const identifier = this.parse<IR.Identifier>(assignment.getNameNode());
+						const initializer = this.parse<IR.Node>(assignment.getInitializer()!);
 
 						properties.push(
-							new Elisp.Property(
+							new IR.ObjectProperty(
+								this.symbols,
 								identifier,
 								initializer
 							)
@@ -463,14 +430,11 @@ class Parser extends ParserBase {
 					break;
 				case ts.SyntaxKind.ShorthandPropertyAssignment:
 					{
-						const shorthand = <
-							ShorthandPropertyAssignment
-							>property;
-						const identifier = this.parse<Elisp.Identifier>(
-							shorthand.getNameNode()
-						);
+						const shorthand = <ShorthandPropertyAssignment>property;
+						const identifier = this.parse<IR.Identifier>(shorthand.getNameNode());
 						properties.push(
-							new Elisp.Property(
+							new IR.ObjectProperty(
+								this.symbols,
 								identifier,
 								identifier
 							)
@@ -485,7 +449,7 @@ class Parser extends ParserBase {
 				}
 			}
 		}
-		return new Elisp.ObjectLiteral(properties);
+		return new IR.ObjectLiteral(this.symbols, properties);
 	}
 
 	parsePropertyAccessExpression(propAccess: PropertyAccessExpression) {

@@ -3,6 +3,10 @@ import { symlink } from "fs";
 
 export abstract class Node {
 	constructor(readonly symTable: SymbolTable<Node>) {}
+
+	print(indent: number) {
+		console.log(" - " + this.constructor.name)
+	}
 }
 
 export class Expression extends Node {
@@ -89,11 +93,11 @@ export class DeleteExpression extends Node {
 	}
 }
 
-export class EnumMember extends NamedDeclaration {
+export class EnumMember extends Node {
 	constructor(symTable: SymbolTable<Node>,
-				name: Identifier,
+				readonly name: Identifier | StringLiteral,
 				readonly initializer?: Node) {
-		super(symTable, name)
+		super(symTable)
 	}
 }
 
@@ -152,7 +156,7 @@ export class StringLiteral extends Node {
 
 export class NumberLiteral extends Node {
 	constructor(symTable: SymbolTable<Node>,
-				readonly value: number) {
+				readonly value: string) {
 		super(symTable)
 	}
 }
@@ -227,7 +231,7 @@ export class While extends Node {
 export class ArrowFunction extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly args: Identifier[],
-				readonly body: Block) {
+				readonly body: Node[]) {
 		super(symTable)
 	}
 }
@@ -244,6 +248,7 @@ abstract class Import extends Node {
 				readonly path: StringLiteral) {
 		super(symTable)
 	}
+
 }
 
 export class NamedImport extends Import {
@@ -260,5 +265,28 @@ export class NamespaceImport extends Import {
 				path: StringLiteral,
 				readonly variable: Identifier) {
 		super(symTable, path)
+	}
+}
+
+export class ModuleDeclaration extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly name: string) {
+		super(symTable)
+	}
+}
+
+export class Null extends Node {
+	
+}
+
+export class SourceFile extends Block {
+	printAst() {
+		for (const i of this.statements) {
+			if (i) {
+				i.print(0)
+			} else {
+				console.log("- undefined item")
+			}
+		}
 	}
 }

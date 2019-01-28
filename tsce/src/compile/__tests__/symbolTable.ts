@@ -10,7 +10,7 @@ test("Basic symbol table lookup", () => {
 test("Basic symbol table scoped lookup", () => {
 	const table = new sym.SymbolTable<any>()
 	table.insert("foobar", "testing")
-	const scope = table.enterScope("scope1", "scope1")
+	const scope = table.enterScope()
 	scope.insert("kult", "kult")
 
 	const ret = table.lookup("foobar")

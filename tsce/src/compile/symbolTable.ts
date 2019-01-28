@@ -2,18 +2,24 @@ interface Table<T> {
 	[symbol: string]: T
 }
 
-type BodySetter<T> = (body: T) => void
-
-class SymbolTable<T> {
+export class SymbolTable<T> {
 	symbols: Table<T> = {}
 
-	constructor(readonly parent?: SymbolTable<T>) { }
+	constructor(private _parent?: SymbolTable<T>) { }
 
-	insert(symbol: string, data: T) {
-		this.symbols[symbol] = data
+	get parent() {
+		if (!this._parent) {
+			throw new Error("Tried to get parent of root table")
+		}
+		return this._parent!
 	}
 
-	enterScope(symbol: string, data: T => void): SymbolTable<T> {
+	insert(symbol: string, data: T): T {
+		this.symbols[symbol] = data
+		return data
+	}
+
+	enterScope(): SymbolTable<T> {
 		return new SymbolTable(this)
 	}
 

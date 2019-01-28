@@ -48,7 +48,7 @@ import { TsceProject } from './projectFormat';
 import { VariableDeclarationType } from './elispTypes';
 import { SymbolTable } from './symbolTable';
 
-function getDeclarationOfNode(node: Node) {
+/*function getDeclarationOfNode(node: Node) {
 	const nodeSymbol = node.getType().getSymbol();
 	if (nodeSymbol) {
 		return nodeSymbol.getDeclarations();
@@ -186,10 +186,10 @@ function getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
 		ret.push(this.parse<Elisp.Identifier>(name));
 	}
 	return ret;
-}
+}*/
 
-class ParserBase {
-	private symTable: SymbolTable<IR.Node> = new SymbolTable()
+class ParserBase<T> {
+	private symTable: SymbolTable<T> = new SymbolTable()
 
 	constructor(readonly project: Project) { }
 
@@ -197,20 +197,27 @@ class ParserBase {
 		return this.symTable
 	}
 
-	insertSymbol<T extends IR.Node>(name: string, node: T): T {
-		return this.symTable.insert(name, node).data
+	insertSymbol(name: string, node: T): T {
+		return this.symTable.insert(name, node)
 	}
 
-	enterScope(string: name, body: () => IR.Node) {
-		this.symTable = this.symTable.enterScope(name)
+	enterScope(name: string, body: () => T) {
+		this.symTable = this.symTable.enterScope()
 		const item = body()
 		this.symTable = this.symTable.parent
 		this.insertSymbol(name, item)
 		return item
 	}
+
+	enterAnonymousScope(body: () => T) {
+		this.symTable = this.symTable.enterScope()
+		const item = body()
+		this.symTable = this.symTable.parent
+		return item
+	}
 }
 
-class Parser extends ParserBase {
+class Parser extends ParserBase<IR.Node> {
 
 	parseExpressionStatement(es: ExpressionStatement) {
 		return this.parse<IR.Expression>(es.getExpression());
@@ -284,16 +291,14 @@ class Parser extends ParserBase {
 			enumDecl.getNameNode()
 		);
 		const props = enumDecl.getMembers().map(x => {
-			const propName = this.parse<
-				IR.Identifier | IR.StringLiteral
-				>(member.getNameNode());
+			const propName = this.parse<IR.Identifier | IR.StringLiteral>(x.getNameNode());
 			let initializer;
-			if (member.hasInitializer()) {
+			if (x.hasInitializer()) {
 				initializer = this.parse<IR.Expression>(
-					member.getInitializer()!
+					x.getInitializer()!
 				);
 			}
-			return new IR.EnumMember(propName, initializer);
+			return new IR.EnumMember(this.symbols, propName, initializer);
 		})
 		return new IR.EnumDeclaration(
 			this.symbols,
@@ -323,9 +328,9 @@ class Parser extends ParserBase {
 	}
 
 	parsePostfixUnaryExpression(pue: PostfixUnaryExpression) {
-		const operator = pue.getOperatorToken();
-		const operand = this.parse<Elisp.Expression>(pue.getOperand());
-		return new IR.UnaryPostfix(this.symbols, operand, operator)
+		const operator = ts.tokenToString(pue.getOperatorToken());
+		const operand = this.parse<IR.Node>(pue.getOperand());
+		return new IR.UnaryPostfix(this.symbols, operand, operator!)
 	}
 
 	parsePrefixUnaryExpression(pue: PrefixUnaryExpression) {
@@ -480,15 +485,18 @@ class Parser extends ParserBase {
 	}
 
 	parseArrowFunction(arrowFunc: ArrowFunction) {
-		let params = arrowFunc
-			.getParameters()
-			.map(p => p.getNameNode())
-			.filter(x => typeof x !== 'undefined')
-			.map(x => this.parse<Elisp.Identifier>(x!))
-			.map(x => new Elisp.FunctionArg(x));
-
-		const body = this.parse(arrowFunc.getBody())
-		return new Elisp.Lambda(params, body);
+		return this.enterAnonymousScope(() => {
+			let params = arrowFunc
+				.getParameters()
+				.map(p => p.getNameNode())
+				.filter(x => typeof x !== 'undefined')
+				.map(x => this.parse<IR.Identifier>(x!))
+			for (const param of params) {
+				this.insertSymbol(param.name, param)
+			}
+			const body = this.parse<IR.Node>(arrowFunc.getBody())
+			return new IR.ArrowFunction(this.symbols, params, [body])
+		})
 	}
 
 	parseNamespaceExportDeclaration(mod: NamespaceDeclaration) {
@@ -496,11 +504,11 @@ class Parser extends ParserBase {
 		if (name.indexOf('"') > -1 || name.indexOf("'") > -1) {
 			name = name.substring(1, name.length - 1);
 		}
-		return new Elisp.ModuleDeclaration(name);
+		return new IR.ModuleDeclaration(this.symbols, name);
 	}
 
 	parseNullKeyword() {
-		return new Elisp.Null();
+		return new IR.Null(this.symbols);
 	}
 
 	parse<T extends (IR.Node | undefined)>(node?: Node): T {
@@ -549,17 +557,17 @@ class Parser extends ParserBase {
 				case ts.SyntaxKind.TrueKeyword:
 					return this.parseTrueKeyword();
 				case ts.SyntaxKind.NumericLiteral:
-					return new Elisp.NumberLiteral(node.getText())
+					return new IR.NumberLiteral(this.symbols, node.getText())
 				case ts.SyntaxKind.StringLiteral:
 					const stringLiteral = <StringLiteral>node;
-					return new Elisp.StringLiteral(stringLiteral.getLiteralValue())
+					return new IR.StringLiteral(this.symbols, stringLiteral.getLiteralValue())
 				case ts.SyntaxKind.IfStatement:
 					return this.parseIfStatement(<IfStatement>node);
 				case ts.SyntaxKind.ReturnStatement:
 					return this.parseReturnStatement(<ReturnStatement>node)
 				case ts.SyntaxKind.Block:
 					const block = <Block>node;
-					return new Elisp.Body(block.getStatements().map(x => this.parse(x)))
+					return new IR.Block(this.symbols, block.getStatements().map(x => this.parse<IR.Node>(x)))
 				case ts.SyntaxKind.ForOfStatement:
 					return this.parseForOfStatement(<ForOfStatement>node)
 				case ts.SyntaxKind.ForStatement:
@@ -603,34 +611,32 @@ class Parser extends ParserBase {
 					);
 			}
 		})()
+		if (typeof ret === "undefined") {
+			console.log("Node: " + node.getKindName() + ", was undefined")
+		}
 		return ret as T
 	}
 
-	addCommonLibs() {
-		//TODO Make sure it is ok to send in empty array here
-		return new Elisp.ModuleImport(
-			new Elisp.StringLiteral('./ts-lib'),
-			[],
-			true
-		)
-	}
-
 	compile(): CompilationResult[] {
-		const ret = [];
+		const ret: CompilationResult[] = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
 			console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())
-			const body = [this.addCommonLibs()]
-				.concat(sourceFile.getStatements().map(x => this.parse(x)))
-			const root = new Elisp.RootScope(sourceFile, body);
-
-			const elispSource = root.emit(0)
+			//TODO: Add ts-lib.el import to top
+			const sourceBody = new IR.SourceFile(this.symbols, sourceFile.getStatements().map(x => this.parse<IR.Node>(x)))
+			console.log("AST: ")
+			sourceBody.printAst()
+			/*const compiled = compile(sourceBody)
 			ret.push({
 				fileName: sourceFile.getBaseNameWithoutExtension(),
 				source: elispSource
-			});
+			});*/
 		}
 		return ret;
 	}
+}
+
+function compile(block: IR.Block) {
+	//TODO Implement compiler step
 }
 
 export interface CompilationResult {

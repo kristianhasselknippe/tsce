@@ -166,16 +166,15 @@ export class CallExpression extends Expression {
 export class If extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly thenCondition: Node,
-				readonly thenBlock: Block,
-				readonly elseif?: If,
-				readonly elseBlock?: Block) {
+				readonly thenBlock: Node,
+				readonly elseItem?: If | Node,) {
 		super(symTable)
 	}
 }
 
 export class For extends Node {
 	constructor(symTable: SymbolTable<Node>,
-				readonly body: Block,
+				readonly body: Node,
 				readonly initializer?: VariableDeclaration,
 				readonly condition?: Node,
 				readonly incrementor?: Node) {
@@ -187,7 +186,7 @@ export class ForOf extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly variable: VariableDeclaration,
 				readonly expression: Node,
-				readonly body: Block) {
+				readonly body: Node) {
 		super(symTable)
 	}
 }
@@ -196,7 +195,7 @@ export class ForIn extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly variable: VariableDeclaration,
 				readonly expression: Node,
-				readonly body: Block) {
+				readonly body: Node) {
 		super(symTable)
 	}
 }
@@ -213,6 +212,13 @@ export class ArrowFunction extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly args: Identifier[],
 				readonly body: Block) {
+		super(symTable)
+	}
+}
+
+export class ReturnStatement extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly returnValue?: Node) {
 		super(symTable)
 	}
 }

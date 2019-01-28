@@ -342,98 +342,59 @@ class Parser extends ParserBase {
 	}
 
 	parseFalseKeyword() {
-		return new IR.BooleanLiteral(false);
+		return new IR.BooleanLiteral(this.symbols, false);
 	}
 
 	parseTrueKeyword() {
-		return new IR.BooleanLiteral(true)
+		return new IR.BooleanLiteral(this.symbols, true)
 	}
 
 	parseIfStatement(ifExp: IfStatement) {
-		const predicate = this.parse<Elisp.Expression>(
+		const predicate = this.parse<IR.Expression>(
 			ifExp.getExpression()
 		);
 
-		let ifBody = new Elisp.Body([]);
+		const thenStatementBody = this.parse<IR.Node>(ifExp.getThenStatement());
 
-		const thenStatement = <Block>ifExp.getThenStatement();
-		if (thenStatement.getStatements().length > 0) {
-			ifBody = new Elisp.Body(thenStatement.getStatements().map(x => this.parse(x)))
-		}
-		let elseBody = new Elisp.Body([]);
-		if (ifExp.getElseStatement()) {
-			if (
-				ifExp.getElseStatement()!.getKind() ===
-				ts.SyntaxKind.IfStatement
-			) {
-				elseBody = new Elisp.Body([this.parse(ifExp.getElseStatement()!)]);
+		let elseIf: IR.Node | undefined
+		const elseStatement = ifExp.getElseStatement()
+		if (elseStatement) {
+			if (ifExp.getElseStatement()) {
+				elseIf = this.parse<IR.If>(ifExp.getElseStatement()!)
 			} else {
 				const elseStatement = ifExp.getElseStatement();
 				if (elseStatement) {
-					elseBody = new Elisp.Body([this.parse(elseStatement)]);
+					elseIf = this.parse<IR.Node>(elseStatement);
 				}
 			}
 		}
-
-		return new Elisp.IfExpression(predicate, ifBody, elseBody);
+		return new IR.If(this.symbols, predicate, thenStatementBody, elseIf);
 	}
 
 	parseReturnStatement(retStatement: ReturnStatement) {
 		let returnValue;
 		if (retStatement.getExpression()) {
-			returnValue = this.parse<Elisp.Expression>(
+			returnValue = this.parse<IR.Node>(
 				retStatement.getExpression()!
 			);
 		}
-		return new Elisp.ReturnStatement(
-			this.context.getCurrentBlockId(),
-			returnValue
-		)
+		return new IR.ReturnStatement(this.symbols, returnValue)
 	}
 
 	parseForOfStatement(forOf: ForOfStatement) {
-		const forOfInitializer = forOf.getInitializer();
-		const forOfExpression = forOf.getExpression();
-
-		const variableInitializer = this.parse<
-			Elisp.LetBinding
-			>(forOfInitializer);
-		const loopExpression = this.parse<
-			Elisp.Expression
-			>(forOfExpression);
-
-		const body = this.parse(forOf.getStatement())
-		return new Elisp.ForOf(variableInitializer, loopExpression, body)
+		const variableInitializer = this.parse<IR.VariableDeclaration>(forOf.getInitializer());
+		const loopExpression = this.parse<IR.Node>(forOf.getExpression());
+		const body = this.parse<IR.Node>(forOf.getStatement())
+		return new IR.ForOf(this.symbols, variableInitializer, loopExpression, body)
 	}
 
 	parseForStatement(forStatement: ForStatement) {
-		const initializer = forStatement.getInitializer();
+		const init = this.parse<IR.VariableDeclaration | undefined>(forStatement.getInitializer());
+		const condition = this.parse<IR.Node | undefined>(forStatement.getCondition());
+		const incrementor = this.parse<IR.Node | undefined>(forStatement.getIncrementor());
 
-		let init;
-		if (initializer) {
-			init = this.parse<Elisp.LetBinding>(
-				initializer
-			);
-		}
-
-		const condition = forStatement.getCondition();
-		let cond;
-		if (condition) {
-			cond = this.parse<Elisp.Expression>(
-				condition
-			);
-		}
-
-		const incrementor = forStatement.getIncrementor();
-		let inc;
-		if (incrementor) {
-			inc = this.parse<Elisp.Expression>(
-				incrementor
-			);
-		}
-
-		const body = this.parse(forStatement.getStatement())
-		return new Elisp.ForStatement(body, init, cond, inc)
+		const body = this.parse<IR.Node>(forStatement.getStatement())
+		return new IR.For(this.symbols, body, init, condition, incrementor)
 	}
 
 	parseElementAccess(indexer: ElementAccessExpression) {
@@ -643,7 +604,10 @@ class Parser extends ParserBase {
 		return new Elisp.Null();
 	}
 
-	parse<T extends Elisp.Node>(node: Node): T {
+	parse<T extends (IR.Node | undefined)>(node?: Node): T {
+		if (typeof node === "undefined") {
+			return undefined as T
+		}
 		const ret = (() => {
 			//context.printAtStackOffset(node.getKindName(), node);
 			switch (node.getKind()) {

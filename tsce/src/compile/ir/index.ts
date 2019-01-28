@@ -120,6 +120,14 @@ export class ElementAccess extends Node {
 	}
 }
 
+export class PropertyAccess extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly left: Node,
+				readonly right: Node) {
+		super(symTable)
+	}
+}
+
 export class ObjectProperty extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly name: Identifier,

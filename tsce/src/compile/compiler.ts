@@ -453,30 +453,9 @@ class Parser extends ParserBase {
 	}
 
 	parsePropertyAccessExpression(propAccess: PropertyAccessExpression) {
-		const leftHand = this.parse<Elisp.Expression>(
-			propAccess.getExpression()
-		);
-		const rightHand = this.parse<Elisp.Identifier>(
-			propAccess.getNameNode()
-		);
-		if (leftHand.isIdentifier()) {
-			const leftHandDecl = this.context.getDeclarationOfIdentifier(
-				leftHand.identifierName
-			);
-			if (
-				leftHandDecl &&
-					leftHandDecl.isVariableDeclaration()
-			) {
-				const compilerDirectives = this.compilerDirectivesOfDeclarationOfNode(
-					propAccess.getNameNode()
-				);
-				return new Elisp.FunctionIdentifier(
-					rightHand.identifierName,
-					compilerDirectives
-				)
-			}
-		}
-		return new Elisp.PropertyAccess(leftHand, rightHand)
+		const left = this.parse<IR.Node>(propAccess.getExpression());
+		const right = this.parse<IR.Identifier>(propAccess.getNameNode());
+		return new IR.PropertyAccess(this.symbols, left, right)
 	}
 
 	parseImportDeclaration(importDecl: ImportDeclaration) {

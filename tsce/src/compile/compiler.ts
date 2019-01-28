@@ -38,8 +38,7 @@ import {
 	NamespaceDeclaration
 } from 'ts-simple-ast';
 import chalk from 'chalk'
-import * as Elisp from './elispTypes';
-import { Context, Marker } from './context';
+import * as IR from './ir'
 import {
 	extractCompilerDirectivesFromStrings,
 	CompilerDirective,
@@ -47,306 +46,264 @@ import {
 } from './elispTypes/compilerDirective';
 import { TsceProject } from './projectFormat';
 import { VariableDeclarationType } from './elispTypes';
-import { parse } from 'path';
+import { SymbolTable } from './symbolTable';
 
-class CompilerProcess {
-	context: Context;
-
-	constructor(readonly project: Project) {
-		this.context = new Context();
+function getDeclarationOfNode(node: Node) {
+	const nodeSymbol = node.getType().getSymbol();
+	if (nodeSymbol) {
+		return nodeSymbol.getDeclarations();
 	}
+}
 
-	getDeclarationOfNode(node: Node) {
-		const nodeSymbol = node.getType().getSymbol();
-		if (nodeSymbol) {
-			return nodeSymbol.getDeclarations();
+function getCommentsForDeclarationOfNode(node: Node) {
+	let ret: string[] = [];
+	const declarations = this.getDeclarationOfNode(node);
+	if (declarations) {
+		for (const decl of declarations) {
+			const comments = this.context.getCommentsForNode(decl);
+			ret = ret.concat(comments);
 		}
 	}
+	return ret;
+}
 
-	getCommentsForDeclarationOfNode(node: Node) {
-		let ret: string[] = [];
-		const declarations = this.getDeclarationOfNode(node);
-		if (declarations) {
-			for (const decl of declarations) {
-				const comments = this.context.getCommentsForNode(decl);
-				ret = ret.concat(comments);
+function getArgumentsOfFunctionDeclaration(funDecl: FunctionDeclaration) {
+	const ret = [];
+	for (const param of funDecl.getParameters()) {
+		const declaration = this.getDeclarationOfNode(param);
+		if (declaration) {
+			for (const decl of declaration) {
+				ret.push(decl);
 			}
 		}
-		return ret;
 	}
+	return ret;
+}
 
-	getArgumentsOfFunctionDeclaration(funDecl: FunctionDeclaration) {
-		const ret = [];
-		for (const param of funDecl.getParameters()) {
-			const declaration = this.getDeclarationOfNode(param);
-			if (declaration) {
-				for (const decl of declaration) {
-					ret.push(decl);
-				}
-			}
+function getCompilerDirectivesForNode(node: Node) {
+	const nodeComments = this.context.getCommentsForNode(node);
+	const compilerDirectives = extractCompilerDirectivesFromStrings(
+		nodeComments
+	);
+	return compilerDirectives;
+}
+
+function nodeHasCompilerDirectiveKind(
+	node: Node,
+	compilerDirectiveKind: CompilerDirectiveKind
+) {
+	const directives = this.getCompilerDirectivesForNode(node);
+	for (const dir of directives) {
+		if (dir.kind === compilerDirectiveKind) {
+			return true;
 		}
-		return ret;
 	}
+	return false;
+}
 
-	getCompilerDirectivesForNode(node: Node) {
-		const nodeComments = this.context.getCommentsForNode(node);
-		const compilerDirectives = extractCompilerDirectivesFromStrings(
-			nodeComments
-		);
-		return compilerDirectives;
+function compilerDirectivesOfDeclarationOfNode(node: Node) {
+	const langService = this.project.getLanguageService();
+	const definitions = langService.getDefinitionsAtPosition(
+		node.getSourceFile(),
+		node.getPos()
+	);
+	let ret: CompilerDirective[] = [];
+	if (definitions) {
+		for (const def of definitions) {
+			let node = def.getNode();
+			if (TypeGuards.isIdentifier(node)) {
+				node = node.getParent()!;
+			}
+			const directives = this.getCompilerDirectivesForNode(node);
+			ret = ret.concat(directives);
+		}
 	}
+	return ret;
+}
 
-	nodeHasCompilerDirectiveKind(
-		node: Node,
-		compilerDirectiveKind: CompilerDirectiveKind
-	) {
-		const directives = this.getCompilerDirectivesForNode(node);
-		for (const dir of directives) {
-			if (dir.kind === compilerDirectiveKind) {
+function declarationOfNodeHasCompilerDirectiveKind(
+	node: Node,
+	compilerDirectiveKind: CompilerDirectiveKind
+) {
+	const functionDeclarations = getDeclarationOfNode(node);
+	if (functionDeclarations) {
+		for (const decl of functionDeclarations) {
+			if (
+				nodeHasCompilerDirectiveKind(
+					decl,
+					compilerDirectiveKind
+				)
+			) {
 				return true;
 			}
 		}
-		return false;
 	}
+	return false;
+}
 
-	compilerDirectivesOfDeclarationOfNode(node: Node) {
-		const langService = this.project.getLanguageService();
-		const definitions = langService.getDefinitionsAtPosition(
-			node.getSourceFile(),
-			node.getPos()
-		);
-		let ret: CompilerDirective[] = [];
-		if (definitions) {
-			for (const def of definitions) {
-				let node = def.getNode();
-				if (TypeGuards.isIdentifier(node)) {
-					node = node.getParent()!;
+
+
+function getNamedArgumentNamesForCallExpression(node: CallExpression) {
+	const declarations = this.getDeclarationOfNode(node.getExpression());
+	if (declarations) {
+		for (const declaration of declarations) {
+			if (
+				declaration.getKind() === ts.SyntaxKind.FunctionDeclaration
+			) {
+				const args = this.getArgumentsOfFunctionDeclaration(<
+																	FunctionDeclaration
+																	>declaration);
+				if (args.length !== 1) {
+					throw new Error(
+						'Named argument functions expect 1 and only 1 argument. Got ' +
+							args.length
+					);
 				}
-				const directives = this.getCompilerDirectivesForNode(node);
-				ret = ret.concat(directives);
-			}
-		}
-		return ret;
-	}
-
-	declarationOfNodeHasCompilerDirectiveKind(
-		node: Node,
-		compilerDirectiveKind: CompilerDirectiveKind
-	) {
-		const functionDeclarations = this.getDeclarationOfNode(node);
-		if (functionDeclarations) {
-			for (const decl of functionDeclarations) {
-				if (
-					this.nodeHasCompilerDirectiveKind(
-						decl,
-						compilerDirectiveKind
-					)
-				) {
-					return true;
+				const arg = args[0];
+				if (arg.getKind() === ts.SyntaxKind.InterfaceDeclaration) {
+					return this.getMembersOfInterfaceDeclaration(<
+																 InterfaceDeclaration
+																 >arg);
+				} else {
+					throw new Error(
+						'Named argument function expects their argument to be declared as an interface'
+					);
 				}
 			}
 		}
-		return false;
+	}
+	return [];
+}
+
+function getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
+	const ret = [];
+	for (const property of node.getProperties()) {
+		const name = property.getNameNode();
+		ret.push(this.parse<Elisp.Identifier>(name));
+	}
+	for (const property of node.getMethods()) {
+		const name = property.getNameNode();
+		ret.push(this.parse<Elisp.Identifier>(name));
+	}
+	return ret;
+}
+
+class ParserBase {
+	private symTable: SymbolTable<IR.Node> = new SymbolTable()
+
+	constructor(readonly project: Project) { }
+
+	get symbols() {
+		return this.symTable
 	}
 
-	getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
-		const ret = [];
-		for (const property of node.getProperties()) {
-			const name = property.getNameNode();
-			ret.push(this.parse<Elisp.Identifier>(name));
-		}
-		for (const property of node.getMethods()) {
-			const name = property.getNameNode();
-			ret.push(this.parse<Elisp.Identifier>(name));
-		}
-		return ret;
+	insertSymbol<T extends IR.Node>(name: string, node: T): T {
+		return this.symTable.insert(name, node).data
 	}
 
-	getNamedArgumentNamesForCallExpression(node: CallExpression) {
-		const declarations = this.getDeclarationOfNode(node.getExpression());
-		if (declarations) {
-			for (const declaration of declarations) {
-				if (
-					declaration.getKind() === ts.SyntaxKind.FunctionDeclaration
-				) {
-					const args = this.getArgumentsOfFunctionDeclaration(<
-						FunctionDeclaration
-					>declaration);
-					if (args.length !== 1) {
-						throw new Error(
-							'Named argument functions expect 1 and only 1 argument. Got ' +
-								args.length
-						);
-					}
-					const arg = args[0];
-					if (arg.getKind() === ts.SyntaxKind.InterfaceDeclaration) {
-						return this.getMembersOfInterfaceDeclaration(<
-							InterfaceDeclaration
-						>arg);
-					} else {
-						throw new Error(
-							'Named argument function expects their argument to be declared as an interface'
-						);
-					}
-				}
-			}
-		}
-		return [];
+	enterScope(string: name) {
+		this.symTable = this.symTable.enterScope(name)
 	}
+
+	exitScope() {
+		this.symTable = this.symTable.parent
+	}
+}
+
+class Parser extends ParserBase {
 
 	parseExpressionStatement(es: ExpressionStatement) {
-		this.parse(es.getExpression());
+		return this.parse<IR.Expression>(es.getExpression());
 	}
 
 	parseCallExpression(ce: CallExpression) {
-		const leftHand = this.parse<Elisp.Expression>(
-			ce.getExpression()
-		);
-		let args = ce.getArguments().map(a => {
-			return this.parse<Elisp.Expression>(a);
+		const leftHand = this.parse<IR.Expression>(ce.getExpression());
+		const args = ce.getArguments().map(a => {
+			return this.parse<IR.Expression>(a);
 		});
-
-		const isNamedArgumentsFunction = this.declarationOfNodeHasCompilerDirectiveKind(
-			ce.getExpression(),
-			'NamedArguments'
-		);
-		if (isNamedArgumentsFunction) {
-			if (args.length !== 1) {
-				throw new Error(
-					'Named functions expects 1 and only 1 argument'
-				);
-			}
-			let namedArgsFuncall;
-			if (leftHand.isIdentifier()) {
-				namedArgsFuncall = new Elisp.NamedArgumentsFunctionCallDefun(
-					leftHand,
-					args[0],
-					this.getNamedArgumentNamesForCallExpression(ce)
-				);
-			} else {
-				namedArgsFuncall = new Elisp.NamedArgumentsFunctionCallVariable(
-					leftHand,
-					args[0],
-					this.getNamedArgumentNamesForCallExpression(ce)
-				);
-			}
-			return namedArgsFuncall;
-		} else {
-			let funcall;
-			if (leftHand.isIdentifier()) {
-				const declaration = this.context.getDeclarationOfIdentifier(
-					leftHand.identifierName
-				);
-				//TODO: Clean up this function, it is getting too big at this point
-				//TODO: Also, we the way we decide if its call defun or call variable needs to change
-				// at least the naming of things. It has just been forced to work at this point.
-				if (
-					leftHand.isFunctionIdentifier() ||
-					(declaration &&
-						(declaration.isFunctionDeclaration() ||
-							declaration.isVariableDeclaration()))
-				) {
-					funcall = new Elisp.FunctionCallDefun(leftHand, args);
-				} else {
-					funcall = new Elisp.FunctionCallVariable(leftHand, args);
-				}
-			} else {
-				funcall = new Elisp.FunctionCallVariable(leftHand, args);
-			}
-			return funcall;
-		}
+		return new IR.CallExpression(this.symbols, leftHand, args)
 	}
 
 	parseVariableDeclaration(vd: VariableDeclaration) {
-		const identifier = this.parse<Elisp.Identifier>(
+		const identifier = this.parse<IR.Identifier>(
 			vd.getNameNode()
 		);
 		let initializer;
 		if (vd.getInitializer()) {
-			initializer = this.parse<Elisp.Expression>(
+			initializer = this.parse<IR.Expression>(
 				vd.getInitializer()!
 			);
 		}
-		return new Elisp.LetItem(
+		return this.insertSymbol(identifier.name, new IR.VariableDeclaration(
+			this.symbols,
 			identifier,
-			initializer,
-			this.context.isInRootScope()
-		)
+			initializer
+		))
 	}
 
 	parseVariableDeclarationList(vdl: VariableDeclarationList) {
-		const bindings = vdl.getDeclarations().map(x => this.parse<Elisp.LetItem>(x))
-		return new Elisp.LetBinding(bindings);
+		const bindings = vdl.getDeclarations().map(x => this.parse<IR.VariableDeclaration>(x))
+		return new IR.VariableDeclarationList(this.symbols, bindings);
 	}
 
 	parseFunctionDeclaration(fd: FunctionDeclaration) {
-		const compilerDirectives = this.getCompilerDirectivesForNode(fd);
-
-		if (!fd.hasBody()) {
-			return;
-		}
-
 		let args = fd
 			.getParameters()
 			.map(p => p.getNameNode())
 			.filter(x => typeof x !== 'undefined')
-			.map(x => this.parse<Elisp.Identifier>(x!))
-			.map(x => new Elisp.FunctionArg(x));
+			.map(x => this.parse<IR.Identifier>(x!))
 
-		const functionIdentifier = this.parse<Elisp.Identifier>(
+		const functionIdentifier = this.parse<IR.Identifier>(
 			fd.getNameNode()!
 		);
 
-		this.context.enterReturnableBlock()
+		this.enterScope(functionIdentifier.name)
 
-		let statements = fd.getStatements().map(x => {
-			return this.parse(x);
-		}) as Elisp.Node[]
+		return this.insertSymbol(functionIdentifier.name, () => {
+			let statements = fd.getStatements().map(x => {
+				return this.parse<IR.Node>(x);
+			})
 
-		return new Elisp.Defun(functionIdentifier, args, statements, compilerDirectives)
+			return new IR.FunctionDeclaration(
+				this.symbols,
+				functionIdentifier,
+				args,
+				statements
+			)
+		})
 	}
 
 	parseVariableStatement(vs: VariableStatement) {
-		this.parse(vs.getDeclarationList());
+		return this.parse(vs.getDeclarationList());
 	}
 
 	parseEnumDeclaration(enumDecl: EnumDeclaration) {
-		const name = this.parse<Elisp.Identifier>(
+		const name = this.parse<IR.Identifier>(
 			enumDecl.getNameNode()
 		);
-		const props = [];
-		for (const member of enumDecl.getMembers()) {
+		const props = enumDecl.getMembers().map(x => {
 			const propName = this.parse<
-				Elisp.Identifier | Elisp.StringLiteral
-			>(member.getNameNode());
+				IR.Identifier | IR.StringLiteral
+				>(member.getNameNode());
 			let initializer;
 			if (member.hasInitializer()) {
-				initializer = this.parse<Elisp.Expression>(
+				initializer = this.parse<IR.Expression>(
 					member.getInitializer()!
 				);
 			}
-			props.push(new Elisp.EnumMember(propName, initializer));
-		}
-		const elispEnum = new Elisp.Enum(
+			return new IR.EnumMember(propName, initializer);
+		})
+		return new IR.EnumDeclaration(
+			this.symbols,
 			name,
-			props,
-			this.context.isInRootScope()
+			props
 		);
-		return elispEnum;
 	}
 
 	parseIdentifier(identifierNode: Identifier) {
 		const symbolName = identifierNode.getText();
-
-		const comments = this.getCommentsForDeclarationOfNode(identifierNode);
-
-		const compilerDirectives = extractCompilerDirectivesFromStrings(
-			comments
-		);
-
-		const identifierDeclaredType = this.context.getDeclarationOfIdentifier(
-			symbolName
-		);
+		return new IR.Identifier(this.symbols, symbolName)
+		
 
 		if (identifierDeclaredType) {
 			if (
@@ -833,6 +790,6 @@ export interface CompilationResult {
 }
 
 export function compileProject(program: TsceProject): CompilationResult[] {
-	const compilerProcess = new CompilerProcess(program.project);
+	const compilerProcess = new Parser(program.project);
 	return compilerProcess.compile();
 }

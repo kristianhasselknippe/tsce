@@ -4,8 +4,8 @@ import { Declaration } from "./declaration";
 export class Lambda extends Block {
 	type: string = "Block"
 
-	constructor(readonly args: FunctionArg[]) {
-		super(new VariableIdentifier("lambda", []))
+	constructor(readonly args: FunctionArg[], body: Node[] | Node) {
+		super(new VariableIdentifier("lambda", []), body)
 	}
 
 	getDeclarations(): (Node & Declaration)[] {

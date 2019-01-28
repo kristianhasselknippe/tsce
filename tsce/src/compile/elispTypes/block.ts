@@ -6,8 +6,8 @@ export abstract class Block extends Scope {
 
 	idNumber: number
 
-	constructor(protected readonly identifier: Identifier) {
-		super()
+	constructor(protected readonly identifier: Identifier, body: Node[] | Node) {
+		super(body)
 		this.idNumber = Math.floor(Math.random() * 100000)
 	}
 

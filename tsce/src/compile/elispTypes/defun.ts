@@ -28,8 +28,8 @@ export class Defun extends Block implements Declaration {
 	private customForm?: string
 	private isInteractive?: boolean
 
-	constructor(identifier: Identifier, readonly args: FunctionArg[], compilerDirectives: CompilerDirective[]) {
-		super(identifier);
+	constructor(identifier: Identifier, readonly args: FunctionArg[], body: Node[], compilerDirectives: CompilerDirective[]) {
+		super(identifier, body);
 
 		if (compilerDirectives && compilerDirectives.length > 0) {
 			for (const compDir of compilerDirectives) {

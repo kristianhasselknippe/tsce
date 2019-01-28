@@ -2,10 +2,11 @@ import { Scope, tabs, LetBinding, Expression, Node, Identifier } from ".";
 import { Declaration } from "./declaration";
 
 export class ForStatement extends Scope {
-	constructor(readonly initializer?: LetBinding, //Let binding?
+	constructor(body: Node[] | Node,
+				readonly initializer?: LetBinding, //Let binding?
 				readonly condition?: Expression,
 				readonly incrementor?: Expression) {
-		super()
+		super(body)
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
@@ -42,8 +43,8 @@ ${tabs(indent)})`
 }
 
 export class ForOf extends Scope {
-	constructor(readonly variable: LetBinding, readonly expression: Expression) {
-		super()
+	constructor(readonly variable: LetBinding, readonly expression: Expression, body: Node[] | Node) {
+		super(body)
 	}
 
 	getDeclarations(): (Node & Declaration)[] {

@@ -4,17 +4,23 @@ import { Declaration, DeclarationsSource } from "./declaration";
 
 export class RootScope extends Scope {
 	type = "RootScope"
-	constructor(readonly sourceFile: SourceFile) {
-		super()
+	constructor(readonly sourceFile: SourceFile, body: Node[] | Node) {
+		super(body)
 	}
 
 	getDeclarations(): (Node & Declaration)[] {
 		let ret: (Node & Declaration)[] = []
-		for (const node of this.body) {
-			if (node.isDeclarationsSource()) {
-				ret = ret.concat(node.getDeclarations())
-			} else if (node.isDeclaration()) {
-				ret.push(node)
+		if (this.body instanceof Array) {
+			for (const node of this.body) {
+				if (node.isDeclarationsSource()) {
+					ret = ret.concat(node.getDeclarations())
+				} else if (node.isDeclaration()) {
+					ret.push(node)
+				}
+			}
+		} else {
+			if (this.body.isDeclaration()) {
+				ret.push(this.body)
 			}
 		}
 		return ret

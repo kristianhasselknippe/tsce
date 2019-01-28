@@ -112,9 +112,17 @@ export class ArrayLiteral extends Node {
 	}
 }
 
+export class ElementAccess extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly left: Node,
+				readonly indexer: Node) {
+		super(symTable)
+	}
+}
+
 export class ObjectProperty extends Node {
 	constructor(symTable: SymbolTable<Node>,
-				readonly name: string,
+				readonly name: Identifier,
 				readonly value: Node) {
 		super(symTable)
 	}

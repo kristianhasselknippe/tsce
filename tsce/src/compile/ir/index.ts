@@ -68,7 +68,7 @@ export class BinaryExpr extends Node {
 
 export class UnaryPrefix extends Node {
 	constructor(symTable: SymbolTable<Node>,
-				readonly expr: Node,
+				readonly operand: Node,
 				readonly operator: string) {
 		super(symTable)
 	}
@@ -76,8 +76,15 @@ export class UnaryPrefix extends Node {
 
 export class UnaryPostfix extends Node {
 	constructor(symTable: SymbolTable<Node>,
-				readonly expr: Node,
+				readonly operand: Node,
 				readonly operator: string) {
+		super(symTable)
+	}
+}
+
+export class DeleteExpression extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly expr: Node) {
 		super(symTable)
 	}
 }

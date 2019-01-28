@@ -316,38 +316,37 @@ class Parser extends ParserBase {
 
 		let op = be.getOperatorToken().getText()
 		if (op === '=') {
-			//TODO Not use string literal
-			return new Elisp.Assignment(left, right)
+			return new IR.Assignment(this.symbols, left, right)
 		} else {
-			return new Elisp.BinaryExpression(op, left, right)
+			return new IR.BinaryExpr(this.symbols, left, right, op)
 		}
 	}
 
 	parsePostfixUnaryExpression(pue: PostfixUnaryExpression) {
 		const operator = pue.getOperatorToken();
 		const operand = this.parse<Elisp.Expression>(pue.getOperand());
-		return new Elisp.UnaryPostfixExpression(operator, operand)
+		return new IR.UnaryPostfix(this.symbols, operand, operator)
 	}
 
 	parsePrefixUnaryExpression(pue: PrefixUnaryExpression) {
 		let operator = ts.tokenToString(pue.getOperatorToken());
-		const operand = this.parse<Elisp.Expression>(pue.getOperand());
-		return new Elisp.UnaryPrefixExpression(operator!, operand);
+		const operand = this.parse<IR.Expression>(pue.getOperand());
+		return new IR.UnaryPrefix(this.symbols, operand, operator!);
 	}
 
 	parseDeleteExpression(delExpr: DeleteExpression) {
-		const expr = this.parse<Elisp.Expression>(
+		const expr = this.parse<IR.Expression>(
 			delExpr.getExpression()
 		);
-		return new Elisp.DeleteExpression(expr);
+		return new IR.DeleteExpression(this.symbols, expr);
 	}
 
 	parseFalseKeyword() {
-		return new Elisp.BooleanLiteral(false);
+		return new IR.BooleanLiteral(false);
 	}
 
 	parseTrueKeyword() {
-		return new Elisp.BooleanLiteral(true)
+		return new IR.BooleanLiteral(true)
 	}
 
 	parseIfStatement(ifExp: IfStatement) {

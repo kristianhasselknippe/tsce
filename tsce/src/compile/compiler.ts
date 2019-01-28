@@ -201,12 +201,12 @@ class ParserBase {
 		return this.symTable.insert(name, node).data
 	}
 
-	enterScope(string: name) {
+	enterScope(string: name, body: () => IR.Node) {
 		this.symTable = this.symTable.enterScope(name)
-	}
-
-	exitScope() {
+		const item = body()
 		this.symTable = this.symTable.parent
+		this.insertSymbol(name, item)
+		return item
 	}
 }
 
@@ -247,19 +247,21 @@ class Parser extends ParserBase {
 	}
 
 	parseFunctionDeclaration(fd: FunctionDeclaration) {
-		let args = fd
-			.getParameters()
-			.map(p => p.getNameNode())
-			.filter(x => typeof x !== 'undefined')
-			.map(x => this.parse<IR.Identifier>(x!))
-
 		const functionIdentifier = this.parse<IR.Identifier>(
 			fd.getNameNode()!
 		);
 
-		this.enterScope(functionIdentifier.name)
+		return this.enterScope(functionIdentifier.name, () => {
+			let args = fd
+				.getParameters()
+				.map(p => p.getNameNode())
+				.filter(x => typeof x !== 'undefined')
+				.map(x => this.parse<IR.Identifier>(x!))
 
-		return this.insertSymbol(functionIdentifier.name, () => {
+			for (const a of args) {
+				this.insertSymbol(a.name, a)
+			}
+
 			let statements = fd.getStatements().map(x => {
 				return this.parse<IR.Node>(x);
 			})
@@ -301,22 +303,7 @@ class Parser extends ParserBase {
 	}
 
 	parseIdentifier(identifierNode: Identifier) {
-		const symbolName = identifierNode.getText();
-		return new IR.Identifier(this.symbols, symbolName)
-		
-
-		if (identifierDeclaredType) {
-			if (
-				identifierDeclaredType.isFunctionDeclaration() ||
-				identifierDeclaredType.isVariableDeclaration()
-			) {
-				return new Elisp.FunctionIdentifier(symbolName, compilerDirectives)
-			} else {
-				return new Elisp.VariableIdentifier(symbolName, compilerDirectives)
-			}
-		} else {
-			return new Elisp.FunctionIdentifier(symbolName, compilerDirectives)
-		}
+		return new IR.Identifier(this.symbols, identifierNode.getText())
 	}
 
 	parseParenthesizedExpression(pe: ParenthesizedExpression) {
@@ -324,15 +311,15 @@ class Parser extends ParserBase {
 	}
 
 	parseBinaryExpression(be: BinaryExpression) {
-		const left = this.parse<Elisp.Expression>(be.getLeft());
-		const right = this.parse<Elisp.Expression>(be.getRight());
+		const left = this.parse<IR.Expression>(be.getLeft());
+		const right = this.parse<IR.Expression>(be.getRight());
 
-		let op = be.getOperatorToken();
-		if (op.getText() === '=') {
+		let op = be.getOperatorToken().getText()
+		if (op === '=') {
 			//TODO Not use string literal
 			return new Elisp.Assignment(left, right)
 		} else {
-			return new Elisp.BinaryExpression(op.getText(), left, right)
+			return new Elisp.BinaryExpression(op, left, right)
 		}
 	}
 

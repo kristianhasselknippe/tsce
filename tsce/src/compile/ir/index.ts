@@ -49,6 +49,39 @@ export class VariableDeclarationList extends Node {
 	}
 }
 
+export class Assignment extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly left: Node,
+				readonly right: Node) {
+		super(symTable)
+	}
+}
+
+export class BinaryExpr extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly left: Node,
+				readonly right: Node,
+				readonly operator: string) {
+		super(symTable)
+	}
+}
+
+export class UnaryPrefix extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly expr: Node,
+				readonly operator: string) {
+		super(symTable)
+	}
+}
+
+export class UnaryPostfix extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly expr: Node,
+				readonly operator: string) {
+		super(symTable)
+	}
+}
+
 export class EnumMember extends NamedDeclaration {
 	constructor(symTable: SymbolTable<Node>,
 				name: Identifier,

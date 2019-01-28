@@ -1,20 +1,12 @@
-interface Info {
-	isReturnable?: boolean
-}
-
-interface DeclarationInfo<T> extends Info {
-	data?: T
-}
-
 class Declaration<T> {
-	constructor(private readonly _symbol?: string, private readonly _data?: DeclarationInfo<T>) {}
+	constructor(private readonly _symbol?: string, private readonly _data?: T) {}
 
 	get symbol() {
 		return this._symbol!
 	}
 
 	get data() {
-		return this._data
+		return this._data!
 	}
 }
 
@@ -25,11 +17,12 @@ interface Table<T> {
 class Scope<T> extends Declaration<T> {
 	table: Table<T> = {}
 
-	constructor(readonly parent?: SymbolTable<T>, symbol?: string, data?: T, info?: Info) {
-		super(symbol, {
-			data,
-			...info
-		})
+	constructor(readonly parent?: SymbolTable<T>, symbol?: string, data?: T) {
+		super(symbol, data)
+	}
+
+	get current() {
+		return this.table
 	}
 
 	get itemsInScope(): Declaration<T>[] {
@@ -44,7 +37,7 @@ class Scope<T> extends Declaration<T> {
 	}
 
 	insert(symbol: string, data: T) {
-		const ret = new Declaration(symbol, data)
+		const ret = new Declaration<T>(symbol, data)
 		this.table[symbol] = ret
 		return ret
 	}

@@ -1,0 +1,178 @@
+import { SymbolTable } from "../symbolTable";
+import { symlink } from "fs";
+
+export abstract class Node {
+	constructor(readonly symTable: SymbolTable<Node>) {}
+}
+
+export class Expression extends Node {
+	constructor(symTable: SymbolTable<Node>) {
+		super(symTable)
+	}
+}
+
+export class Identifier extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly name: string) {
+		super(symTable)
+	}
+}
+
+export class NamedDeclaration extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly name: Identifier) {
+		super(symTable)
+	}
+}
+
+export class FunctionDeclaration extends NamedDeclaration {
+	constructor(symTable: SymbolTable<Node>,
+				name: Identifier,
+				readonly args: Identifier[],
+				readonly body: Node[]) {
+		super(symTable, name)
+	}
+}
+
+export class VariableDeclaration extends NamedDeclaration {
+	constructor(symTable: SymbolTable<Node>,
+				name: Identifier,
+				readonly initializer?: Node) {
+		super(symTable, name)
+	}
+}
+
+export class VariableDeclarationList extends Node {
+		constructor(symTable: SymbolTable<Node>,
+					readonly variables: VariableDeclaration[]) {
+		super(symTable)
+	}
+}
+
+export class EnumMember extends NamedDeclaration {
+	constructor(symTable: SymbolTable<Node>,
+				name: Identifier,
+				readonly initializer?: Node) {
+		super(symTable, name)
+	}
+}
+
+export class EnumDeclaration extends NamedDeclaration {
+	constructor(symTable: SymbolTable<Node>,
+				name: Identifier,
+				readonly members: EnumMember[]) {
+		super(symTable, name)
+	}
+}
+
+export class ArrayLiteral extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly items: Node[]) {
+		super(symTable)
+	}
+}
+
+export class ObjectProperty extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly name: string,
+				readonly value: Node) {
+		super(symTable)
+	}
+}
+
+export class ObjectLiteral extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly properties: ObjectProperty[]) {
+		super(symTable)
+	}
+}
+
+export class StringLiteral extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly value: string) {
+		super(symTable)
+	}
+}
+
+export class NumberLiteral extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly value: number) {
+		super(symTable)
+	}
+}
+
+export class BooleanLiteral extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly value: boolean) {
+		super(symTable)
+	}
+}
+
+export class Block extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly statements: Node[]) {
+		super(symTable)
+	}
+}
+
+export class CallExpression extends Expression {
+	constructor(symTable: SymbolTable<Node>,
+				readonly expression: Expression,
+				readonly args: Node[]) {
+		super(symTable)
+	}
+}
+
+export class If extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly thenCondition: Node,
+				readonly thenBlock: Block,
+				readonly elseif?: If,
+				readonly elseBlock?: Block) {
+		super(symTable)
+	}
+}
+
+export class For extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly body: Block,
+				readonly initializer?: VariableDeclaration,
+				readonly condition?: Node,
+				readonly incrementor?: Node) {
+		super(symTable)
+	}
+}
+
+export class ForOf extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly variable: VariableDeclaration,
+				readonly expression: Node,
+				readonly body: Block) {
+		super(symTable)
+	}
+}
+
+export class ForIn extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly variable: VariableDeclaration,
+				readonly expression: Node,
+				readonly body: Block) {
+		super(symTable)
+	}
+}
+
+export class While extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly condition: Node,
+				readonly body: Block) {
+		super(symTable)
+	}
+}
+
+export class ArrowFunction extends Node {
+	constructor(symTable: SymbolTable<Node>,
+				readonly args: Identifier[],
+				readonly body: Block) {
+		super(symTable)
+	}
+}

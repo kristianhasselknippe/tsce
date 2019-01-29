@@ -35,8 +35,9 @@ import {
 	TypeGuards,
 	NamespaceImport,
 	StringLiteral,
-	NamespaceDeclaration
-} from 'ts-simple-ast';
+    NamespaceDeclaration,
+
+    SourceFile} from 'ts-simple-ast';
 import chalk from 'chalk'
 import * as IR from './ir'
 import {
@@ -191,8 +192,6 @@ function getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
 class ParserBase<T> {
 	private symTable: SymbolTable<T> = new SymbolTable()
 
-	constructor(readonly project: Project) { }
-
 	get symbols() {
 		return this.symTable
 	}
@@ -219,11 +218,11 @@ class ParserBase<T> {
 
 class Parser extends ParserBase<IR.Node> {
 
-	parseExpressionStatement(es: ExpressionStatement) {
+	private parseExpressionStatement(es: ExpressionStatement) {
 		return this.parse<IR.Expression>(es.getExpression());
 	}
 
-	parseCallExpression(ce: CallExpression) {
+	private parseCallExpression(ce: CallExpression) {
 		const leftHand = this.parse<IR.Expression>(ce.getExpression());
 		const args = ce.getArguments().map(a => {
 			return this.parse<IR.Expression>(a);
@@ -231,7 +230,7 @@ class Parser extends ParserBase<IR.Node> {
 		return new IR.CallExpression(this.symbols, leftHand, args)
 	}
 
-	parseVariableDeclaration(vd: VariableDeclaration) {
+	private parseVariableDeclaration(vd: VariableDeclaration) {
 		const identifier = this.parse<IR.Identifier>(
 			vd.getNameNode()
 		);
@@ -248,12 +247,12 @@ class Parser extends ParserBase<IR.Node> {
 		))
 	}
 
-	parseVariableDeclarationList(vdl: VariableDeclarationList) {
+	private parseVariableDeclarationList(vdl: VariableDeclarationList) {
 		const bindings = vdl.getDeclarations().map(x => this.parse<IR.VariableDeclaration>(x))
 		return new IR.VariableDeclarationList(this.symbols, bindings);
 	}
 
-	parseFunctionDeclaration(fd: FunctionDeclaration) {
+	private parseFunctionDeclaration(fd: FunctionDeclaration) {
 		const functionIdentifier = this.parse<IR.Identifier>(
 			fd.getNameNode()!
 		);
@@ -282,11 +281,11 @@ class Parser extends ParserBase<IR.Node> {
 		})
 	}
 
-	parseVariableStatement(vs: VariableStatement) {
+	private parseVariableStatement(vs: VariableStatement) {
 		return this.parse(vs.getDeclarationList());
 	}
 
-	parseEnumDeclaration(enumDecl: EnumDeclaration) {
+	private parseEnumDeclaration(enumDecl: EnumDeclaration) {
 		const name = this.parse<IR.Identifier>(
 			enumDecl.getNameNode()
 		);
@@ -307,15 +306,15 @@ class Parser extends ParserBase<IR.Node> {
 		);
 	}
 
-	parseIdentifier(identifierNode: Identifier) {
+	private parseIdentifier(identifierNode: Identifier) {
 		return new IR.Identifier(this.symbols, identifierNode.getText())
 	}
 
-	parseParenthesizedExpression(pe: ParenthesizedExpression) {
+	private parseParenthesizedExpression(pe: ParenthesizedExpression) {
 		return this.parse(pe.getExpression());
 	}
 
-	parseBinaryExpression(be: BinaryExpression) {
+	private parseBinaryExpression(be: BinaryExpression) {
 		const left = this.parse<IR.Expression>(be.getLeft());
 		const right = this.parse<IR.Expression>(be.getRight());
 
@@ -327,34 +326,34 @@ class Parser extends ParserBase<IR.Node> {
 		}
 	}
 
-	parsePostfixUnaryExpression(pue: PostfixUnaryExpression) {
+	private parsePostfixUnaryExpression(pue: PostfixUnaryExpression) {
 		const operator = ts.tokenToString(pue.getOperatorToken());
 		const operand = this.parse<IR.Node>(pue.getOperand());
 		return new IR.UnaryPostfix(this.symbols, operand, operator!)
 	}
 
-	parsePrefixUnaryExpression(pue: PrefixUnaryExpression) {
+	private parsePrefixUnaryExpression(pue: PrefixUnaryExpression) {
 		let operator = ts.tokenToString(pue.getOperatorToken());
 		const operand = this.parse<IR.Expression>(pue.getOperand());
 		return new IR.UnaryPrefix(this.symbols, operand, operator!);
 	}
 
-	parseDeleteExpression(delExpr: DeleteExpression) {
+	private parseDeleteExpression(delExpr: DeleteExpression) {
 		const expr = this.parse<IR.Expression>(
 			delExpr.getExpression()
 		);
 		return new IR.DeleteExpression(this.symbols, expr);
 	}
 
-	parseFalseKeyword() {
+	private parseFalseKeyword() {
 		return new IR.BooleanLiteral(this.symbols, false);
 	}
 
-	parseTrueKeyword() {
+	private parseTrueKeyword() {
 		return new IR.BooleanLiteral(this.symbols, true)
 	}
 
-	parseIfStatement(ifExp: IfStatement) {
+	private parseIfStatement(ifExp: IfStatement) {
 		const predicate = this.parse<IR.Expression>(
 			ifExp.getExpression()
 		);
@@ -376,7 +375,7 @@ class Parser extends ParserBase<IR.Node> {
 		return new IR.If(this.symbols, predicate, thenStatementBody, elseIf);
 	}
 
-	parseReturnStatement(retStatement: ReturnStatement) {
+	private parseReturnStatement(retStatement: ReturnStatement) {
 		let returnValue;
 		if (retStatement.getExpression()) {
 			returnValue = this.parse<IR.Node>(
@@ -386,14 +385,14 @@ class Parser extends ParserBase<IR.Node> {
 		return new IR.ReturnStatement(this.symbols, returnValue)
 	}
 
-	parseForOfStatement(forOf: ForOfStatement) {
+	private parseForOfStatement(forOf: ForOfStatement) {
 		const variableInitializer = this.parse<IR.VariableDeclaration>(forOf.getInitializer());
 		const loopExpression = this.parse<IR.Node>(forOf.getExpression());
 		const body = this.parse<IR.Node>(forOf.getStatement())
 		return new IR.ForOf(this.symbols, variableInitializer, loopExpression, body)
 	}
 
-	parseForStatement(forStatement: ForStatement) {
+	private parseForStatement(forStatement: ForStatement) {
 		const init = this.parse<IR.VariableDeclaration | undefined>(forStatement.getInitializer());
 		const condition = this.parse<IR.Node | undefined>(forStatement.getCondition());
 		const incrementor = this.parse<IR.Node | undefined>(forStatement.getIncrementor());
@@ -402,18 +401,18 @@ class Parser extends ParserBase<IR.Node> {
 		return new IR.For(this.symbols, body, init, condition, incrementor)
 	}
 
-	parseElementAccess(indexer: ElementAccessExpression) {
+	private parseElementAccess(indexer: ElementAccessExpression) {
 		const left = this.parse<IR.Node>(indexer.getExpression())
 		const index = this.parse<IR.Node>(indexer.getArgumentExpression()!);
 		return new IR.ElementAccess(this.symbols, left, index)
 	}
 
-	parseArrayLiteralExpression(arrayLiteral: ArrayLiteralExpression) {
+	private parseArrayLiteralExpression(arrayLiteral: ArrayLiteralExpression) {
 		const items = arrayLiteral.getElements().map(x => this.parse<IR.Node>(x))
 		return new IR.ArrayLiteral(this.symbols, items);
 	}
 
-	parseObjectLiteralExpression(objectLiteral: ObjectLiteralExpression) {
+	private parseObjectLiteralExpression(objectLiteral: ObjectLiteralExpression) {
 		const properties = [];
 		for (const property of objectLiteral.getProperties()) {
 			switch (property.getKind()) {
@@ -457,13 +456,13 @@ class Parser extends ParserBase<IR.Node> {
 		return new IR.ObjectLiteral(this.symbols, properties);
 	}
 
-	parsePropertyAccessExpression(propAccess: PropertyAccessExpression) {
+	private parsePropertyAccessExpression(propAccess: PropertyAccessExpression) {
 		const left = this.parse<IR.Node>(propAccess.getExpression());
 		const right = this.parse<IR.Identifier>(propAccess.getNameNode());
 		return new IR.PropertyAccess(this.symbols, left, right)
 	}
 
-	parseImportDeclaration(importDecl: ImportDeclaration) {
+	private parseImportDeclaration(importDecl: ImportDeclaration) {
 		const moduleName = this.parse<IR.StringLiteral>(importDecl.getModuleSpecifier())
 
 		if (importDecl.getImportClause()) {
@@ -484,7 +483,7 @@ class Parser extends ParserBase<IR.Node> {
 		}
 	}
 
-	parseArrowFunction(arrowFunc: ArrowFunction) {
+	private parseArrowFunction(arrowFunc: ArrowFunction) {
 		return this.enterAnonymousScope(() => {
 			let params = arrowFunc
 				.getParameters()
@@ -499,7 +498,7 @@ class Parser extends ParserBase<IR.Node> {
 		})
 	}
 
-	parseNamespaceExportDeclaration(mod: NamespaceDeclaration) {
+	private parseNamespaceExportDeclaration(mod: NamespaceDeclaration) {
 		let name = mod.getName();
 		if (name.indexOf('"') > -1 || name.indexOf("'") > -1) {
 			name = name.substring(1, name.length - 1);
@@ -507,11 +506,11 @@ class Parser extends ParserBase<IR.Node> {
 		return new IR.ModuleDeclaration(this.symbols, name);
 	}
 
-	parseNullKeyword() {
+	private parseNullKeyword() {
 		return new IR.Null(this.symbols);
 	}
 
-	parse<T extends (IR.Node | undefined)>(node?: Node): T {
+	private parse<T extends (IR.Node | undefined)>(node?: Node): T {
 		if (typeof node === "undefined") {
 			return undefined as T
 		}
@@ -617,19 +616,33 @@ class Parser extends ParserBase<IR.Node> {
 		return ret as T
 	}
 
+	parseFile(sourceFile: SourceFile) {
+		return new IR.SourceFile(this.symbols, sourceFile.getStatements().map(x => this.parse<IR.Node>(x)))
+	}
+}
+
+class Compiler {
+	constructor(readonly project: Project) { }
+
+	generateElisp(ast: IR.SourceFile) {
+		
+	}
+
 	compile(): CompilationResult[] {
+		const parser = new Parser()
 		const ret: CompilationResult[] = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
 			console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())
 			//TODO: Add ts-lib.el import to top
-			const sourceBody = new IR.SourceFile(this.symbols, sourceFile.getStatements().map(x => this.parse<IR.Node>(x)))
+			const sourceBody = parser.parseFile(sourceFile)
 			console.log("AST: ")
 			sourceBody.printAst()
-			/*const compiled = compile(sourceBody)
+			const elisp = this.generateElisp(sourceBody)
+			const elispSource = elisp.emit()
 			ret.push({
 				fileName: sourceFile.getBaseNameWithoutExtension(),
 				source: elispSource
-			});*/
+			});
 		}
 		return ret;
 	}
@@ -645,6 +658,6 @@ export interface CompilationResult {
 }
 
 export function compileProject(program: TsceProject): CompilationResult[] {
-	const compilerProcess = new Parser(program.project);
+	const compilerProcess = new Compiler(program.project);
 	return compilerProcess.compile();
 }

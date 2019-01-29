@@ -5,7 +5,7 @@ export abstract class Node {
 	constructor(readonly symTable: SymbolTable<Node>) {}
 
 	print(indent: number) {
-		console.log(" - " + this.constructor.name)
+		console.log(" - " + (this.constructor as any).name)
 	}
 }
 

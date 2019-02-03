@@ -151,65 +151,75 @@ function getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
 	return ret;
 	}*/
 
-interface Scope<T> {
+interface Addable<T> {
 	add(item: T): void
 }
 
-interface ScopeWrapper<T> {
-	type: "ScopeWrapper"
-	scope: (Scope<T> & T)
-}
+interface Scope { }
 
-export class Stack<T> {
-	private stack: (T | ScopeWrapper<T>)[] = []
+class ScopeStack<T> {
+	private items: T[] = []
+
+	constructor(readonly scope: T & Addable<T>) { }
 
 	push(item: T) {
-		this.stack.push(item)
+		this.items.push(item)
+		return item
 	}
 
-	pushScope<TScope extends T & Scope<T>>(scope: TScope) {
-		this.stack.push({
-			type: "ScopeWrapper",
-			scope
-		})
-	}
-
-	pop(): T {
-		if (this.stack.length === 0) {
-			throw new Error("Tried to pop from empty stack")
-		}
-		const item = this.stack.pop()!
-		if (this.isScopeWrapper(item)) {
-			return item.scope
-		} else {
-			return item
-		}
+	pop() {
+		return this.items.pop()!
 	}
 
 	peek() {
+		return this.items[this.items.length - 1]
+	}
+
+	resolve() {
+		this.items.forEach(x => {
+			this.scope.add(x)
+		})
+	}
+
+	get isEmpty() {
+		return this.items.length === 0
+	}
+}
+
+export class Stack<T> {
+	private stack: ScopeStack<T>[] = []
+
+	private get lastScopeStack() {
 		return this.stack[this.stack.length - 1]
 	}
 
-	private isScopeWrapper(item: (T | ScopeWrapper<T>)): item is ScopeWrapper<T> {
-		if ((<ScopeWrapper<T>>item).type) {
-			return (<ScopeWrapper<T>>item).type === "ScopeWrapper"
+	peek() {
+		return this.lastScopeStack.peek()
+	}
+
+	pop() {
+		if (this.lastScopeStack.isEmpty) {
+			return this.stack.pop()!.scope
 		} else {
-			return false
+			return this.lastScopeStack.pop()
 		}
 	}
 
-	get currentScope() {
-		for (const item of this.stack.reverse()) {
-			if (this.isScopeWrapper(item)) {
-				return item
-			}
-		}
-		throw new Error("There is currently no scope on the stack")
+	push(item: T) {
+		this.lastScopeStack.push(item)
 	}
 
-	resolveTo<TScope extends T & Scope<T>>(scope: TScope) {
-		while (this.peek() !== scope) {
-			this.currentScope.scope.add(this.pop())
+	pushScope<TScope extends (T & Addable<T>)>(scope: TScope): Scope {
+		const scopeStack = new ScopeStack(scope)
+		this.stack.push(scopeStack)
+		return scopeStack
+	}
+
+	resolveTo(scope: Scope) {
+		while (this.lastScopeStack !== scope) {
+			this.lastScopeStack.resolve()
+			const lastScope = this.stack.pop()!.scope
+			this.lastScopeStack.push(lastScope)
 		}
 	}
 }

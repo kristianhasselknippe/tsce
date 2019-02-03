@@ -1,4 +1,5 @@
 import * as sym from "../symbolTable"
+import { throws } from "assert";
 
 test("Basic symbol table lookup", () => {
 	const table = new sym.SymbolTable<any>()
@@ -16,8 +17,7 @@ test("Basic symbol table scoped lookup", () => {
 	const ret = table.lookup("foobar")
 	expect(ret).toBe("testing")
 
-	const kult = table.lookup("kult")
-	expect(kult).toBe(undefined)
+	expect(() => table.lookup("kult")).toThrow()
 
 	const kultActual = scope.lookup("kult")
 	expect(kultActual).toBe("kult")

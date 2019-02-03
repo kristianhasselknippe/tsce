@@ -1,4 +1,4 @@
-import { Scope, Block, Identifier, Node } from './'
+import { Node } from './'
 
 //TODO Do we need expression yet? In elisp; everything is an expression, so perhaps just replace node?
 export abstract class Expression extends Node {

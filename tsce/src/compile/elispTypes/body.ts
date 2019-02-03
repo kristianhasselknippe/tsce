@@ -1,15 +1,10 @@
 import { Scope, Node, tabs, Expression } from ".";
-import { Declaration } from "./declaration";
 
 //TODO: Body shouldn't be a scope. It is just an array of statements
 export class Body extends Scope {
 	type: string = 'Body'
 	constructor(body: Node[] | Node) {
 		super(body)
-	}
-
-	getDeclarations(): (Node & Declaration)[] {
-		return []
 	}
 
 	emit(indent: number) {

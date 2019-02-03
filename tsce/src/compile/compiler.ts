@@ -154,7 +154,65 @@ function getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
 class Compiler {
 	constructor(readonly project: Project) { }
 
+	compileIdentifier(identifier: IR.Identifier) {
+		return new EL.Identifier(identifier.name)
+	}
+
+	compileFunctionDeclaration(functionDecl: IR.FunctionDeclaration) {
+		const name = this.compileIdentifier(functionDecl.name)
+		const args = functionDecl.args
+			.map(this.compileIdentifier)
+			.map(identifier => new EL.FunctionArg(identifier))
+		const body = functionDecl.body.map(this.compileNode)
+		return new EL.Defun(name, args, body)
+	}
+
+	compileNode(node: IR.Node): EL.Node {
+		switch (node.constructor) {
+			case IR.Identifier:
+				return this.compileIdentifier(<IR.Identifier>node)
+			case IR.FunctionDeclaration:
+				return this.compileFunctionDeclaration(<IR.FunctionDeclaration>node)
+			case IR.VariableDeclaration:
+			case IR.VariableDeclarationList:
+			case IR.Assignment:
+			case IR.BinaryExpr:
+			case IR.UnaryPrefix:
+			case IR.UnaryPostfix:
+			case IR.DeleteExpression:
+			case IR.EnumMember:
+			case IR.EnumDeclaration:
+			case IR.ArrayLiteral:
+			case IR.ElementAccess:
+			case IR.PropertyAccess:
+			case IR.ObjectProperty:
+			case IR.ObjectLiteral:
+			case IR.StringLiteral:
+			case IR.NumberLiteral:
+			case IR.BooleanLiteral:
+			case IR.Block:
+			case IR.CallExpression:
+			case IR.If:
+			case IR.For:
+			case IR.ForOf:
+			case IR.ForIn:
+			case IR.While:
+			case IR.ArrowFunction:
+			case IR.ReturnStatement:
+			case IR.NamedImport:
+			case IR.NamespaceImport:
+			case IR.ModuleDeclaration:
+			case IR.Null:
+			case IR.SourceFile:
+			default:
+				throw new Error("Unsupported IR type: " + ((node.constructor as any).name))
+		}
+	}
+
 	generateElisp(ast: IR.SourceFile) {
+		for (const s of ast.statements) {
+			this.compileNode(s)
+		}
 
 		return new EL.RootScope([])
 	}

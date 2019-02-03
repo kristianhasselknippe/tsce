@@ -1,4 +1,4 @@
-import { Expression, Identifier, tabs, ElementIndexer } from ".";
+import { Expression, tabs } from ".";
 
 export class Assignment extends Expression {
 	constructor(readonly assignee: Expression,

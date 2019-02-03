@@ -1,5 +1,4 @@
 import { Expression, Node, tabs } from ".";
-import { Declaration } from "./declaration";
 
 export abstract class Scope extends Expression {
 	type: string = 'Scope'
@@ -7,18 +6,7 @@ export abstract class Scope extends Expression {
 	constructor(readonly body: Node[] | Node) {
 		super()
 	}
-
-	getDeclarationOfIdentifier(identifierName: string): Node | undefined {
-		const decls = this.getDeclarations()
-		for (const decl of decls) {
-			if (decl.matchesIdentifier(identifierName)) {
-				return decl
-			}
-		}
-	}
-
-	abstract getDeclarations(): (Node & Declaration)[]
-
+ 
 	toString() {
 		return 'Scope(' + this.type
 	}

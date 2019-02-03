@@ -1,12 +1,11 @@
 import { Node, Identifier } from './';
-import { Declaration } from './declaration';
 
 export enum VariableDeclarationType {
 	Variable,
 	Function
 }
 
-export class VariableDeclaration extends Node implements Declaration {
+export class VariableDeclaration extends Node {
 	type: string = 'VariableDeclaration';
 
 	constructor(
@@ -14,18 +13,6 @@ export class VariableDeclaration extends Node implements Declaration {
 		readonly declType: VariableDeclarationType = VariableDeclarationType.Variable
 	) {
 		super();
-	}
-
-	isDeclaration(): this is Declaration {
-		return true;
-	}
-
-	isVariableDeclaration(): this is VariableDeclaration {
-		return true;
-	}
-
-	matchesIdentifier(identifierName: string): boolean {
-		return this.name.identifierName === identifierName;
 	}
 
 	emit(indent: number): string {

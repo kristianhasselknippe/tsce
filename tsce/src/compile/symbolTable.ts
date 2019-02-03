@@ -7,6 +7,10 @@ export class SymbolTable<T> {
 
 	constructor(private _parent?: SymbolTable<T>) { }
 
+	get hasParent() {
+		return this._parent
+	}
+
 	get parent() {
 		if (!this._parent) {
 			throw new Error("Tried to get parent of root table")
@@ -34,7 +38,7 @@ export class SymbolTable<T> {
 		if (symbol in this.symbols) {
 			return this.symbols[symbol]
 		} else {
-			if (this.parent) {
+			if (this.hasParent) {
 				this.parent.lookup(symbol)
 			}
 		}

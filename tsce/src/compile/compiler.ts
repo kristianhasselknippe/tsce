@@ -149,10 +149,75 @@ function getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
 		ret.push(this.parse<Elisp.Identifier>(name));
 	}
 	return ret;
-}*/
+	}*/
+
+interface Scope<T> {
+	add(item: T): void
+}
+
+interface ScopeWrapper<T> {
+	type: "ScopeWrapper"
+	scope: (Scope<T> & T)
+}
+
+export class Stack<T> {
+	private stack: (T | ScopeWrapper<T>)[] = []
+
+	push(item: T) {
+		this.stack.push(item)
+	}
+
+	pushScope<TScope extends T & Scope<T>>(scope: TScope) {
+		this.stack.push({
+			type: "ScopeWrapper",
+			scope
+		})
+	}
+
+	pop(): T {
+		if (this.stack.length === 0) {
+			throw new Error("Tried to pop from empty stack")
+		}
+		const item = this.stack.pop()!
+		if (this.isScopeWrapper(item)) {
+			return item.scope
+		} else {
+			return item
+		}
+	}
+
+	peek() {
+		return this.stack[this.stack.length - 1]
+	}
+
+	private isScopeWrapper(item: (T | ScopeWrapper<T>)): item is ScopeWrapper<T> {
+		if ((<ScopeWrapper<T>>item).type) {
+			return (<ScopeWrapper<T>>item).type === "ScopeWrapper"
+		} else {
+			return false
+		}
+	}
+
+	get currentScope() {
+		for (const item of this.stack.reverse()) {
+			if (this.isScopeWrapper(item)) {
+				return item
+			}
+		}
+		throw new Error("There is currently no scope on the stack")
+	}
+
+	resolveTo<TScope extends T & Scope<T>>(scope: TScope) {
+		while (this.peek() !== scope) {
+			this.currentScope.scope.add(this.pop())
+		}
+	}
+}
 
 class Compiler {
 	constructor(readonly project: Project) { }
+
+	context = new Stack()
 
 	compileIdentifier(identifier: IR.Identifier) {
 		return new EL.Identifier(identifier.name)

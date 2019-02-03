@@ -4,7 +4,7 @@ import { Declaration, DeclarationsSource } from "./declaration";
 
 export class RootScope extends Scope {
 	type = "RootScope"
-	constructor(readonly sourceFile: SourceFile, body: Node[] | Node) {
+	constructor(body: Node[] | Node) {
 		super(body)
 	}
 

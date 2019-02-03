@@ -1,5 +1,4 @@
 import { Scope, Expression, tabs, Identifier, Node } from ".";
-import { Declaration } from "./declaration";
 import { hyphenate } from "./utils";
 
 export class LetBinding extends Scope {
@@ -7,10 +6,6 @@ export class LetBinding extends Scope {
 
 	constructor(readonly bindings: LetItem[], readonly inRootScope = false) {
 		super([])
-	}
-
-	getDeclarations(): (Node & Declaration)[] {
-		return this.bindings
 	}
 
 	toString() {
@@ -60,19 +55,11 @@ ${tabs(indent)})`;
 	}
 }
 
-export class LetItem extends Expression implements Declaration {
+export class LetItem extends Expression {
 	type = 'LetItem';
 
 	constructor(public readonly identifier: Identifier, readonly initializer?: Expression, readonly isInRootScope = false) {
 		super()
-	}
-
-	isDeclaration(): this is Declaration {
-		return true
-	}
-
-	matchesIdentifier(identifierName: string): boolean {
-		return this.identifier.identifierName === identifierName
 	}
 
 	hyphenateName() {

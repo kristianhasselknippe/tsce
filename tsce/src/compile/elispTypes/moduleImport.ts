@@ -1,8 +1,7 @@
 import { tabs, Node, StringLiteral, Expression } from '.';
-import { Declaration, DeclarationsSource } from './declaration';
 import { VariableDeclaration } from './variableDeclaration';
 
-export class ModuleImport extends Expression implements DeclarationsSource {
+export class ModuleImport extends Expression {
 	type: string = 'ModuleImport';
 
 	constructor(
@@ -11,14 +10,6 @@ export class ModuleImport extends Expression implements DeclarationsSource {
 		readonly isRelativePath: boolean
 	) {
 		super();
-	}
-
-	getDeclarations(): (Node & Declaration)[] {
-		return this.items;
-	}
-
-	isDeclarationsSource(): this is DeclarationsSource {
-		return true;
 	}
 
 	emit(indent: number) {
@@ -35,7 +26,7 @@ export class ModuleImport extends Expression implements DeclarationsSource {
 	}
 }
 
-export class NamespaceImport extends Expression implements DeclarationsSource {
+export class NamespaceImport extends Expression {
 	type: string = 'NamespaceImport';
 
 	constructor(
@@ -57,17 +48,5 @@ export class NamespaceImport extends Expression implements DeclarationsSource {
 			   This might not be enough in the future. */
 			return '';
 		}
-	}
-
-	isDeclarationsSource(): this is DeclarationsSource {
-		return true;
-	}
-
-	getDeclarations(): (Node & Declaration)[] {
-		return [this.namespaceObjectIdentifier];
-	}
-
-	matchesIdentifier(identifierName: string): boolean {
-		return this.namespaceObjectIdentifier.matchesIdentifier(identifierName);
 	}
 }

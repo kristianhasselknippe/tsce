@@ -1,22 +1,16 @@
 import { Expression, tabs, hyphenate } from ".";
-import { CompilerDirective } from "./compilerDirective";
 
-function isUpper(character: string) {
-	return (character !== character.toLowerCase())
-		&& (character === character.toUpperCase());
-}
-
-export abstract class Identifier extends Expression {
+export class Identifier extends Expression {
 	type: string = 'Identifier';
 
 	isPredicate = false
 	customName?: string
 	useNamedArguments = false
 
-	constructor(public readonly identifierName: string, readonly declarationDirectives?: CompilerDirective[]) {
+	constructor(public readonly identifierName: string) {
 		super();
 
-		if (declarationDirectives) {
+		/*if (declarationDirectives) {
 			for (const compDir of declarationDirectives) {
 				switch (compDir.kind) {
 					case "Name":
@@ -30,12 +24,7 @@ export abstract class Identifier extends Expression {
 						break
 				}
 			}
-		}
-	}
-
-	matchesIdentifierName(identifierName: string) {
-		//console.log(`A(${identifierName}) -- B(${this.identifierName}): ${identifierName === this.identifierName}`)
-		return identifierName === this.identifierName
+		}*/
 	}
 
 	formatName() {
@@ -61,18 +50,4 @@ export abstract class Identifier extends Expression {
 	emitUnquoted(indent: number){
 		return `${tabs(indent)}\`${this.formatName()}`
 	}
-}
-
-export class FunctionIdentifier extends Identifier {
-	emitQuoted(indent: number) {
-		return this.emit(indent)
-	}
-
-	isFunctionIdentifier(): this is FunctionIdentifier {
-		return true
-	}
-}
-
-export class VariableIdentifier extends Identifier {
-	
 }

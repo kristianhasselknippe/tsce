@@ -1,5 +1,4 @@
 import { SymbolTable } from "../symbolTable";
-import { symlink } from "fs";
 
 export abstract class Node {
 	constructor(readonly symTable: SymbolTable<Node>) {}
@@ -9,7 +8,7 @@ export abstract class Node {
 	}
 }
 
-export class Expression extends Node {
+export abstract class Expression extends Node {
 	constructor(symTable: SymbolTable<Node>) {
 		super(symTable)
 	}
@@ -22,7 +21,7 @@ export class Identifier extends Node {
 	}
 }
 
-export class NamedDeclaration extends Node {
+export abstract class NamedDeclaration extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly name: Identifier) {
 		super(symTable)

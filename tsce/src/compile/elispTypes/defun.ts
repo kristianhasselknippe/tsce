@@ -1,20 +1,10 @@
 import { Block, Node, tabs, hyphenate, Identifier } from "./";
-import { CompilerDirective, extractCompilerDirectivesFromString } from "./compilerDirective";
-import { Declaration } from "./declaration";
 
-export class FunctionArg extends Node implements Declaration {
+export class FunctionArg extends Node {
 	type: string = "FunctionArg"
 
 	constructor(readonly name: Identifier) {
 		super()
-	}
-
-	isDeclaration(): this is Declaration {
-		return true
-	}
-
-	matchesIdentifier(identifierName: string): boolean {
-		return this.name.identifierName === identifierName
 	}
 
 	emit(indent: number) {
@@ -22,16 +12,16 @@ export class FunctionArg extends Node implements Declaration {
 	}
 }
 
-export class Defun extends Block implements Declaration {
+export class Defun extends Block {
 	type = 'Function';
 
 	private customForm?: string
 	private isInteractive?: boolean
 
-	constructor(identifier: Identifier, readonly args: FunctionArg[], body: Node[], compilerDirectives: CompilerDirective[]) {
+	constructor(identifier: Identifier, readonly args: FunctionArg[], body: Node[]) {
 		super(identifier, body);
 
-		if (compilerDirectives && compilerDirectives.length > 0) {
+		/*if (compilerDirectives && compilerDirectives.length > 0) {
 			for (const compDir of compilerDirectives) {
 				switch (compDir.kind) {
 					case "Form":
@@ -42,15 +32,7 @@ export class Defun extends Block implements Declaration {
 						break
 				}
 			}
-		}
-	}
-
-	getDeclarations(): (Node & Declaration)[] {
-		return this.args
-	}
-
-	isDeclaration() {
-		return true
+		}*/
 	}
 
 	matchesIdentifier(identifierName: string) {

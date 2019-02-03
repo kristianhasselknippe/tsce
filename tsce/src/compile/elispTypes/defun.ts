@@ -55,13 +55,16 @@ export class Defun extends Block {
 		}
 	}
 
-	emitInteractive() {
-		return this.isInteractive ? "(interactive)" : ""
+	emitInteractive(indent: number) {
+		if (this.isInteractive) {
+			return "\n" + tabs(indent) + "(interactive)"
+		} else {
+			return ""
+		}
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)}(${this.getForm()} ${this.identifier.emit(0)} (${this.emitArgs()})
-${tabs(indent+1)}${this.emitInteractive()}
+		return `${tabs(indent)}(${this.getForm()} ${this.identifier.emit(0)} (${this.emitArgs()})${this.emitInteractive(indent+1)}
 ${this.emitBlock(indent + 1, this.emitBody(indent+2))}
 ${tabs(indent)})`
 	}

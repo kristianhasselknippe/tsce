@@ -457,9 +457,6 @@ export class Parser extends ParserBase<IR.Node> {
 					);
 			}
 		})()
-		if (typeof ret === "undefined") {
-			console.log("Node: " + node.getKindName() + ", was undefined")
-		}
 		return ret as T
 	}
 

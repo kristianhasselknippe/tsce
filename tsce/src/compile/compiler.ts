@@ -163,11 +163,21 @@ class Compiler {
 		const args = functionDecl.args
 			.map(this.compileIdentifier)
 			.map(identifier => new EL.FunctionArg(identifier))
-		const body = functionDecl.body.map(this.compileNode)
+		const body = this.compileStatementList(functionDecl.body)
 		return new EL.Defun(name, args, body)
 	}
 
-	compileNode(node: IR.Node): EL.Node {
+	compileStatementList(nodes: IR.Node[]): EL.Node[] {
+		return nodes
+			.map(x => this.compileNode(x))
+			.filter(x => typeof x !== "undefined") as EL.Node[]
+	}
+
+	compileNode(node?: IR.Node): EL.Node | undefined {
+		if (typeof node === 'undefined') {
+			return
+		}
+		console.log("Compiling node: " + (node.constructor as any).name)
 		switch (node.constructor) {
 			case IR.Identifier:
 				return this.compileIdentifier(<IR.Identifier>node)
@@ -205,16 +215,13 @@ class Compiler {
 			case IR.Null:
 			case IR.SourceFile:
 			default:
-				throw new Error("Unsupported IR type: " + ((node.constructor as any).name))
+				//throw new Error("Unsupported IR type: " + ((node.constructor as any).name))
 		}
 	}
 
 	generateElisp(ast: IR.SourceFile) {
-		for (const s of ast.statements) {
-			this.compileNode(s)
-		}
-
-		return new EL.RootScope([])
+		const statements = this.compileStatementList(ast.statements)
+		return new EL.RootScope(statements)
 	}
 
 	compile(): CompilationResult[] {
@@ -224,8 +231,6 @@ class Compiler {
 			console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())
 			//TODO: Add ts-lib.el import to top
 			const sourceBody = parser.parseFile(sourceFile)
-			console.log("AST: ")
-			sourceBody.printAst()
 			const elisp = this.generateElisp(sourceBody)
 			const elispSource = elisp.emit(0)
 			ret.push({

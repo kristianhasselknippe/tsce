@@ -1,9 +1,8 @@
-import { Scope, Node } from ".";
-import { SourceFile } from "ts-simple-ast";
+import { Scope } from ".";
 
 export class RootScope extends Scope {
 	type = "RootScope"
-	constructor(body: Node[] | Node) {
-		super(body)
+	constructor() {
+		super()
 	}
 }

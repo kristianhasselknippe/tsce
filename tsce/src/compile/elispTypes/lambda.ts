@@ -3,8 +3,8 @@ import { Block, tabs, Identifier, Node, FunctionArg } from "./";
 export class Lambda extends Block {
 	type: string = "Block"
 
-	constructor(readonly args: FunctionArg[], body: Node[] | Node) {
-		super(new Identifier("lambda"), body)
+	constructor(readonly args: FunctionArg[]) {
+		super(new Identifier("lambda"))
 	}
 
 	emitArgs() {

@@ -1,11 +1,10 @@
 import { Scope, tabs, LetBinding, Expression, Node } from ".";
 
 export class ForStatement extends Scope {
-	constructor(body: Node[] | Node,
-				readonly initializer?: LetBinding, //Let binding?
+	constructor(readonly initializer?: LetBinding, //Let binding?
 				readonly condition?: Expression,
 				readonly incrementor?: Expression) {
-		super(body)
+		super()
 	}
 
 	emit(indent: number) {
@@ -34,8 +33,8 @@ ${tabs(indent)})`
 }
 
 export class ForOf extends Scope {
-	constructor(readonly variable: LetBinding, readonly expression: Expression, body: Node[] | Node) {
-		super(body)
+	constructor(readonly variable: LetBinding, readonly expression: Expression) {
+		super()
 	}
 
 	emitLoopVariable() {

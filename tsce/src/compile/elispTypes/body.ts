@@ -6,27 +6,4 @@ export class Body extends Scope {
 	constructor() {
 		super()
 	}
-
-	emit(indent: number) {
-		return this.emitBody(indent)
-	}
-
-	emitBody(indent: number, progn = true) {
-		let ret = ""
-		if (this.body.length > 1 && progn) {
-			indent++
-			ret += `${tabs(indent-1)}(progn\n`
-		}
-		for (let i = 0; i < this.body.length; i++) {
-			const e = this.body[i]
-			if (e) {
-				ret += e.emit(indent)
-				ret += "\n"
-			}
-		}
-		if (this.body.length > 1 && progn) {
-			ret += `${tabs(indent-1)})\n`
-		}
-		return ret
-	}
 }

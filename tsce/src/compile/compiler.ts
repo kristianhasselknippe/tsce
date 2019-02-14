@@ -154,10 +154,12 @@ function constructorName(item: any) {
 	return item.constructor.name as string
 }
 
+type Scope<T> = T & Addable<T>
+
 class ScopeStack<T> {
 	private items: T[] = []
 
-	constructor(readonly scope: T & Addable<T>) { }
+	constructor(readonly scope: Scope<T>) { }
 
 	push(item: T) {
 		this.items.push(item)
@@ -206,21 +208,13 @@ export class Stack<T> {
 		this.lastScopeStack.push(item)
 	}
 
-	pushScope<TScope extends (T & Addable<T>)>(scope: TScope): ScopeStack<T> {
-		const scopeStack = new ScopeStack(scope)
+	pushScope<TScope extends (T & Addable<T>)>(scope: TScope): ScopeStack<TScope> {
+		const scopeStack = new ScopeStack<TScope>(scope)
 		this.stack.push(scopeStack)
 		return scopeStack
 	}
 
-	resolveTo(scope: ScopeStack<T>) {
-		while (this.lastScopeStack !== scope) {
-			this.lastScopeStack.resolve()
-			const lastScope = this.stack.pop()!.scope
-			this.lastScopeStack.push(lastScope)
-		}
-	}
-
-	getParentScopeOf(scope: ScopeStack<T>) {
+	getParentScopeOf(scope: ScopeStack<T>): ScopeStack<T> {
 		for (let i = 0; i < this.stack.length; i++) {
 			if (this.stack[i] === scope) {
 				if (i === 0) {
@@ -229,16 +223,26 @@ export class Stack<T> {
 				return this.stack[i-1]
 			}
 		}
-		throw "Could not find parent scope of: " + JSON.stringify(scope)
+		throw new Error(`Could not find parent scope of: ${constructorName(scope.scope)}`)
 	}
 
 	print() {
 		console.log("STACK: ", this.stack)
 	}
 
-	resolveToParentOf(scope: ScopeStack<T>) {
+	resolveTo<TOut extends T>(scope: ScopeStack<TOut>): TOut {
+		while (this.lastScopeStack !== scope) {
+			this.lastScopeStack.resolve()
+			const lastScope = this.stack.pop()!.scope
+			this.lastScopeStack.push(lastScope)
+		}
+		return scope.scope
+	}
+
+	resolveToParentOf<TOut extends T>(scope: ScopeStack<TOut>): TOut {
 		const parent = this.getParentScopeOf(scope)
 		this.resolveTo(parent)
+		return scope.scope
 	}
 }
 
@@ -260,6 +264,15 @@ class Compiler {
 
 	compileIdentifier(identifier: IR.Identifier) {
 		this.context.push(new EL.Identifier(identifier.name))
+	}
+
+	compileIf(ifNode: IR.If) {
+		const pred = this.compileAndExpect<EL.Expression>(ifNode.thenCondition)
+
+		const body = this.compileAndExpect<EL.Body>(ifNode.thenBlock)
+		const elseBody = this.compileAndExpect<EL.Body>(ifNode.elseItem)
+
+		this.context.push(new EL.IfExpression(pred, body, elseBody))
 	}
 
 	compileFunctionDeclaration(functionDecl: IR.FunctionDeclaration) {
@@ -310,6 +323,20 @@ class Compiler {
 		this.context.push(new EL.Assignment(left, right))
 	}
 
+	compileBinaryExpr(expr: IR.BinaryExpr) {
+		const left = this.compileAndExpect<EL.Expression>(expr.left)
+		const right = this.compileAndExpect<EL.Expression>(expr.right)
+		this.context.push(new EL.BinaryExpression(expr.operator, left, right))
+	}
+
+	compileBlock(block: IR.Block) {
+		const body = this.context.pushScope(new EL.Body())
+		this.compileNodeList(block.statements)
+		this.context.resolveTo(body)
+		const res = this.context.pop()
+		this.context.push(res)
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -335,16 +362,20 @@ class Compiler {
 				this.compileAssignment(<IR.Assignment>node)
 				break
 			case IR.BinaryExpr:
-			case IR.UnaryPrefix:
-			case IR.UnaryPostfix:
-			case IR.DeleteExpression:
-			case IR.EnumMember:
-			case IR.EnumDeclaration:
-			case IR.ArrayLiteral:
-			case IR.ElementAccess:
-			case IR.PropertyAccess:
+				this.compileBinaryExpr(<IR.BinaryExpr>node)
+				break
+			case IR.UnaryPrefix:break
+			case IR.UnaryPostfix:break
+			case IR.DeleteExpression:break
+			case IR.EnumMember:break
+			case IR.EnumDeclaration:break
+			case IR.ArrayLiteral:break
+			case IR.ElementAccess:break
+			case IR.PropertyAccess:break
 			case IR.ObjectProperty:
+				break
 			case IR.ObjectLiteral:
+				break
 			case IR.StringLiteral:
 				this.compileStringLiteral(<IR.StringLiteral>node)
 				break
@@ -352,19 +383,27 @@ class Compiler {
 				this.compileNumberLiteral(<IR.NumberLiteral>node)
 				break
 			case IR.BooleanLiteral:
+				break
 			case IR.Block:
+				this.compileBlock(<IR.Block>node)
+				break
 			case IR.CallExpression:
+				break
 			case IR.If:
-			case IR.For:
-			case IR.ForOf:
-			case IR.ForIn:
-			case IR.While:
-			case IR.ArrowFunction:
-			case IR.ReturnStatement:
-			case IR.NamedImport:
-			case IR.NamespaceImport:
-			case IR.ModuleDeclaration:
+				this.compileIf(<IR.If>node)
+				break
+			case IR.For:break
+			case IR.ForOf:break
+			case IR.ForIn:break
+			case IR.While:break
+			case IR.ArrowFunction:break
+			case IR.ReturnStatement:break
+			case IR.NamedImport:break
+			case IR.NamespaceImport:break
+			case IR.ModuleDeclaration:break
 			case IR.Null:
+				this.context.push(new EL.Null())
+				break
 			default:
 				//throw new Error("Unsupported IR type: " + ((node.constructor as any).name))
 				return -1

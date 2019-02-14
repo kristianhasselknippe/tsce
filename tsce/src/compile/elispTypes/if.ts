@@ -10,7 +10,7 @@ export class IfExpression extends Expression {
 	}
 
 	private get hasThen() {
-		return this.elseBlock
+		return typeof this.elseBlock !== 'undefined'
 	}
 
 	emitThen(indent: number) {

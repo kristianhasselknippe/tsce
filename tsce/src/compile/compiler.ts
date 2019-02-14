@@ -2,11 +2,6 @@ import { Project } from 'ts-simple-ast'
 import chalk from 'chalk'
 import * as IR from './ir'
 import * as EL from './elispTypes'
-import {
-	extractCompilerDirectivesFromStrings,
-	CompilerDirective,
-	CompilerDirectiveKind
-} from './elispTypes/compilerDirective';
 import { TsceProject } from './projectFormat';
 import { Parser } from './parser';
 
@@ -155,8 +150,6 @@ interface Addable<T> {
 	add(item: T): void
 }
 
-interface Scope { }
-
 class ScopeStack<T> {
 	private items: T[] = []
 
@@ -209,18 +202,39 @@ export class Stack<T> {
 		this.lastScopeStack.push(item)
 	}
 
-	pushScope<TScope extends (T & Addable<T>)>(scope: TScope): Scope {
+	pushScope<TScope extends (T & Addable<T>)>(scope: TScope): ScopeStack<T> {
 		const scopeStack = new ScopeStack(scope)
 		this.stack.push(scopeStack)
 		return scopeStack
 	}
 
-	resolveTo(scope: Scope) {
+	resolveTo(scope: ScopeStack<T>) {
 		while (this.lastScopeStack !== scope) {
 			this.lastScopeStack.resolve()
 			const lastScope = this.stack.pop()!.scope
 			this.lastScopeStack.push(lastScope)
 		}
+	}
+
+	getParentScopeOf(scope: ScopeStack<T>) {
+		for (let i = 0; i < this.stack.length; i++) {
+			if (this.stack[i] === scope) {
+				if (i === 0) {
+					throw "Tried to return parent scope of root scope"
+				}
+				return this.stack[i-1]
+			}
+		}
+		throw "Could not find parent scope of: " + JSON.stringify(scope)
+	}
+
+	print() {
+		console.log("STACK: ", this.stack)
+	}
+
+	resolveToParentOf(scope: ScopeStack<T>) {
+		const parent = this.getParentScopeOf(scope)
+		this.resolveTo(parent)
 	}
 }
 
@@ -229,6 +243,17 @@ class Compiler {
 
 	context = new Stack()
 
+	compileAndExpect<TOut>(node: IR.Node): TOut
+	compileAndExpect<TOut>(node: IR.Node | undefined): TOut | undefined
+	compileAndExpect<TOut>(node: IR.Node | undefined) {
+		if (typeof node === 'undefined') {
+			return
+		}
+		if (this.compileNode(node) !== -1) {
+			return this.context.pop() as TOut
+		}
+	}
+
 	compileIdentifier(identifier: IR.Identifier) {
 		return new EL.Identifier(identifier.name)
 	}
@@ -236,30 +261,58 @@ class Compiler {
 	compileFunctionDeclaration(functionDecl: IR.FunctionDeclaration) {
 		const name = this.compileIdentifier(functionDecl.name)
 		const args = functionDecl.args
-			.map(this.compileIdentifier)
+			.map(x => this.compileAndExpect<EL.Identifier>(x))
 			.map(identifier => new EL.FunctionArg(identifier))
-		const body = this.compileStatementList(functionDecl.body)
-		return new EL.Defun(name, args, body)
+
+		const scope = this.context.pushScope(new EL.Defun(name, args))
+		this.compileNodeList(functionDecl.body)
+		this.context.resolveToParentOf(scope)
 	}
 
-	compileStatementList(nodes: IR.Node[]): EL.Node[] {
-		return nodes
-			.map(x => this.compileNode(x))
-			.filter(x => typeof x !== "undefined") as EL.Node[]
+	compileVariableDeclaration(varDecl: IR.VariableDeclaration) {
+		const identifier = this.compileIdentifier(varDecl.name)
+		const initializer = this.compileAndExpect<EL.Expression>(varDecl.initializer)
+		this.context.push(new EL.LetItem(identifier, initializer))
 	}
 
-	compileNode(node?: IR.Node): EL.Node | undefined {
+	compileVariableDeclarationList(varDeclList: IR.VariableDeclarationList) {
+		const declarations = varDeclList.variables.map(x => this.compileAndExpect<EL.LetItem>(x))
+		const letBinding = new EL.LetBinding(declarations)
+		this.context.pushScope(letBinding)
+	}
+
+	compileSourceFile(sourceFile: IR.SourceFile) {
+		this.context.pushScope(new EL.SourceFile())
+		this.compileNodeList(sourceFile.statements)
+	}
+
+	compileNodeList(nodes: IR.Node[]) {
+		nodes
+			.filter(x => typeof x !== "undefined")
+			.forEach(x => this.compileNode(x))
+	}
+
+	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
 		}
 		console.log("Compiling node: " + (node.constructor as any).name)
 		switch (node.constructor) {
+			case IR.SourceFile:
+				this.compileSourceFile(<IR.SourceFile>node)
+				break
 			case IR.Identifier:
-				return this.compileIdentifier(<IR.Identifier>node)
+				this.compileIdentifier(<IR.Identifier>node)
+				break
 			case IR.FunctionDeclaration:
-				return this.compileFunctionDeclaration(<IR.FunctionDeclaration>node)
+				this.compileFunctionDeclaration(<IR.FunctionDeclaration>node)
+				break
 			case IR.VariableDeclaration:
+				this.compileVariableDeclaration(<IR.VariableDeclaration>node)
+				break
 			case IR.VariableDeclarationList:
+				this.compileVariableDeclarationList(<IR.VariableDeclarationList>node)
+				break
 			case IR.Assignment:
 			case IR.BinaryExpr:
 			case IR.UnaryPrefix:
@@ -273,6 +326,7 @@ class Compiler {
 			case IR.ObjectProperty:
 			case IR.ObjectLiteral:
 			case IR.StringLiteral:
+				
 			case IR.NumberLiteral:
 			case IR.BooleanLiteral:
 			case IR.Block:
@@ -288,15 +342,15 @@ class Compiler {
 			case IR.NamespaceImport:
 			case IR.ModuleDeclaration:
 			case IR.Null:
-			case IR.SourceFile:
 			default:
 				//throw new Error("Unsupported IR type: " + ((node.constructor as any).name))
+				return -1
 		}
 	}
 
 	generateElisp(ast: IR.SourceFile) {
-		const statements = this.compileStatementList(ast.statements)
-		return new EL.RootScope(statements)
+		this.compileNode(ast)
+		return this.context.pop() as EL.SourceFile
 	}
 
 	compile(): CompilationResult[] {

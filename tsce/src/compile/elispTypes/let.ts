@@ -5,7 +5,7 @@ export class LetBinding extends Scope {
 	type = 'LetBinding';
 
 	constructor(readonly bindings: LetItem[], readonly inRootScope = false) {
-		super([])
+		super()
 	}
 
 	toString() {

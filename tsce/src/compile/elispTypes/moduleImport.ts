@@ -1,12 +1,12 @@
 import { tabs, Node, StringLiteral, Expression } from '.';
-import { VariableDeclaration } from './variableDeclaration';
+import { VariableDeclarationREMOVE } from './variableDeclaration';
 
 export class ModuleImport extends Expression {
 	type: string = 'ModuleImport';
 
 	constructor(
 		readonly moduleString: StringLiteral,
-		readonly items: VariableDeclaration[],
+		readonly items: VariableDeclarationREMOVE[],
 		readonly isRelativePath: boolean
 	) {
 		super();
@@ -30,7 +30,7 @@ export class NamespaceImport extends Expression {
 	type: string = 'NamespaceImport';
 
 	constructor(
-		readonly namespaceObjectIdentifier: VariableDeclaration,
+		readonly namespaceObjectIdentifier: VariableDeclarationREMOVE,
 		readonly moduleString: StringLiteral,
 		readonly isRelativePath: boolean
 	) {

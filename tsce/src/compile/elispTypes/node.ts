@@ -1,4 +1,4 @@
-import { Lambda, Identifier, VariableDeclaration, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
+import { Lambda, Identifier, VariableDeclarationREMOVE, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
 
 export abstract class Node {
 	abstract type: string
@@ -34,7 +34,7 @@ export abstract class Node {
 		return this.type === 'Identifier'
 	}
 
-	isVariableDeclaration(): this is VariableDeclaration {
+	isVariableDeclaration(): this is VariableDeclarationREMOVE {
 		return false
 	}
 
@@ -50,7 +50,7 @@ export abstract class Node {
 		return false
 	}
 
-	isArrayIndexer(): this is ArrayIndexer {
+	isArrayIndexerVariableDeclarationIndexer() {
 		return false
 	}
 

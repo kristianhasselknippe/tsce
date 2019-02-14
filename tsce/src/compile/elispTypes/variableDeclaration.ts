@@ -5,7 +5,7 @@ export enum VariableDeclarationType {
 	Function
 }
 
-export class VariableDeclaration extends Node {
+export class VariableDeclarationREMOVE extends Node {
 	type: string = 'VariableDeclaration';
 
 	constructor(

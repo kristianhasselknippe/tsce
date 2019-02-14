@@ -150,6 +150,10 @@ interface Addable<T> {
 	add(item: T): void
 }
 
+function constructorName(item: any) {
+	return item.constructor.name as string
+}
+
 class ScopeStack<T> {
 	private items: T[] = []
 
@@ -255,11 +259,11 @@ class Compiler {
 	}
 
 	compileIdentifier(identifier: IR.Identifier) {
-		return new EL.Identifier(identifier.name)
+		this.context.push(new EL.Identifier(identifier.name))
 	}
 
 	compileFunctionDeclaration(functionDecl: IR.FunctionDeclaration) {
-		const name = this.compileIdentifier(functionDecl.name)
+		const name = this.compileAndExpect<EL.Identifier>(functionDecl.name)
 		const args = functionDecl.args
 			.map(x => this.compileAndExpect<EL.Identifier>(x))
 			.map(identifier => new EL.FunctionArg(identifier))
@@ -270,7 +274,7 @@ class Compiler {
 	}
 
 	compileVariableDeclaration(varDecl: IR.VariableDeclaration) {
-		const identifier = this.compileIdentifier(varDecl.name)
+		const identifier = this.compileAndExpect<EL.Identifier>(varDecl.name)
 		const initializer = this.compileAndExpect<EL.Expression>(varDecl.initializer)
 		this.context.push(new EL.LetItem(identifier, initializer))
 	}
@@ -290,6 +294,20 @@ class Compiler {
 		nodes
 			.filter(x => typeof x !== "undefined")
 			.forEach(x => this.compileNode(x))
+	}
+
+	compileStringLiteral(lit: IR.StringLiteral) {
+		this.context.push(new EL.StringLiteral(lit.value))
+	}
+
+	compileNumberLiteral(lit: IR.NumberLiteral) {
+		this.context.push(new EL.NumberLiteral(lit.value))
+	}
+
+	compileAssignment(assign: IR.Assignment) {
+		const left = this.compileAndExpect<EL.Expression>(assign.left)
+		const right = this.compileAndExpect<EL.Expression>(assign.right)
+		this.context.push(new EL.Assignment(left, right))
 	}
 
 	compileNode(node?: IR.Node) {
@@ -314,6 +332,8 @@ class Compiler {
 				this.compileVariableDeclarationList(<IR.VariableDeclarationList>node)
 				break
 			case IR.Assignment:
+				this.compileAssignment(<IR.Assignment>node)
+				break
 			case IR.BinaryExpr:
 			case IR.UnaryPrefix:
 			case IR.UnaryPostfix:
@@ -326,8 +346,11 @@ class Compiler {
 			case IR.ObjectProperty:
 			case IR.ObjectLiteral:
 			case IR.StringLiteral:
-				
+				this.compileStringLiteral(<IR.StringLiteral>node)
+				break
 			case IR.NumberLiteral:
+				this.compileNumberLiteral(<IR.NumberLiteral>node)
+				break
 			case IR.BooleanLiteral:
 			case IR.Block:
 			case IR.CallExpression:

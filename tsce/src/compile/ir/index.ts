@@ -313,7 +313,7 @@ export class SourceFile extends Block {
 	printAst() {
 		for (const i of this.statements) {
 			if (i) {
-				i.print(0)
+				console.log(i.print())
 			} else {
 				console.log("- undefined item")
 			}

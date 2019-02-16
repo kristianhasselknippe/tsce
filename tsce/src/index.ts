@@ -1,3 +1,5 @@
+require('source-map-support').install();
+
 import program from 'commander'
 import { compile } from './compile'
 import { initNewProject } from './projectCreation';

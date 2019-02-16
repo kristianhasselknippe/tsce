@@ -1,6 +1,8 @@
 import { Expression, tabs, hyphenate } from '.';
 import { NodeData, SymbolType } from '../parser';
 import { SymbolTable } from '../symbolTable';
+import chalk from 'chalk'
+import { CompilerDirective } from './compilerDirective';
 
 export class Identifier extends Expression {
 	type: string = 'Identifier';
@@ -11,14 +13,17 @@ export class Identifier extends Expression {
 
 	constructor(
 		readonly identifierName: string,
-		readonly symbolData?: NodeData
+		readonly compilerDirectives?: CompilerDirective[]
 	) {
 		super();
 
-		/*if (declarationDirectives) {
-			for (const compDir of declarationDirectives) {
+		if (this.compilerDirectives) {
+			for (const compDir of this.compilerDirectives) {
+				console.log(chalk.blueBright("COMPILER DIRECTIVE: " + compDir.kind))
 				switch (compDir.kind) {
 					case "Name":
+						console.log("IDENTIFIER NAME: " + this.identifierName) 
+						console.log(chalk.blueBright("GOT CUSTOM NAME: " + compDir.name))
 						this.customName = compDir.name
 						break
 					case "Predicate":
@@ -29,7 +34,7 @@ export class Identifier extends Expression {
 						break
 				}
 			}
-		}*/
+		}
 	}
 
 	formatName() {

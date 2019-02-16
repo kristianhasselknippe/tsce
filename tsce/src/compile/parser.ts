@@ -109,7 +109,7 @@ function nodeHasCompilerDirectiveKind(
 	return false;
 }
 
-/*function compilerDirectivesOfDeclarationOfNode(node: Node, langService: LanguageService) {
+function compilerDirectivesOfDeclarationOfNode(node: Node, langService: LanguageService) {
 	const definitions = langService.getDefinitionsAtPosition(
 		node.getSourceFile(),
 		node.getPos()
@@ -128,7 +128,7 @@ function nodeHasCompilerDirectiveKind(
 	return ret;
 }
 
-function declarationOfNodeHasCompilerDirectiveKind(
+/*function declarationOfNodeHasCompilerDirectiveKind(
 	node: Node,
 	compilerDirectiveKind: CompilerDirectiveKind
 ) {
@@ -239,6 +239,10 @@ export interface NodeData {
 
 export class Parser extends ParserBase<IR.Node, NodeData> {
 
+	constructor(readonly languageService: LanguageService) {
+		super()
+	}
+
 	private parseExpressionStatement(es: ExpressionStatement) {
 		return this.parse<IR.Expression>(es.getExpression());
 	}
@@ -339,7 +343,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 	}
 
 	private parseIdentifier(identifierNode: Identifier) {
-		return new IR.Identifier(this.symbols, identifierNode.getText())
+		const directives = compilerDirectivesOfDeclarationOfNode(identifierNode, this.languageService)
+		return new IR.Identifier(this.symbols, identifierNode.getText(), directives)
 	}
 
 	private parseParenthesizedExpression(pe: ParenthesizedExpression) {

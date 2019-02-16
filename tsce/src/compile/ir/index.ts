@@ -1,5 +1,6 @@
 import { SymbolTable } from "../symbolTable";
 import { TableItem, NodeData } from "../parser";
+import { CompilerDirective } from "../elispTypes/compilerDirective";
 
 type SymbolTableType = SymbolTable<TableItem<Node, NodeData>>
 
@@ -19,7 +20,8 @@ export abstract class Expression extends Node {
 
 export class Identifier extends Node {
 	constructor(symTable: SymbolTableType,
-				readonly name: string) {
+				readonly name: string,
+				readonly compilerDirectives: CompilerDirective[]) {
 		super(symTable)
 	}
 

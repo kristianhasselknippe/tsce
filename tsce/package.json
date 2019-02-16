@@ -26,9 +26,10 @@
 		"ts-simple-ast": "*"
 	},
 	"devDependencies": {
-		"typescript": "*",
 		"@types/jest": "^23.3.13",
 		"jest": "^24.0.0",
-		"ts-jest": "^23.10.5"
+		"source-map-support": "^0.5.10",
+		"ts-jest": "^23.10.5",
+		"typescript": "*"
 	}
 }

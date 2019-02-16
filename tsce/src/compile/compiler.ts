@@ -5,147 +5,8 @@ import * as EL from './elispTypes'
 import { TsceProject } from './projectFormat';
 import { Parser } from './parser';
 import { Defun } from './elispTypes';
+import { CompilerDirective } from './elispTypes/compilerDirective';
 
-
-/*function getDeclarationOfNode(node: Node) {
-	const nodeSymbol = node.getType().getSymbol();
-	if (nodeSymbol) {
-		return nodeSymbol.getDeclarations();
-	}
-}
-
-function getCommentsForDeclarationOfNode(node: Node) {
-	let ret: string[] = [];
-	const declarations = this.getDeclarationOfNode(node);
-	if (declarations) {
-		for (const decl of declarations) {
-			const comments = this.context.getCommentsForNode(decl);
-			ret = ret.concat(comments);
-		}
-	}
-	return ret;
-}
-
-function getArgumentsOfFunctionDeclaration(funDecl: FunctionDeclaration) {
-	const ret = [];
-	for (const param of funDecl.getParameters()) {
-		const declaration = this.getDeclarationOfNode(param);
-		if (declaration) {
-			for (const decl of declaration) {
-				ret.push(decl);
-			}
-		}
-	}
-	return ret;
-}
-
-function getCompilerDirectivesForNode(node: Node) {
-	const nodeComments = this.context.getCommentsForNode(node);
-	const compilerDirectives = extractCompilerDirectivesFromStrings(
-		nodeComments
-	);
-	return compilerDirectives;
-}
-
-function nodeHasCompilerDirectiveKind(
-	node: Node,
-	compilerDirectiveKind: CompilerDirectiveKind
-) {
-	const directives = this.getCompilerDirectivesForNode(node);
-	for (const dir of directives) {
-		if (dir.kind === compilerDirectiveKind) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function compilerDirectivesOfDeclarationOfNode(node: Node) {
-	const langService = this.project.getLanguageService();
-	const definitions = langService.getDefinitionsAtPosition(
-		node.getSourceFile(),
-		node.getPos()
-	);
-	let ret: CompilerDirective[] = [];
-	if (definitions) {
-		for (const def of definitions) {
-			let node = def.getNode();
-			if (TypeGuards.isIdentifier(node)) {
-				node = node.getParent()!;
-			}
-			const directives = this.getCompilerDirectivesForNode(node);
-			ret = ret.concat(directives);
-		}
-	}
-	return ret;
-}
-
-function declarationOfNodeHasCompilerDirectiveKind(
-	node: Node,
-	compilerDirectiveKind: CompilerDirectiveKind
-) {
-	const functionDeclarations = getDeclarationOfNode(node);
-	if (functionDeclarations) {
-		for (const decl of functionDeclarations) {
-			if (
-				nodeHasCompilerDirectiveKind(
-					decl,
-					compilerDirectiveKind
-				)
-			) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-
-
-function getNamedArgumentNamesForCallExpression(node: CallExpression) {
-	const declarations = this.getDeclarationOfNode(node.getExpression());
-	if (declarations) {
-		for (const declaration of declarations) {
-			if (
-				declaration.getKind() === ts.SyntaxKind.FunctionDeclaration
-			) {
-				const args = this.getArgumentsOfFunctionDeclaration(<
-																	FunctionDeclaration
-																	>declaration);
-				if (args.length !== 1) {
-					throw new Error(
-						'Named argument functions expect 1 and only 1 argument. Got ' +
-							args.length
-					);
-				}
-				const arg = args[0];
-				if (arg.getKind() === ts.SyntaxKind.InterfaceDeclaration) {
-					return this.getMembersOfInterfaceDeclaration(<
-																 InterfaceDeclaration
-																 >arg);
-				} else {
-					throw new Error(
-						'Named argument function expects their argument to be declared as an interface'
-					);
-				}
-			}
-		}
-	}
-	return [];
-}
-
-function getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
-	const ret = [];
-	for (const property of node.getProperties()) {
-		const name = property.getNameNode();
-		ret.push(this.parse<Elisp.Identifier>(name));
-	}
-	for (const property of node.getMethods()) {
-		const name = property.getNameNode();
-		ret.push(this.parse<Elisp.Identifier>(name));
-	}
-	return ret;
-	}*/
 
 interface Addable<T> {
 	add(item: T): void
@@ -315,7 +176,14 @@ class Compiler {
 			.map(x => this.compileAndExpect<EL.Identifier>(x))
 			.map(identifier => new EL.FunctionArg(identifier))
 
-		const scope = this.context.pushScope(new EL.Defun(name, args))
+		//functionDecl.symTable.visualize()
+		const symbolData = functionDecl.symTable.lookup(functionDecl.name.name)
+		console.log(chalk.blueBright("Compiler directives for function"), symbolData.data)
+		let compilerDirectives: CompilerDirective[] = []
+		if (symbolData.data) {
+			compilerDirectives = symbolData.data.compilerDirectives
+		}
+		const scope = this.context.pushScope(new EL.Defun(name, args, compilerDirectives))
 		this.compileNodeList(functionDecl.body)
 		this.context.resolveToParentOf(scope)
 	}
@@ -338,6 +206,7 @@ class Compiler {
 
 	compileSourceFile(sourceFile: IR.SourceFile) {
 		const scope = this.context.pushScope(new EL.SourceFile())
+		this.context.push(new EL.ModuleImport(new EL.StringLiteral("./ts-lib")))
 		this.compileNodeList(sourceFile.statements)
 		this.context.resolveTo(scope)
 	}
@@ -508,7 +377,7 @@ class Compiler {
 	}
 
 	compileModuleDeclaration(node: IR.ModuleDeclaration) {
-		//TODO: Implement module declaration
+		this.context.push(new EL.ModuleDeclaration(node.name))
 	}
 
 	compileNode(node?: IR.Node) {

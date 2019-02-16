@@ -1,7 +1,10 @@
 import { SymbolTable } from "../symbolTable";
+import { TableItem, NodeData } from "../parser";
+
+type SymbolTableType = SymbolTable<TableItem<Node, NodeData>>
 
 export abstract class Node {
-	constructor(readonly symTable: SymbolTable<Node>) {}
+	constructor(readonly symTable: SymbolTableType) {}
 
 	print() {
 		return 'Node'
@@ -9,13 +12,13 @@ export abstract class Node {
 }
 
 export abstract class Expression extends Node {
-	constructor(symTable: SymbolTable<Node>) {
+	constructor(symTable: SymbolTableType) {
 		super(symTable)
 	}
 }
 
 export class Identifier extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly name: string) {
 		super(symTable)
 	}
@@ -26,14 +29,14 @@ export class Identifier extends Node {
 }
 
 export abstract class NamedDeclaration extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly name: Identifier) {
 		super(symTable)
 	}
 }
 
 export class FunctionDeclaration extends NamedDeclaration {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				name: Identifier,
 				readonly args: Identifier[],
 				readonly body: Node[]) {
@@ -42,7 +45,7 @@ export class FunctionDeclaration extends NamedDeclaration {
 }
 
 export class VariableDeclaration extends NamedDeclaration {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				name: Identifier,
 				readonly initializer?: Node) {
 		super(symTable, name)
@@ -61,7 +64,7 @@ export class VariableDeclaration extends NamedDeclaration {
 }
 
 export class VariableDeclarationList extends Node {
-		constructor(symTable: SymbolTable<Node>,
+		constructor(symTable: SymbolTableType,
 					readonly variables: VariableDeclaration[]) {
 		super(symTable)
 		}
@@ -72,7 +75,7 @@ export class VariableDeclarationList extends Node {
 }
 
 export class Assignment extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly left: Node,
 				readonly right: Node) {
 		super(symTable)
@@ -80,7 +83,7 @@ export class Assignment extends Node {
 }
 
 export class BinaryExpr extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly left: Node,
 				readonly right: Node,
 				readonly operator: string) {
@@ -89,7 +92,7 @@ export class BinaryExpr extends Node {
 }
 
 export class UnaryPrefix extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly operand: Node,
 				readonly operator: string) {
 		super(symTable)
@@ -97,7 +100,7 @@ export class UnaryPrefix extends Node {
 }
 
 export class UnaryPostfix extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly operand: Node,
 				readonly operator: string) {
 		super(symTable)
@@ -105,14 +108,14 @@ export class UnaryPostfix extends Node {
 }
 
 export class DeleteExpression extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly expr: Node) {
 		super(symTable)
 	}
 }
 
 export class EnumMember extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly name: Identifier | StringLiteral,
 				readonly initializer?: Node) {
 		super(symTable)
@@ -120,7 +123,7 @@ export class EnumMember extends Node {
 }
 
 export class EnumDeclaration extends NamedDeclaration {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				name: Identifier,
 				readonly members: EnumMember[]) {
 		super(symTable, name)
@@ -128,14 +131,14 @@ export class EnumDeclaration extends NamedDeclaration {
 }
 
 export class ArrayLiteral extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly items: Node[]) {
 		super(symTable)
 	}
 }
 
 export class ElementAccess extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly left: Node,
 				readonly indexer: Node) {
 		super(symTable)
@@ -143,7 +146,7 @@ export class ElementAccess extends Node {
 }
 
 export class PropertyAccess extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly left: Node,
 				readonly right: Node) {
 		super(symTable)
@@ -151,7 +154,7 @@ export class PropertyAccess extends Node {
 }
 
 export class ObjectProperty extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly name: Identifier,
 				readonly value: Node) {
 		super(symTable)
@@ -159,14 +162,14 @@ export class ObjectProperty extends Node {
 }
 
 export class ObjectLiteral extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly properties: ObjectProperty[]) {
 		super(symTable)
 	}
 }
 
 export class StringLiteral extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly value: string) {
 		super(symTable)
 	}
@@ -177,7 +180,7 @@ export class StringLiteral extends Node {
 }
 
 export class NumberLiteral extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly value: string) {
 		super(symTable)
 	}
@@ -188,7 +191,7 @@ export class NumberLiteral extends Node {
 }
 
 export class BooleanLiteral extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly value: boolean) {
 		super(symTable)
 	}
@@ -199,14 +202,14 @@ export class BooleanLiteral extends Node {
 }
 
 export class Block extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly statements: Node[]) {
 		super(symTable)
 	}
 }
 
 export class CallExpression extends Expression {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly expression: Expression,
 				readonly args: Node[]) {
 		super(symTable)
@@ -214,7 +217,7 @@ export class CallExpression extends Expression {
 }
 
 export class If extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly thenCondition: Node,
 				readonly thenBlock: Node,
 				readonly elseItem?: If | Node,) {
@@ -223,7 +226,7 @@ export class If extends Node {
 }
 
 export class For extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly body: Node,
 				readonly initializer?: VariableDeclaration,
 				readonly condition?: Node,
@@ -233,7 +236,7 @@ export class For extends Node {
 }
 
 export class ForOf extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly variable: VariableDeclaration,
 				readonly expression: Node,
 				readonly body: Node) {
@@ -242,7 +245,7 @@ export class ForOf extends Node {
 }
 
 export class ForIn extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly variable: VariableDeclaration,
 				readonly expression: Node,
 				readonly body: Node) {
@@ -251,7 +254,7 @@ export class ForIn extends Node {
 }
 
 export class While extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly condition: Node,
 				readonly body: Block) {
 		super(symTable)
@@ -259,7 +262,7 @@ export class While extends Node {
 }
 
 export class ArrowFunction extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly args: Identifier[],
 				readonly body: Node[]) {
 		super(symTable)
@@ -267,14 +270,14 @@ export class ArrowFunction extends Node {
 }
 
 export class ReturnStatement extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly returnValue?: Node) {
 		super(symTable)
 	}
 }
 
 abstract class Import extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly path: StringLiteral) {
 		super(symTable)
 	}
@@ -282,7 +285,7 @@ abstract class Import extends Node {
 }
 
 export class NamedImport extends Import {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				path: StringLiteral,
 				readonly items: Identifier[],
 				readonly defaultItem?: Identifier) {
@@ -291,7 +294,7 @@ export class NamedImport extends Import {
 }
 
 export class NamespaceImport extends Import {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				path: StringLiteral,
 				readonly variable: Identifier) {
 		super(symTable, path)
@@ -299,7 +302,7 @@ export class NamespaceImport extends Import {
 }
 
 export class ModuleDeclaration extends Node {
-	constructor(symTable: SymbolTable<Node>,
+	constructor(symTable: SymbolTableType,
 				readonly name: string) {
 		super(symTable)
 	}

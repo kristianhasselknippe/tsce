@@ -346,6 +346,10 @@ class Compiler {
 		this.context.push(new EL.NumberLiteral(lit.value))
 	}
 
+	compileBooleanLiteral(lit: IR.BooleanLiteral) {
+		this.context.push(new EL.BooleanLiteral(lit.value))
+	}
+
 	compileAssignment(assign: IR.Assignment) {
 		const left = this.compileAndExpect<EL.Expression>(assign.left)
 		const right = this.compileAndExpect<EL.Expression>(assign.right)
@@ -465,7 +469,7 @@ class Compiler {
 	}
 
 	compileUnaryPrefix(node: IR.UnaryPrefix) {
-		const operand = this.compileAndExpect<EL.Expression>(node)
+		const operand = this.compileAndExpect<EL.Expression>(node.operand)
 		this.context.push(new EL.UnaryPrefixExpression(node.operator, operand))
 	}
 
@@ -561,6 +565,7 @@ class Compiler {
 				this.compileNumberLiteral(<IR.NumberLiteral>node)
 				break
 			case IR.BooleanLiteral:
+				this.compileBooleanLiteral(<IR.BooleanLiteral>node)
 				break
 			case IR.Block:
 				this.compileBlock(<IR.Block>node)

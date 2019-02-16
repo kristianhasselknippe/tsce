@@ -469,6 +469,18 @@ class Compiler {
 		this.context.push(new EL.UnaryPrefixExpression(node.operator, operand))
 	}
 
+	compileDeleteExpression(node: IR.DeleteExpression) {
+		const expr = this.compileAndExpect<EL.Expression>(node.expr)
+		this.context.push(new EL.DeleteExpression(expr))
+	}
+
+	compileArrowFunction(arrowFunc: IR.ArrowFunction) {
+		const args = arrowFunc.args.map(x => new EL.FunctionArg(this.compileAndExpect<EL.Identifier>(x)))
+		const scope = this.context.pushScope(new EL.Lambda(args))
+		this.compileNodeList(arrowFunc.body)
+		this.context.resolveTo(scope)
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -496,13 +508,15 @@ class Compiler {
 			case IR.BinaryExpr:
 				this.compileBinaryExpr(<IR.BinaryExpr>node)
 				break
-			case IR.UnaryPrefix:break
+			case IR.UnaryPrefix:
 				this.compileUnaryPrefix(<IR.UnaryPrefix>node)
 				break
 			case IR.UnaryPostfix:
 				this.compileUnaryPostfix(<IR.UnaryPostfix>node)
 				break
-			case IR.DeleteExpression:break
+			case IR.DeleteExpression:
+				this.compileDeleteExpression(<IR.DeleteExpression>node)
+				break
 			case IR.EnumMember:
 				this.compileEnumMember(<IR.EnumMember>node)
 				break
@@ -553,7 +567,9 @@ class Compiler {
 			case IR.While:
 				this.compileWhile(<IR.While>node)
 				break
-			case IR.ArrowFunction:break
+			case IR.ArrowFunction:
+				this.compileArrowFunction(<IR.ArrowFunction>node)
+				break
 			case IR.ReturnStatement:
 				this.compileReturn(<IR.ReturnStatement>node)
 				break

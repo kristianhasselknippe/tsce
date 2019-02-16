@@ -159,8 +159,7 @@ class Compiler {
 	}
 
 	compileIdentifier(identifier: IR.Identifier) {
-		const symbolData = identifier.symTable.tryLookup(identifier.name)
-		this.context.push(new EL.Identifier(identifier.name, symbolData && symbolData.data))
+		this.context.push(new EL.Identifier(identifier.name, identifier.compilerDirectives))
 	}
 
 	compileIf(ifNode: IR.If) {
@@ -447,7 +446,7 @@ class Compiler {
 		if (typeof node === 'undefined') {
 			return
 		}
-		console.log("Compiling node: " + (node.constructor as any).name + ": " + node.print())
+		//console.log("Compiling node: " + (node.constructor as any).name + ": " + node.print())
 		switch (node.constructor) {
 			case IR.SourceFile:
 				this.compileSourceFile(<IR.SourceFile>node)
@@ -560,7 +559,7 @@ class Compiler {
 	}
 
 	compile(): CompilationResult[] {
-		const parser = new Parser()
+		const parser = new Parser(this.project.getLanguageService())
 		const ret: CompilationResult[] = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
 			console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())

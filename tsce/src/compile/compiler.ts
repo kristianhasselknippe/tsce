@@ -373,6 +373,12 @@ class Compiler {
 		this.context.push(new EL.PropertyAccess(left, right))
 	}
 
+	compileElementAccess(elemAccess: IR.ElementAccess) {
+		const left = this.compileAndExpect<EL.Expression>(elemAccess.left)
+		const indexer = this.compileAndExpect<EL.Expression>(elemAccess.indexer)
+		this.context.push(new EL.ElementIndexer(left, indexer))
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -406,7 +412,9 @@ class Compiler {
 			case IR.EnumMember:break
 			case IR.EnumDeclaration:break
 			case IR.ArrayLiteral:break
-			case IR.ElementAccess:break
+			case IR.ElementAccess:
+				this.compileElementAccess(<IR.ElementAccess>node)
+				break
 			case IR.PropertyAccess:
 				this.compilePropertyAccess(<IR.PropertyAccess>node)
 				break

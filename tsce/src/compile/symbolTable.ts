@@ -36,15 +36,26 @@ export class SymbolTable<T> {
 		return this.parent 
 	}
 
-	lookup(symbol: string): T {
+	tryLookup(symbol: string): T | undefined {
 		if (symbol in this.symbols) {
 			return this.symbols[symbol]
 		} else {
 			if (this.hasParent) {
-				return this.parent.lookup(symbol)
+				return this.parent.tryLookup(symbol)
 			}
 		}
-		throw new Error("Unable to find name in symbol table: " + symbol)
+	}
+
+	lookup(symbol: string): T {
+		const ret = this.tryLookup(symbol)
+		if (typeof ret === 'undefined') {
+			throw new Error("Unable to find name in symbol table: " + symbol)
+		}
+		return ret
+	}
+
+	updateSymbolDataInline(name: string, updater: (oldData: T) => void) {
+		updater(this.lookup(name)!)
 	}
 
 	visualize() {

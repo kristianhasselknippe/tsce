@@ -4,6 +4,7 @@ import * as IR from './ir'
 import * as EL from './elispTypes'
 import { TsceProject } from './projectFormat';
 import { Parser } from './parser';
+import { Defun } from './elispTypes';
 
 
 /*function getDeclarationOfNode(node: Node) {
@@ -208,6 +209,16 @@ export class Stack<T> {
 		this.lastScopeStack.push(item)
 	}
 
+	getCurrentScopeMatchingPredicate(pred: (scope: T) => boolean): Scope<T> {
+		for (let i = this.stack.length - 1; i > 0; i--) {
+			const scope = this.stack[i]
+			if (pred(scope.scope)) {
+				return scope.scope
+			}
+		}
+		throw new Error("Could not find scope matching predicate: " + pred)
+	}
+
 	pushScope<TScope extends (T & Addable<T>)>(scope: TScope): ScopeStack<TScope> {
 		const scopeStack = new ScopeStack<TScope>(scope)
 		this.stack.push(scopeStack)
@@ -249,11 +260,11 @@ export class Stack<T> {
 class Compiler {
 	constructor(readonly project: Project) { }
 
-	context = new Stack()
+	context = new Stack<EL.Node>()
 
-	compileAndExpect<TOut>(node: IR.Node): TOut
-	compileAndExpect<TOut>(node: IR.Node | undefined): TOut | undefined
-	compileAndExpect<TOut>(node: IR.Node | undefined) {
+	compileAndExpect<TOut extends EL.Node>(node: IR.Node): TOut
+	compileAndExpect<TOut extends EL.Node>(node: IR.Node | undefined): TOut | undefined
+	compileAndExpect<TOut extends EL.Node>(node: IR.Node | undefined) {
 		if (typeof node === 'undefined') {
 			return
 		}
@@ -337,6 +348,13 @@ class Compiler {
 		this.context.push(res)
 	}
 
+	compileReturn(ret: IR.ReturnStatement) {
+		//TODO: Make the return of getCurrentscopematchingpredicate typesafe
+		const parentFunc = this.context.getCurrentScopeMatchingPredicate(scope => scope instanceof EL.Defun) as EL.Defun
+		const retValue = this.compileAndExpect<EL.Expression>(ret.returnValue)
+		this.context.push(new EL.ReturnStatement(parentFunc.blockId, retValue))
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -397,7 +415,9 @@ class Compiler {
 			case IR.ForIn:break
 			case IR.While:break
 			case IR.ArrowFunction:break
-			case IR.ReturnStatement:break
+			case IR.ReturnStatement:
+				this.compileReturn(<IR.ReturnStatement>node)
+				break
 			case IR.NamedImport:break
 			case IR.NamespaceImport:break
 			case IR.ModuleDeclaration:break

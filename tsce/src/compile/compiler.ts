@@ -317,6 +317,8 @@ class Compiler {
 		const indexer = this.compileAndExpect<EL.Expression>(elemAccess.indexer)
 		if (elemAccess.indexerType === IR.ElementIndexerType.String) {
 			this.context.push(new EL.ElementIndexer(left, indexer))
+		} else if (elemAccess.elementType === IR.ElementType.String) {
+			this.context.push(new EL.StringIndexer(left, indexer))
 		} else {
 			this.context.push(new EL.ArrayIndexer(left, indexer))
 		}

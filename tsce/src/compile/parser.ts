@@ -435,20 +435,29 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 
 	private parseElementAccess(indexer: ElementAccessExpression) {
 		const left = this.parse<IR.Node>(indexer.getExpression())
-		const index = this.parse<IR.Node>(indexer.getArgumentExpression()!);
+		const leftExpr = indexer.getExpression()!
+		const leftExprType = leftExpr.getType().getApparentType().getText()
 
+		let elementAccessSource = IR.ElementType.Array
+		if (leftExprType === "String") {
+			elementAccessSource = IR.ElementType.String
+		}
+
+		const index = this.parse<IR.Node>(indexer.getArgumentExpression()!);
 		const indexExpr = indexer.getArgumentExpression()!
 		const indexExprType = indexExpr.getType().getApparentType().getText()
+		let elementIndexerType = IR.ElementIndexerType.String
 		switch (indexExprType) {
 			case 'String':
-				return new IR.ElementAccess(this.symbols, left, index, IR.ElementIndexerType.String)
+				elementIndexerType = IR.ElementIndexerType.String
 				break
 			case 'Number':
-				return new IR.ElementAccess(this.symbols, left, index, IR.ElementIndexerType.Number)
+				elementIndexerType = IR.ElementIndexerType.Number
 				break
 			default:
 				throw new Error('Tried to index into an item using something other than string or number: ' + indexExprType)
 		}
+		return new IR.ElementAccess(this.symbols, left, index, elementAccessSource, elementIndexerType)
 	}
 
 	private parseArrayLiteralExpression(arrayLiteral: ArrayLiteralExpression) {

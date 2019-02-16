@@ -142,10 +142,17 @@ export enum ElementIndexerType {
 	String
 }
 
+export enum ElementType {
+	Array,
+	String,
+	Object
+}
+
 export class ElementAccess extends Node {
 	constructor(symTable: SymbolTableType,
 				readonly left: Node,
 				readonly indexer: Node,
+				readonly elementType: ElementType,
 				readonly indexerType: ElementIndexerType) {
 		super(symTable)
 	}

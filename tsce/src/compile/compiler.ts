@@ -430,11 +430,17 @@ class Compiler {
 		this.compileNode(forNode.body)
 		this.context.resolveToParentOf(scope)
 	}
-	
+
 	compileForOf(forOf: IR.ForOf) {
+		const variable = this.compileAndExpect<EL.LetBinding>(forOf.variable)
+		const expression = this.compileAndExpect<EL.Expression>(forOf.expression)
+		const scope = this.context.pushScope(new EL.ForOf(variable, expression))
+		this.compileNode(forOf.body)
+		this.context.resolveToParentOf(scope)
 	}
 
 	compileForIn(forIn: IR.ForIn) {
+		throw new Error("For in statement are currently not supported")
 	}
 
 	compileWhile(whileNode: IR.While) {

@@ -481,6 +481,22 @@ class Compiler {
 		this.context.resolveTo(scope)
 	}
 
+	compileNamedImport(node: IR.NamedImport) {
+		const modulePath = this.compileAndExpect<EL.StringLiteral>(node.path)
+		const items = node.items.map(x => this.compileAndExpect<EL.Identifier>(x))
+		this.context.push(new EL.ModuleImport(modulePath, items))
+	}
+
+	compileNamespaceImport(node: IR.NamespaceImport) {
+		const namespaceIdentifier = this.compileAndExpect<EL.Identifier>(node.variable)
+		const modulePath = this.compileAndExpect<EL.StringLiteral>(node.path)
+		this.context.push(new EL.NamespaceImport(namespaceIdentifier, modulePath))
+	}
+
+	compileModuleDeclaration(node: IR.ModuleDeclaration) {
+		
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -573,9 +589,15 @@ class Compiler {
 			case IR.ReturnStatement:
 				this.compileReturn(<IR.ReturnStatement>node)
 				break
-			case IR.NamedImport:break
-			case IR.NamespaceImport:break
-			case IR.ModuleDeclaration:break
+			case IR.NamedImport:
+				this.compileNamedImport(<IR.NamedImport>node)
+				break
+			case IR.NamespaceImport:
+				this.compileNamespaceImport(<IR.NamespaceImport>node)
+				break
+			case IR.ModuleDeclaration:
+				this.compileModuleDeclaration(<IR.ModuleDeclaration>node)
+				break
 			case IR.Null:
 				this.context.push(new EL.Null())
 				break

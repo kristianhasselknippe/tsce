@@ -1,28 +1,20 @@
-import { tabs, Node, StringLiteral, Expression } from '.';
-import { VariableDeclarationREMOVE } from './variableDeclaration';
+import { tabs, Node, StringLiteral, Expression, Identifier } from '.';
 
 export class ModuleImport extends Expression {
 	type: string = 'ModuleImport';
 
 	constructor(
 		readonly moduleString: StringLiteral,
-		readonly items: VariableDeclarationREMOVE[],
-		readonly isRelativePath: boolean
+		readonly items: Identifier[]
 	) {
 		super();
 	}
 
 	emit(indent: number) {
-		if (this.isRelativePath) {
-			return `${tabs(indent)}(load-file ${this.moduleString.emitWith(
-				0,
-				'.el'
-			)})\n`;
-		} else {
-			/* TODO: We don't emit modules outside our own project.
-			   This might not be enough in the future. */
-			return '';
-		}
+		return `${tabs(indent)}(load-file ${this.moduleString.emitWith(
+0,
+'.el'
+)})\n`;
 	}
 }
 
@@ -30,23 +22,16 @@ export class NamespaceImport extends Expression {
 	type: string = 'NamespaceImport';
 
 	constructor(
-		readonly namespaceObjectIdentifier: VariableDeclarationREMOVE,
+		readonly namespaceObjectIdentifier: Identifier,
 		readonly moduleString: StringLiteral,
-		readonly isRelativePath: boolean
 	) {
 		super();
 	}
 
 	emit(indent: number): string {
-		if (this.isRelativePath) {
-			return `${tabs(indent)}(load-file ${this.moduleString.emitWith(
-				0,
-				'.el'
-			)})\n`;
-		} else {
-			/* TODO: We don't emit modules outside our own project.
-			   This might not be enough in the future. */
-			return '';
-		}
+		return `${tabs(indent)}(load-file ${this.moduleString.emitWith(
+0,
+'.el'
+)})\n`;
 	}
 }

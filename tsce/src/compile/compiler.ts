@@ -214,6 +214,7 @@ export class Stack<T> {
 	}
 
 	push(item: T) {
+
 		this.lastScopeStack.push(item)
 	}
 
@@ -310,9 +311,7 @@ class Compiler {
 
 		const scope = this.context.pushScope(new EL.Defun(name, args))
 		this.compileNodeList(functionDecl.body)
-		this.context.print("BEFORE: ")
 		this.context.resolveToParentOf(scope)
-		this.context.print("AFTER: ")
 	}
 
 	compileVariableDeclaration(varDecl: IR.VariableDeclaration) {
@@ -423,11 +422,51 @@ class Compiler {
 		this.context.push(new EL.FunctionCallDefun(left as EL.Identifier, args))
 	}
 
+	compileFor(forNode: IR.For) {
+		const init = this.compileAndExpect<EL.LetBinding>(forNode.initializer)
+		const cond = this.compileAndExpect<EL.Expression>(forNode.condition)
+		const inc = this.compileAndExpect<EL.Expression>(forNode.incrementor)
+		const scope = this.context.pushScope(new EL.ForStatement(init, cond, inc))
+		this.compileNode(forNode.body)
+		this.context.resolveToParentOf(scope)
+	}
+	
+	compileForOf(forOf: IR.ForOf) {
+	}
+
+	compileForIn(forIn: IR.ForIn) {
+	}
+
+	compileWhile(whileNode: IR.While) {
+	}
+
+	compileUnaryPostfix(node: IR.UnaryPostfix) {
+		console.log(chalk.bgCyan('Unary postfix: '), node)
+		const operand = this.compileAndExpect<EL.Expression>(node.operand)
+		let operator: EL.UnaryPostfixOp
+		switch (node.operator) {
+			case '++':
+				operator = EL.UnaryPostfixOp.PlusPlus
+				break
+			case '--':
+				operator = EL.UnaryPostfixOp.MinusMinus
+				break
+			default:
+				throw new Error('Unknown postfix operator: ' + node.operator)
+		}
+		this.context.push(new EL.UnaryPostfixExpression(operator, operand))
+	}
+
+	compileUnaryPrefix(node: IR.UnaryPrefix) {
+		const operand = this.compileAndExpect<EL.Expression>(node)
+		this.context.push(new EL.UnaryPrefixExpression(node.operator, operand))
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
 		}
-		console.log("Compiling node: " + (node.constructor as any).name)
+		console.log("Compiling node: " + (node.constructor as any).name + ": " + node.print())
 		switch (node.constructor) {
 			case IR.SourceFile:
 				this.compileSourceFile(<IR.SourceFile>node)
@@ -451,7 +490,11 @@ class Compiler {
 				this.compileBinaryExpr(<IR.BinaryExpr>node)
 				break
 			case IR.UnaryPrefix:break
-			case IR.UnaryPostfix:break
+				this.compileUnaryPrefix(<IR.UnaryPrefix>node)
+				break
+			case IR.UnaryPostfix:
+				this.compileUnaryPostfix(<IR.UnaryPostfix>node)
+				break
 			case IR.DeleteExpression:break
 			case IR.EnumMember:
 				this.compileEnumMember(<IR.EnumMember>node)
@@ -491,10 +534,18 @@ class Compiler {
 			case IR.If:
 				this.compileIf(<IR.If>node)
 				break
-			case IR.For:break
-			case IR.ForOf:break
-			case IR.ForIn:break
-			case IR.While:break
+			case IR.For:
+				this.compileFor(<IR.For>node)
+				break
+			case IR.ForOf:
+				this.compileForOf(<IR.ForOf>node)
+				break
+			case IR.ForIn:
+				this.compileForIn(<IR.ForIn>node)
+				break
+			case IR.While:
+				this.compileWhile(<IR.While>node)
+				break
 			case IR.ArrowFunction:break
 			case IR.ReturnStatement:
 				this.compileReturn(<IR.ReturnStatement>node)

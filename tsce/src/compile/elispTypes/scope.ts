@@ -33,7 +33,11 @@ export abstract class Scope extends Expression {
 	}
 
 	emit(indent: number) {
-		return this.emitBody(indent, false)
+		let progn = false
+		if (this.body.length > 1) {
+			progn = true
+		}
+		return this.emitBody(indent, progn)
 	}
 
 	isScope(): this is Scope {

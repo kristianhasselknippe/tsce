@@ -159,7 +159,8 @@ class Compiler {
 	}
 
 	compileIdentifier(identifier: IR.Identifier) {
-		this.context.push(new EL.Identifier(identifier.name, identifier.compilerDirectives))
+		const symbolData = identifier.symTable.tryLookup(identifier.name)
+		this.context.push(new EL.Identifier(identifier.name, identifier.compilerDirectives, symbolData && symbolData.data))
 	}
 
 	compileIf(ifNode: IR.If) {

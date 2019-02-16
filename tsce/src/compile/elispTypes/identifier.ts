@@ -13,17 +13,15 @@ export class Identifier extends Expression {
 
 	constructor(
 		readonly identifierName: string,
-		readonly compilerDirectives?: CompilerDirective[]
+		readonly compilerDirectives: CompilerDirective[],
+		readonly symbolData?: NodeData
 	) {
 		super();
 
 		if (this.compilerDirectives) {
 			for (const compDir of this.compilerDirectives) {
-				console.log(chalk.blueBright("COMPILER DIRECTIVE: " + compDir.kind))
 				switch (compDir.kind) {
 					case "Name":
-						console.log("IDENTIFIER NAME: " + this.identifierName) 
-						console.log(chalk.blueBright("GOT CUSTOM NAME: " + compDir.name))
 						this.customName = compDir.name
 						break
 					case "Predicate":

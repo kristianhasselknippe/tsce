@@ -1,4 +1,4 @@
-import { Lambda, Identifier, VariableDeclarationREMOVE, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
+import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
 
 export abstract class Node {
 	abstract type: string
@@ -32,10 +32,6 @@ export abstract class Node {
 
 	isIdentifier(): this is Identifier {
 		return this.type === 'Identifier'
-	}
-
-	isVariableDeclaration(): this is VariableDeclarationREMOVE {
-		return false
 	}
 
 	isScope(): this is Scope {

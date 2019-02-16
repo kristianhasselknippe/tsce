@@ -179,6 +179,7 @@ class ScopeStack<T> {
 		this.items.forEach(x => {
 			this.scope.add(x)
 		})
+		this.items = []
 	}
 
 	get isEmpty() {
@@ -203,6 +204,13 @@ export class Stack<T> {
 		} else {
 			return this.lastScopeStack.pop()
 		}
+	}
+
+	popScope() {
+		if (this.stack.length === 0) {
+			throw new Error('Attempted to pop scope from empty scope stack')
+		}
+		return this.stack.pop()!
 	}
 
 	push(item: T) {
@@ -237,16 +245,24 @@ export class Stack<T> {
 		throw new Error(`Could not find parent scope of: ${constructorName(scope.scope)}`)
 	}
 
-	print() {
+	print(msg?: string) {
+		if (msg) {
+			console.log(msg)
+		}
 		console.log("STACK: ", this.stack)
+	}
+
+	resolveCurrentScope() {
+		this.lastScopeStack.resolve()
+		const lastScope = this.popScope()!.scope
+		this.lastScopeStack.push(lastScope)
 	}
 
 	resolveTo<TOut extends T>(scope: ScopeStack<TOut>): TOut {
 		while (this.lastScopeStack !== scope) {
-			this.lastScopeStack.resolve()
-			const lastScope = this.stack.pop()!.scope
-			this.lastScopeStack.push(lastScope)
+			this.resolveCurrentScope()
 		}
+		this.lastScopeStack.resolve()
 		return scope.scope
 	}
 
@@ -294,7 +310,9 @@ class Compiler {
 
 		const scope = this.context.pushScope(new EL.Defun(name, args))
 		this.compileNodeList(functionDecl.body)
+		this.context.print("BEFORE: ")
 		this.context.resolveToParentOf(scope)
+		this.context.print("AFTER: ")
 	}
 
 	compileVariableDeclaration(varDecl: IR.VariableDeclaration) {
@@ -310,8 +328,9 @@ class Compiler {
 	}
 
 	compileSourceFile(sourceFile: IR.SourceFile) {
-		this.context.pushScope(new EL.SourceFile())
+		const scope = this.context.pushScope(new EL.SourceFile())
 		this.compileNodeList(sourceFile.statements)
+		this.context.resolveTo(scope)
 	}
 
 	compileNodeList(nodes: IR.Node[]) {
@@ -376,12 +395,25 @@ class Compiler {
 	compileElementAccess(elemAccess: IR.ElementAccess) {
 		const left = this.compileAndExpect<EL.Expression>(elemAccess.left)
 		const indexer = this.compileAndExpect<EL.Expression>(elemAccess.indexer)
+		//TODO: Pick correct indexer type based on the type
 		this.context.push(new EL.ElementIndexer(left, indexer))
 	}
 
 	compileArrayLiteral(arrLit: IR.ArrayLiteral) {
 		const items = arrLit.items.map(x => this.compileAndExpect<EL.Expression>(x))
 		this.context.push(new EL.ArrayLiteral(items))
+	}
+
+	compileEnumMember(enumMember: IR.EnumMember) {
+		const name = this.compileAndExpect<EL.Identifier | EL.StringLiteral>(enumMember.name)
+		const initializer = this.compileAndExpect<EL.Expression>(enumMember.initializer)
+		this.context.push(new EL.EnumMember(name, initializer))
+	}
+
+	compileEnumDeclaration(enumDecl: IR.EnumDeclaration) {
+		const identifier = this.compileAndExpect<EL.Identifier>(enumDecl.name)
+		const members = enumDecl.members.map(x => this.compileAndExpect<EL.EnumMember>(x))
+		this.context.push(new EL.Enum(identifier, members))
 	}
 
 	compileNode(node?: IR.Node) {
@@ -414,8 +446,12 @@ class Compiler {
 			case IR.UnaryPrefix:break
 			case IR.UnaryPostfix:break
 			case IR.DeleteExpression:break
-			case IR.EnumMember:break
-			case IR.EnumDeclaration:break
+			case IR.EnumMember:
+				this.compileEnumMember(<IR.EnumMember>node)
+				break
+			case IR.EnumDeclaration:
+				this.compileEnumDeclaration(<IR.EnumDeclaration>node)
+				break
 			case IR.ArrayLiteral:
 				this.compileArrayLiteral(<IR.ArrayLiteral>node)
 				break
@@ -469,7 +505,7 @@ class Compiler {
 
 	generateElisp(ast: IR.SourceFile) {
 		this.compileNode(ast)
-		return this.context.pop() as EL.SourceFile
+		return this.context.popScope().scope as EL.SourceFile
 	}
 
 	compile(): CompilationResult[] {
@@ -480,6 +516,7 @@ class Compiler {
 			//TODO: Add ts-lib.el import to top
 			const sourceBody = parser.parseFile(sourceFile)
 			const elisp = this.generateElisp(sourceBody)
+			console.log("Elisp code", elisp)
 			const elispSource = elisp.emit(0)
 			ret.push({
 				fileName: sourceFile.getBaseNameWithoutExtension(),

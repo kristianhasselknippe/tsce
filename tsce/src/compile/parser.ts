@@ -228,7 +228,8 @@ class ParserBase<TNode, TData> {
 export enum SymbolType {
 	FunctionDeclaration,
 	VariableDeclaration,
-	ImportedName
+	ImportedName,
+	FunctionArgument
 }
 
 export interface NodeData {
@@ -290,7 +291,10 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 				.map(x => this.parse<IR.Identifier>(x!))
 
 			for (const a of args) {
-				this.insertSymbol(a.name, a)
+				this.insertSymbol(a.name, a, {
+					compilerDirectives: [],
+					symbolType: SymbolType.FunctionArgument
+				})
 			}
 
 			let statements = fd.getStatements().map(x => {
@@ -523,7 +527,10 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 				.filter(x => typeof x !== 'undefined')
 				.map(x => this.parse<IR.Identifier>(x!))
 			for (const param of params) {
-				this.insertSymbol(param.name, param)
+				this.insertSymbol(param.name, param, {
+					compilerDirectives: [],
+					symbolType: SymbolType.FunctionArgument
+				})
 			}
 			const body = this.parse<IR.Node>(arrowFunc.getBody())
 			return new IR.ArrowFunction(this.symbols, params, [body])

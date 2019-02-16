@@ -14,6 +14,9 @@ export class IfExpression extends Expression {
 	}
 
 	emitThen(indent: number) {
+		if (this.thenBlock.body.length === 0) {
+			return `${tabs(indent+1)}'nil`
+		}
 		return `${this.thenBlock.emit(indent+1)}`
 	}
 

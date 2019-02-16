@@ -379,6 +379,11 @@ class Compiler {
 		this.context.push(new EL.ElementIndexer(left, indexer))
 	}
 
+	compileArrayLiteral(arrLit: IR.ArrayLiteral) {
+		const items = arrLit.items.map(x => this.compileAndExpect<EL.Expression>(x))
+		this.context.push(new EL.ArrayLiteral(items))
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -411,7 +416,9 @@ class Compiler {
 			case IR.DeleteExpression:break
 			case IR.EnumMember:break
 			case IR.EnumDeclaration:break
-			case IR.ArrayLiteral:break
+			case IR.ArrayLiteral:
+				this.compileArrayLiteral(<IR.ArrayLiteral>node)
+				break
 			case IR.ElementAccess:
 				this.compileElementAccess(<IR.ElementAccess>node)
 				break

@@ -33,9 +33,9 @@ import {
 	NamespaceImport,
 	StringLiteral,
 	NamespaceDeclaration,
-    SourceFile,
-    LanguageService,
-    InterfaceDeclaration} from 'ts-simple-ast';
+	SourceFile,
+	LanguageService,
+	InterfaceDeclaration} from 'ts-simple-ast';
 import chalk from 'chalk'
 import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
@@ -436,7 +436,19 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 	private parseElementAccess(indexer: ElementAccessExpression) {
 		const left = this.parse<IR.Node>(indexer.getExpression())
 		const index = this.parse<IR.Node>(indexer.getArgumentExpression()!);
-		return new IR.ElementAccess(this.symbols, left, index)
+
+		const indexExpr = indexer.getArgumentExpression()!
+		const indexExprType = indexExpr.getType().getApparentType().getText()
+		switch (indexExprType) {
+			case 'String':
+				return new IR.ElementAccess(this.symbols, left, index, IR.ElementIndexerType.String)
+				break
+			case 'Number':
+				return new IR.ElementAccess(this.symbols, left, index, IR.ElementIndexerType.Number)
+				break
+			default:
+				throw new Error('Tried to index into an item using something other than string or number: ' + indexExprType)
+		}
 	}
 
 	private parseArrayLiteralExpression(arrayLiteral: ArrayLiteralExpression) {

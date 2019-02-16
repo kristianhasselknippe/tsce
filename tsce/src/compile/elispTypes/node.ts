@@ -1,4 +1,5 @@
 import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
+import { NumberLiteral } from '../ir';
 
 export abstract class Node {
 	abstract type: string
@@ -46,11 +47,19 @@ export abstract class Node {
 		return false
 	}
 
-	isArrayIndexerVariableDeclarationIndexer() {
+	isArrayIndexer(): this is ArrayIndexer {
 		return false
 	}
 
 	isStringIndexer(): this is StringIndexer {
+		return false
+	}
+
+	isStringLiteral(): this is StringLiteral {
+		return false
+	}
+
+	isNumberLiteral(): this is NumberLiteral {
 		return false
 	}
 }

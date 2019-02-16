@@ -225,8 +225,15 @@ class ParserBase<TNode, TData> {
 	}
 }
 
+export enum SymbolType {
+	FunctionDeclaration,
+	VariableDeclaration,
+	ImportedName
+}
+
 export interface NodeData {
 	compilerDirectives: CompilerDirective[]
+	symbolType: SymbolType
 }
 
 export class Parser extends ParserBase<IR.Node, NodeData> {
@@ -258,7 +265,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 			identifier,
 			initializer
 		), {
-			compilerDirectives: getCompilerDirectivesForNode(vd)
+			compilerDirectives: getCompilerDirectivesForNode(vd),
+			symbolType: SymbolType.VariableDeclaration
 		})
 	}
 
@@ -296,7 +304,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 				statements
 			)
 		}, {
-			compilerDirectives
+			compilerDirectives,
+			symbolType: SymbolType.FunctionDeclaration
 		})
 	}
 
@@ -493,7 +502,12 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 				} else if (TypeGuards.isNamedImports(namedBindings)) {
 					//TODO: Also handle the default import item
 					const elements = namedBindings.getElements().map(x => {
-						return this.parse<IR.Identifier>(x.getNameNode())
+						const identifier = this.parse<IR.Identifier>(x.getNameNode())
+						this.insertSymbol(identifier.name, identifier, {
+							compilerDirectives: [],
+							symbolType: SymbolType.ImportedName
+						})
+						return identifier
 					})
 					return new IR.NamedImport(this.symbols, moduleName, elements)
 				}

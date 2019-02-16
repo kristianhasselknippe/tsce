@@ -3,9 +3,10 @@ import chalk from 'chalk'
 import * as IR from './ir'
 import * as EL from './elispTypes'
 import { TsceProject } from './projectFormat';
-import { Parser } from './parser';
+import { Parser, SymbolType } from './parser';
 import { Defun } from './elispTypes';
 import { CompilerDirective } from './elispTypes/compilerDirective';
+import { SymbolTable } from './symbolTable';
 
 
 interface Addable<T> {
@@ -299,10 +300,27 @@ class Compiler {
 	}
 
 	compileCallExpression(callExpr: IR.CallExpression) {
-		const left = this.compileAndExpect<EL.Node>(callExpr.expression)
+		const left = this.compileAndExpect<EL.Identifier | EL.Expression>(callExpr.expression)
 		const args = callExpr.args.map(arg => this.compileAndExpect<EL.Expression>(arg))
-		//TODO: Handle all the call types
-		this.context.push(new EL.FunctionCallDefun(left as EL.Identifier, args))
+
+		if (left.isIdentifier()) {
+			const symbolData = callExpr.symTable.lookup(left.identifierName)
+			if (symbolData.data) {
+				switch (symbolData.data.symbolType) {
+					case SymbolType.FunctionDeclaration:
+						this.context.push(new EL.FunctionCallDefun(left, args))
+						break
+					case SymbolType.VariableDeclaration:
+						this.context.push(new EL.FunctionCallVariable(left, args))
+						break
+				}
+			} else {
+				throw new Error("Could not get symbol data for function: " + left.identifierName)
+			}
+		} else {
+			this.context.push(new EL.FunctionCallVariable(left, args))
+		}
+
 	}
 
 	compileFor(forNode: IR.For) {

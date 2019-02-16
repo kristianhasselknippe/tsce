@@ -137,10 +137,16 @@ export class ArrayLiteral extends Node {
 	}
 }
 
+export enum ElementIndexerType {
+	Number,
+	String
+}
+
 export class ElementAccess extends Node {
 	constructor(symTable: SymbolTableType,
 				readonly left: Node,
-				readonly indexer: Node) {
+				readonly indexer: Node,
+				readonly indexerType: ElementIndexerType) {
 		super(symTable)
 	}
 }

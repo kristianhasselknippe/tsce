@@ -33,6 +33,10 @@ export class NumberLiteral extends Literal<number> {
 	emit(indent: number) {
 		return tabs(indent) + this.num;
 	}
+
+	isNumberLiteral() {
+		return true
+	}
 }
 
 export class StringLiteral extends Literal<string> {

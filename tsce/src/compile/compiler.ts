@@ -179,15 +179,12 @@ class Compiler {
 
 		//functionDecl.symTable.visualize()
 		const symbolData = functionDecl.symTable.lookup(functionDecl.name.name)
-		console.log(chalk.blueBright("Compiler directives for function"), symbolData.data)
 		let compilerDirectives: CompilerDirective[] = []
 		if (symbolData.data) {
 			compilerDirectives = symbolData.data.compilerDirectives
 		}
 		const scope = this.context.pushScope(new EL.Defun(name, args, compilerDirectives))
-		this.context.print(chalk.redBright("Before the node list"))
 		this.compileNodeList(functionDecl.body)
-		this.context.print(chalk.red("   after"))
 		this.context.resolveToParentOf(scope)
 	}
 
@@ -280,8 +277,11 @@ class Compiler {
 	compileElementAccess(elemAccess: IR.ElementAccess) {
 		const left = this.compileAndExpect<EL.Expression>(elemAccess.left)
 		const indexer = this.compileAndExpect<EL.Expression>(elemAccess.indexer)
-		//TODO: Pick correct indexer type based on the type
-		this.context.push(new EL.ElementIndexer(left, indexer))
+		if (elemAccess.indexerType === IR.ElementIndexerType.String) {
+			this.context.push(new EL.ElementIndexer(left, indexer))
+		} else {
+			this.context.push(new EL.ArrayIndexer(left, indexer))
+		}
 	}
 
 	compileArrayLiteral(arrLit: IR.ArrayLiteral) {
@@ -355,7 +355,6 @@ class Compiler {
 	}
 
 	compileUnaryPostfix(node: IR.UnaryPostfix) {
-		console.log(chalk.bgCyan('Unary postfix: '), node)
 		const operand = this.compileAndExpect<EL.Expression>(node.operand)
 		let operator: EL.UnaryPostfixOp
 		switch (node.operator) {

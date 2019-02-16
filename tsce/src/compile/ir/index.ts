@@ -1,6 +1,7 @@
 import { SymbolTable } from "../symbolTable";
 import { TableItem, NodeData } from "../parser";
 import { CompilerDirective } from "../elispTypes/compilerDirective";
+import * as ts from 'ts-simple-ast'
 
 type SymbolTableType = SymbolTable<TableItem<Node, NodeData>>
 
@@ -225,6 +226,7 @@ export class Block extends Node {
 
 export class CallExpression extends Expression {
 	constructor(symTable: SymbolTableType,
+				readonly typescriptNode: ts.CallExpression,
 				readonly expression: Expression,
 				readonly args: Node[]) {
 		super(symTable)

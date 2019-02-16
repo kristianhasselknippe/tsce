@@ -1,5 +1,6 @@
 import { Block, Node, tabs, hyphenate, Identifier } from './';
 import { CompilerDirective } from './compilerDirective';
+import { NodeData } from '../parser';
 
 export class FunctionArg extends Node {
 	type: string = 'FunctionArg';
@@ -22,11 +23,12 @@ export class Defun extends Block {
 	constructor(
 		identifier: Identifier,
 		readonly args: FunctionArg[],
-		readonly compilerDirectives?: CompilerDirective[]
+		readonly nodeData?: NodeData
 	) {
 		super(identifier);
 
-		if (compilerDirectives && compilerDirectives.length > 0) {
+		if (nodeData) {
+			const compilerDirectives = nodeData.compilerDirectives
 			for (const compDir of compilerDirectives) {
 				switch (compDir.kind) {
 					case 'Form':
@@ -69,6 +71,10 @@ export class Defun extends Block {
 	}
 
 	emit(indent: number) {
+		if (this.nodeData && !this.nodeData.hasImplementation) {
+			return ''
+		}
+		
 		return `${tabs(indent)}(${this.getForm()} ${this.identifier.emit(
 			0
 		)} (${this.emitArgs()})${this.emitInteractive(indent + 1)}

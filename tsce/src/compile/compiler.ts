@@ -350,9 +350,21 @@ class Compiler {
 
 	compileReturn(ret: IR.ReturnStatement) {
 		//TODO: Make the return of getCurrentscopematchingpredicate typesafe
+		this.context.print()
 		const parentFunc = this.context.getCurrentScopeMatchingPredicate(scope => scope instanceof EL.Defun) as EL.Defun
 		const retValue = this.compileAndExpect<EL.Expression>(ret.returnValue)
 		this.context.push(new EL.ReturnStatement(parentFunc.blockId, retValue))
+	}
+
+	compileObjectLiteral(objLit: IR.ObjectLiteral) {
+		const props = objLit.properties.map(x => this.compileAndExpect<EL.Property>(x))
+		this.context.push(new EL.ObjectLiteral(props))
+	}
+
+	compileObjectProperty(objProp: IR.ObjectProperty) {
+		const identifier = this.compileAndExpect<EL.Identifier>(objProp.name)
+		const value = this.compileAndExpect<EL.Expression>(objProp.value)
+		this.context.push(new EL.Property(identifier, value))
 	}
 
 	compileNode(node?: IR.Node) {
@@ -391,8 +403,10 @@ class Compiler {
 			case IR.ElementAccess:break
 			case IR.PropertyAccess:break
 			case IR.ObjectProperty:
+				this.compileObjectProperty(<IR.ObjectProperty>node)
 				break
 			case IR.ObjectLiteral:
+				this.compileObjectLiteral(<IR.ObjectLiteral>node)
 				break
 			case IR.StringLiteral:
 				this.compileStringLiteral(<IR.StringLiteral>node)

@@ -50,11 +50,11 @@ export class NamedArgumentsFunctionCallDefun extends FunctionCallDefun {
 	bindingName: string
 	wrappingLet: LetBinding
 
-	constructor(readonly leftHand: Identifier, arg: Expression, private namedArguments: Identifier[]) {
+	constructor(readonly leftHand: Identifier, arg: Expression, private namedArguments: string[]) {
 		super(leftHand, [arg])
 
 		this.bindingName = this.randomBindingName()
-		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName), arg)])
+		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName, []), arg)])
 	}
 
 	randomBindingName() {
@@ -64,9 +64,9 @@ export class NamedArgumentsFunctionCallDefun extends FunctionCallDefun {
 	emitArgs(indent: number, quoted = false) {
 		let ret = ''
 		for (const arg of this.namedArguments) {
-			const propAccess = new PropertyAccess(new Identifier(this.bindingName), arg)
+			const propAccess = new PropertyAccess(new Identifier(this.bindingName, []), new Identifier(arg, []))
 			const propertySelection = quoted ? propAccess.emitQuoted(0) : propAccess.emit(0)
-			ret += `\n${tabs(indent)}:${arg.emit(0)} ${propertySelection}`
+			ret += `\n${tabs(indent)}:${arg} ${propertySelection}`
 		}
 		return ret
 	}
@@ -89,11 +89,11 @@ export class NamedArgumentsFunctionCallVariable extends FunctionCallVariable {
 	bindingName: string
 	wrappingLet: LetBinding
 
-	constructor(readonly leftHand: Expression, arg: Expression, private namedArguments: Identifier[]) {
+	constructor(readonly leftHand: Expression, arg: Expression, private namedArguments: string[]) {
 		super(leftHand, [arg])
 
 		this.bindingName = this.randomBindingName()
-		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName), arg)])
+		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName, []), arg)])
 	}
 
 	randomBindingName() {
@@ -103,9 +103,9 @@ export class NamedArgumentsFunctionCallVariable extends FunctionCallVariable {
 	emitArgs(indent: number, quoted = false) {
 		let ret = ''
 		for (const arg of this.namedArguments) {
-			const propAccess = new PropertyAccess(new Identifier(this.bindingName), arg)
+			const propAccess = new PropertyAccess(new Identifier(this.bindingName, []), new Identifier(arg, []))
 			const propertySelection = quoted ? propAccess.emitQuoted(0) : propAccess.emit(0)
-			ret += `\n${tabs(indent)}:${arg.emit(0)} ${propertySelection}`
+			ret += `\n${tabs(indent)}:${arg} ${propertySelection}`
 		}
 		return ret
 	}

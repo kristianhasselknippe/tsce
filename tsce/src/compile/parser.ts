@@ -41,14 +41,14 @@ import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
 import { CompilerDirective, extractCompilerDirectivesFromStrings, CompilerDirectiveKind } from './elispTypes/compilerDirective';
 
-function getDeclarationOfNode(node: Node) {
+export function getDeclarationOfNode(node: Node) {
 	const nodeSymbol = node.getType().getSymbol();
 	if (nodeSymbol) {
 		return nodeSymbol.getDeclarations();
 	}
 }
 
-function getCommentsForNode(node: Node) {
+export function getCommentsForNode(node: Node) {
 	const ret = [];
 	const sourceFile = node.getSourceFile()
 	const comments = node.getLeadingCommentRanges()
@@ -75,7 +75,7 @@ function getCommentsForDeclarationOfNode(node: Node) {
 	return ret;
 }
 
-function getArgumentsOfFunctionDeclaration(funDecl: FunctionDeclaration) {
+export function getArgumentsOfFunctionDeclaration(funDecl: FunctionDeclaration) {
 	const ret = [];
 	for (const param of funDecl.getParameters()) {
 		const declaration = getDeclarationOfNode(param);
@@ -148,46 +148,9 @@ function compilerDirectivesOfDeclarationOfNode(node: Node, langService: Language
 	return false;
 }
 
-function getNamedArgumentNamesForCallExpression(node: CallExpression) {
-	const declarations = getDeclarationOfNode(node.getExpression());
-	if (declarations) {
-		for (const declaration of declarations) {
-			if (
-				declaration.getKind() === ts.SyntaxKind.FunctionDeclaration
-			) {
-				const args = getArgumentsOfFunctionDeclaration(<FunctionDeclaration>declaration);
-				if (args.length !== 1) {
-					throw new Error(
-						'Named argument functions expect 1 and only 1 argument. Got ' +
-							args.length
-					);
-				}
-				const arg = args[0];
-				if (arg.getKind() === ts.SyntaxKind.InterfaceDeclaration) {
-					return getMembersOfInterfaceDeclaration(<InterfaceDeclaration>arg);
-				} else {
-					throw new Error(
-						'Named argument function expects their argument to be declared as an interface'
-					);
-				}
-			}
-		}
-	}
-	return [];
-}
 
-function getMembersOfInterfaceDeclaration(node: InterfaceDeclaration) {
-	const ret = [];
-	for (const property of node.getProperties()) {
-		const name = property.getNameNode();
-		ret.push(this.parse<Elisp.Identifier>(name));
-	}
-	for (const property of node.getMethods()) {
-		const name = property.getNameNode();
-		ret.push(this.parse<Elisp.Identifier>(name));
-	}
-	return ret;
-}*/
+
+*/
 
 export interface TableItem<TNode, TData> {
 	node: TNode
@@ -235,6 +198,7 @@ export enum SymbolType {
 export interface NodeData {
 	compilerDirectives: CompilerDirective[]
 	symbolType: SymbolType
+	hasImplementation: boolean
 }
 
 export class Parser extends ParserBase<IR.Node, NodeData> {
@@ -252,7 +216,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 		const args = ce.getArguments().map(a => {
 			return this.parse<IR.Expression>(a);
 		});
-		return new IR.CallExpression(this.symbols, leftHand, args)
+		return new IR.CallExpression(this.symbols, ce, leftHand, args)
 	}
 
 	private parseVariableDeclaration(vd: VariableDeclaration) {
@@ -271,7 +235,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 			initializer
 		), {
 			compilerDirectives: getCompilerDirectivesForNode(vd),
-			symbolType: SymbolType.VariableDeclaration
+			symbolType: SymbolType.VariableDeclaration,
+			hasImplementation: true
 		})
 	}
 
@@ -297,7 +262,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 			for (const a of args) {
 				this.insertSymbol(a.name, a, {
 					compilerDirectives: [],
-					symbolType: SymbolType.FunctionArgument
+					symbolType: SymbolType.FunctionArgument,
+					hasImplementation: true
 				})
 			}
 
@@ -313,7 +279,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 			)
 		}, {
 			compilerDirectives,
-			symbolType: SymbolType.FunctionDeclaration
+			symbolType: SymbolType.FunctionDeclaration,
+			hasImplementation: !(fd.hasDeclareKeyword())
 		})
 	}
 
@@ -530,7 +497,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 					const namespaceIdentifier = this.parse<IR.Identifier>(namespaceImport.getNameNode());
 					this.insertSymbol(namespaceIdentifier.name, namespaceIdentifier, {
 						compilerDirectives: [],
-						symbolType: SymbolType.ImportedName
+						symbolType: SymbolType.ImportedName,
+						hasImplementation: true
 					})
 					return new IR.NamespaceImport(this.symbols, moduleName, namespaceIdentifier)
 				} else if (TypeGuards.isNamedImports(namedBindings)) {
@@ -539,7 +507,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 						const identifier = this.parse<IR.Identifier>(x.getNameNode())
 						this.insertSymbol(identifier.name, identifier, {
 							compilerDirectives: [],
-							symbolType: SymbolType.ImportedName
+							symbolType: SymbolType.ImportedName,
+							hasImplementation: true
 						})
 						return identifier
 					})
@@ -559,7 +528,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 			for (const param of params) {
 				this.insertSymbol(param.name, param, {
 					compilerDirectives: [],
-					symbolType: SymbolType.FunctionArgument
+					symbolType: SymbolType.FunctionArgument,
+					hasImplementation: true
 				})
 			}
 			const body = this.parse<IR.Node>(arrowFunc.getBody())

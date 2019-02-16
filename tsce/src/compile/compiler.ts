@@ -1,9 +1,10 @@
 import { Project } from 'ts-simple-ast'
+import * as ts from 'ts-simple-ast'
 import chalk from 'chalk'
 import * as IR from './ir'
 import * as EL from './elispTypes'
 import { TsceProject } from './projectFormat';
-import { Parser, SymbolType } from './parser';
+import { Parser, SymbolType, getDeclarationOfNode, getArgumentsOfFunctionDeclaration } from './parser';
 import { Defun } from './elispTypes';
 import { CompilerDirective } from './elispTypes/compilerDirective';
 import { SymbolTable } from './symbolTable';
@@ -179,7 +180,7 @@ class Compiler {
 		if (symbolData.data) {
 			compilerDirectives = symbolData.data.compilerDirectives
 		}
-		const scope = this.context.pushScope(new EL.Defun(name, args, compilerDirectives))
+		const scope = this.context.pushScope(new EL.Defun(name, args, symbolData.data))
 		this.compileNodeList(functionDecl.body)
 		this.context.resolveToParentOf(scope)
 	}
@@ -341,6 +342,48 @@ class Compiler {
 		this.context.push(new EL.Enum(identifier, members, this.context.isInRootScope))
 	}
 
+
+	getMembersOfInterfaceDeclaration(node: ts.InterfaceDeclaration) {
+		const ret = [];
+		for (const property of node.getProperties()) {
+			const name = property.getNameNode().getText();
+			ret.push(name);
+		}
+		for (const property of node.getMethods()) {
+			const name = property.getNameNode().getText();
+			ret.push(name);
+		}
+		return ret;
+	}
+
+	getNamedArgumentNamesForCallExpression(node: ts.CallExpression) {
+		const declarations = getDeclarationOfNode(node.getExpression());
+		if (declarations) {
+			for (const declaration of declarations) {
+				if (
+					declaration.getKind() === ts.SyntaxKind.FunctionDeclaration
+				) {
+					const args = getArgumentsOfFunctionDeclaration(<ts.FunctionDeclaration>declaration);
+					if (args.length !== 1) {
+						throw new Error(
+							'Named argument functions expect 1 and only 1 argument. Got ' +
+								args.length
+						);
+					}
+					const arg = args[0];
+					if (arg.getKind() === ts.SyntaxKind.InterfaceDeclaration) {
+						return this.getMembersOfInterfaceDeclaration(<ts.InterfaceDeclaration>arg);
+					} else {
+						throw new Error(
+							'Named argument function expects their argument to be declared as an interface'
+						);
+					}
+				}
+			}
+		}
+		return [];
+	}
+
 	compileCallExpression(callExpr: IR.CallExpression) {
 		const left = this.compileAndExpect<EL.Identifier | EL.Expression>(callExpr.expression)
 		const args = callExpr.args.map(arg => this.compileAndExpect<EL.Expression>(arg))
@@ -348,14 +391,36 @@ class Compiler {
 		if (left.isIdentifier()) {
 			const symbolData = callExpr.symTable.tryLookup(left.identifierName)
 			if (symbolData && symbolData.data) {
+				let calleeRequiresNamedArguments = 
+					symbolData.data.compilerDirectives.reduce((prev, curr) => {
+						if (prev) {
+							return true
+						}
+						return (curr.kind === "NamedArguments")
+					}, false)
+				if (calleeRequiresNamedArguments) {
+					if (args.length > 1) {
+						throw new Error("Expected named argument functions to take only one argument (an object)")
+					}
+				}
 				switch (symbolData.data.symbolType) {
 					case SymbolType.ImportedName:
 					case SymbolType.FunctionDeclaration:
-						this.context.push(new EL.FunctionCallDefun(left, args))
+						if (calleeRequiresNamedArguments) {
+							const namedArgument = this.getNamedArgumentNamesForCallExpression(callExpr.typescriptNode)
+							this.context.push(new EL.NamedArgumentsFunctionCallDefun(left, args[0], namedArgument))
+						} else {
+							this.context.push(new EL.FunctionCallDefun(left, args))
+						}
 						break
 					case SymbolType.FunctionArgument:
 					case SymbolType.VariableDeclaration:
-						this.context.push(new EL.FunctionCallVariable(left, args))
+						if (calleeRequiresNamedArguments) {
+							const namedArgument = this.getNamedArgumentNamesForCallExpression(callExpr.typescriptNode)
+							this.context.push(new EL.NamedArgumentsFunctionCallVariable(left, args[0], namedArgument))
+						} else {
+							this.context.push(new EL.FunctionCallVariable(left, args))
+						}
 						break
 					default:
 						throw new Error(`Unrecognized symbol type: ${symbolData.data.symbolType}`)

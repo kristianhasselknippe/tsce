@@ -514,6 +514,10 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 				if (TypeGuards.isNamespaceImport(namedBindings)) {
 					const namespaceImport = <NamespaceImport>(namedBindings);
 					const namespaceIdentifier = this.parse<IR.Identifier>(namespaceImport.getNameNode());
+					this.insertSymbol(namespaceIdentifier.name, namespaceIdentifier, {
+						compilerDirectives: [],
+						symbolType: SymbolType.ImportedName
+					})
 					return new IR.NamespaceImport(this.symbols, moduleName, namespaceIdentifier)
 				} else if (TypeGuards.isNamedImports(namedBindings)) {
 					//TODO: Also handle the default import item

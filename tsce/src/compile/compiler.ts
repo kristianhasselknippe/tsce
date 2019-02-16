@@ -194,6 +194,12 @@ export class Stack<T> {
 		return this.stack[this.stack.length - 1]
 	}
 
+	get isInRootScope() {
+		if (this.stack.length === 1) {
+			return true
+		}
+	}
+
 	peek() {
 		return this.lastScopeStack.peek()
 	}
@@ -322,8 +328,12 @@ class Compiler {
 
 	compileVariableDeclarationList(varDeclList: IR.VariableDeclarationList) {
 		const declarations = varDeclList.variables.map(x => this.compileAndExpect<EL.LetItem>(x))
-		const letBinding = new EL.LetBinding(declarations)
-		this.context.pushScope(letBinding)
+		const letBinding = new EL.LetBinding(declarations, this.context.isInRootScope)
+		if (!this.context.isInRootScope) {
+			this.context.pushScope(letBinding)
+		} else {
+			this.context.push(letBinding)
+		}
 	}
 
 	compileSourceFile(sourceFile: IR.SourceFile) {

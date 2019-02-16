@@ -162,10 +162,10 @@ function callingArrowFunctionFromLambda() {
   should(foo.tester2());
 }
 
-const foo = "bar";
+const foo1337bar = "bar";
 //[Form: ert-deftest]
 function testTopLevelVariable() {
-  should(equal(foo, "bar"));
+  should(equal(foo1337bar, "bar"));
 }
 
 //[Form: ert-deftest]

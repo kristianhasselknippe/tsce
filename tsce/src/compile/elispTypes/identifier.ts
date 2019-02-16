@@ -1,13 +1,18 @@
-import { Expression, tabs, hyphenate } from ".";
+import { Expression, tabs, hyphenate } from '.';
+import { NodeData, SymbolType } from '../parser';
+import { SymbolTable } from '../symbolTable';
 
 export class Identifier extends Expression {
 	type: string = 'Identifier';
 
-	isPredicate = false
-	customName?: string
-	useNamedArguments = false
+	isPredicate = false;
+	customName?: string;
+	useNamedArguments = false;
 
-	constructor(public readonly identifierName: string) {
+	constructor(
+		readonly identifierName: string,
+		readonly symbolData?: NodeData
+	) {
 		super();
 
 		/*if (declarationDirectives) {
@@ -29,25 +34,30 @@ export class Identifier extends Expression {
 
 	formatName() {
 		if (this.customName) {
-			return this.customName
+			return this.customName;
 		} else {
-			let ret = hyphenate(this.identifierName)
+			let ret = hyphenate(this.identifierName);
 			if (this.isPredicate) {
-				ret += "?"
+				ret += '?';
 			}
-			return ret
+			return ret;
 		}
 	}
 
 	emit(indent: number) {
-		return `${tabs(indent)}${this.formatName()}`
+		return `${tabs(indent)}${this.formatName()}`;
 	}
 
 	emitQuoted(indent: number) {
-		return `${tabs(indent)},${this.formatName()}`
+		if (this.symbolData) {
+			if (this.symbolData.symbolType === SymbolType.FunctionDeclaration) {
+				return this.emit(indent)
+			}
+		}
+		return `${tabs(indent)},${this.formatName()}`;
 	}
 
-	emitUnquoted(indent: number){
-		return `${tabs(indent)}\`${this.formatName()}`
+	emitUnquoted(indent: number) {
+		return `${tabs(indent)}\`${this.formatName()}`;
 	}
 }

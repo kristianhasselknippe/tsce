@@ -159,7 +159,8 @@ class Compiler {
 	}
 
 	compileIdentifier(identifier: IR.Identifier) {
-		this.context.push(new EL.Identifier(identifier.name))
+		const symbolData = identifier.symTable.tryLookup(identifier.name)
+		this.context.push(new EL.Identifier(identifier.name, symbolData && symbolData.data))
 	}
 
 	compileIf(ifNode: IR.If) {
@@ -184,6 +185,13 @@ class Compiler {
 	}
 
 	compileNestedFunction(functionDecl: IR.FunctionDeclaration, name: EL.Identifier, args: EL.FunctionArg[]) {
+		const symbolData = functionDecl.symTable.lookup(functionDecl.name.name)
+		if (symbolData.data) {
+			functionDecl.symTable.updateSymbolDataInline(functionDecl.name.name, data => {
+				data.data!.symbolType = SymbolType.VariableDeclaration
+			})
+		}
+
 		const lambdaScope = this.context.pushScope(new EL.Lambda(args))
 		this.compileNodeList(functionDecl.body)
 		this.context.resolveTo(lambdaScope)

@@ -1,4 +1,5 @@
 import { Block, Node, tabs, hyphenate, Identifier } from "./";
+import { CompilerDirective } from "./compilerDirective";
 
 export class FunctionArg extends Node {
 	type: string = "FunctionArg"
@@ -18,10 +19,10 @@ export class Defun extends Block {
 	private customForm?: string
 	private isInteractive?: boolean
 
-	constructor(identifier: Identifier, readonly args: FunctionArg[]) {
+	constructor(identifier: Identifier, readonly args: FunctionArg[], readonly compilerDirectives?: CompilerDirective[]) {
 		super(identifier);
 
-		/*if (compilerDirectives && compilerDirectives.length > 0) {
+		if (compilerDirectives && compilerDirectives.length > 0) {
 			for (const compDir of compilerDirectives) {
 				switch (compDir.kind) {
 					case "Form":
@@ -32,7 +33,7 @@ export class Defun extends Block {
 						break
 				}
 			}
-		}*/
+		}
 	}
 
 	matchesIdentifier(identifierName: string) {

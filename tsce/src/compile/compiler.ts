@@ -416,6 +416,13 @@ class Compiler {
 		this.context.push(new EL.Enum(identifier, members))
 	}
 
+	compileCallExpression(callExpr: IR.CallExpression) {
+		const left = this.compileAndExpect<EL.Node>(callExpr.expression)
+		const args = callExpr.args.map(arg => this.compileAndExpect<EL.Expression>(arg))
+		//TODO: Handle all the call types
+		this.context.push(new EL.FunctionCallDefun(left as EL.Identifier, args))
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -479,6 +486,7 @@ class Compiler {
 				this.compileBlock(<IR.Block>node)
 				break
 			case IR.CallExpression:
+				this.compileCallExpression(<IR.CallExpression>node)
 				break
 			case IR.If:
 				this.compileIf(<IR.If>node)

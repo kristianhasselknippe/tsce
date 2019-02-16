@@ -3,8 +3,8 @@ import { SymbolTable } from "../symbolTable";
 export abstract class Node {
 	constructor(readonly symTable: SymbolTable<Node>) {}
 
-	print(indent: number) {
-		console.log(" - " + (this.constructor as any).name)
+	print() {
+		return 'Node'
 	}
 }
 
@@ -18,6 +18,10 @@ export class Identifier extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly name: string) {
 		super(symTable)
+	}
+
+	print() {
+		return this.name
 	}
 }
 
@@ -43,12 +47,27 @@ export class VariableDeclaration extends NamedDeclaration {
 				readonly initializer?: Node) {
 		super(symTable, name)
 	}
+
+	printInit() {
+		if (this.initializer) {
+			return this.initializer.print()
+		}
+		return ""
+	}
+
+	print() {
+		return `Variable(${this.name.print()}: ${this.printInit()})`
+	}
 }
 
 export class VariableDeclarationList extends Node {
 		constructor(symTable: SymbolTable<Node>,
 					readonly variables: VariableDeclaration[]) {
 		super(symTable)
+		}
+
+	print() {
+		return this.variables.reduce((acc, curr) => `${acc}, ${curr.print()}`, "")
 	}
 }
 
@@ -151,6 +170,10 @@ export class StringLiteral extends Node {
 				readonly value: string) {
 		super(symTable)
 	}
+
+	print() {
+		return this.value
+	}
 }
 
 export class NumberLiteral extends Node {
@@ -158,12 +181,20 @@ export class NumberLiteral extends Node {
 				readonly value: string) {
 		super(symTable)
 	}
+
+	print() {
+		return this.value
+	}
 }
 
 export class BooleanLiteral extends Node {
 	constructor(symTable: SymbolTable<Node>,
 				readonly value: boolean) {
 		super(symTable)
+	}
+
+	print() {
+		return this.value.toString()
 	}
 }
 

@@ -68,14 +68,19 @@ export class UnaryPrefixExpression extends UnaryExpression {
 }
 
 const unaryPostFixOps: any = {
-	[ts.SyntaxKind.PlusPlusToken]: "1+",
-	[ts.SyntaxKind.MinusMinusToken]: "1-"
+	[0]: "1+",
+	[1]: "1-"
+}
+
+export enum UnaryPostfixOp {
+	PlusPlus = 0,
+	MinusMinus = 1
 }
 
 export class UnaryPostfixExpression extends UnaryExpression {
 	type: string = "UnaryPostfixExpression"
 
-	constructor(op: number, operand: Expression) {
+	constructor(op: UnaryPostfixOp, operand: Expression) {
 		super(unaryPostFixOps[op], operand)
 	}
 

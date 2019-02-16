@@ -323,7 +323,7 @@ class Compiler {
 	compileEnumDeclaration(enumDecl: IR.EnumDeclaration) {
 		const identifier = this.compileAndExpect<EL.Identifier>(enumDecl.name)
 		const members = enumDecl.members.map(x => this.compileAndExpect<EL.EnumMember>(x))
-		this.context.push(new EL.Enum(identifier, members))
+		this.context.push(new EL.Enum(identifier, members, this.context.isInRootScope))
 	}
 
 	compileCallExpression(callExpr: IR.CallExpression) {

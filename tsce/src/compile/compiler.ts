@@ -444,6 +444,7 @@ class Compiler {
 	}
 
 	compileWhile(whileNode: IR.While) {
+		throw new Error("While statements are currently not supported")
 	}
 
 	compileUnaryPostfix(node: IR.UnaryPostfix) {

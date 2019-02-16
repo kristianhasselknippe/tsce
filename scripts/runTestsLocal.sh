@@ -4,6 +4,10 @@ set -e
 
 cd "$(dirname "$0")"
 
+if [ -d "../tests/dist" ]; then
+	echo "Cleaning output folder"
+	rm -r ../tests/dist/
+fi
 echo "Building test project"
 node ../tsce/dist/index.js "../tests/tsconfig.json"
 echo "Pushing output dir"

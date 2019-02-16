@@ -185,7 +185,9 @@ class Compiler {
 			compilerDirectives = symbolData.data.compilerDirectives
 		}
 		const scope = this.context.pushScope(new EL.Defun(name, args, compilerDirectives))
+		this.context.print(chalk.redBright("Before the node list"))
 		this.compileNodeList(functionDecl.body)
+		this.context.print(chalk.red("   after"))
 		this.context.resolveToParentOf(scope)
 	}
 
@@ -307,15 +309,19 @@ class Compiler {
 			const symbolData = callExpr.symTable.lookup(left.identifierName)
 			if (symbolData.data) {
 				switch (symbolData.data.symbolType) {
+					case SymbolType.ImportedName:
 					case SymbolType.FunctionDeclaration:
 						this.context.push(new EL.FunctionCallDefun(left, args))
 						break
+					case SymbolType.FunctionArgument:
 					case SymbolType.VariableDeclaration:
 						this.context.push(new EL.FunctionCallVariable(left, args))
 						break
+					default:
+						throw new Error(`Unrecognized symbol type: ${symbolData.data.symbolType}`)
 				}
 			} else {
-				throw new Error("Could not get symbol data for function: " + left.identifierName)
+				throw new Error("Symbol entry found but did not contain symbol data for: " + left.identifierName)
 			}
 		} else {
 			this.context.push(new EL.FunctionCallVariable(left, args))

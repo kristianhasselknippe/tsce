@@ -602,9 +602,9 @@ function testIfElseWithMoreThanOneItemInBody() {
 
 let handlersList: any = {};
 function testLexicalArgument(bar: (arg: boolean) => void, arg: boolean) {
-  handlersList.later = () => {
-    bar(arg);
-  };
+	handlersList.later = () => {
+		bar(arg);
+	};
 }
 
 //[Form: ert-deftest]

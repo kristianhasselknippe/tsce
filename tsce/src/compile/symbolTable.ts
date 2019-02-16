@@ -10,7 +10,7 @@ export class SymbolTable<T> {
 	constructor(private _parent?: SymbolTable<T>) { }
 
 	get hasParent() {
-		return this._parent
+		return typeof this._parent !== 'undefined'
 	}
 
 	get parent() {

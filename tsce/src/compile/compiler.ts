@@ -171,12 +171,7 @@ class Compiler {
 		this.context.push(new EL.IfExpression(pred, body, elseBody))
 	}
 
-	compileFunctionDeclaration(functionDecl: IR.FunctionDeclaration) {
-		const name = this.compileAndExpect<EL.Identifier>(functionDecl.name)
-		const args = functionDecl.args
-			.map(x => this.compileAndExpect<EL.Identifier>(x))
-			.map(identifier => new EL.FunctionArg(identifier))
-
+	compileTopLevelFunction(functionDecl: IR.FunctionDeclaration, name: EL.Identifier, args: EL.FunctionArg[]) {
 		//functionDecl.symTable.visualize()
 		const symbolData = functionDecl.symTable.lookup(functionDecl.name.name)
 		let compilerDirectives: CompilerDirective[] = []
@@ -186,6 +181,27 @@ class Compiler {
 		const scope = this.context.pushScope(new EL.Defun(name, args, compilerDirectives))
 		this.compileNodeList(functionDecl.body)
 		this.context.resolveToParentOf(scope)
+	}
+
+	compileNestedFunction(functionDecl: IR.FunctionDeclaration, name: EL.Identifier, args: EL.FunctionArg[]) {
+		const lambdaScope = this.context.pushScope(new EL.Lambda(args))
+		this.compileNodeList(functionDecl.body)
+		this.context.resolveTo(lambdaScope)
+		this.context.popScope()
+		const lambda = lambdaScope.scope
+		this.context.pushScope(new EL.LetBinding([new EL.LetItem(name, lambda)], this.context.isInRootScope))
+	}
+
+	compileFunctionDeclaration(functionDecl: IR.FunctionDeclaration) {
+		const name = this.compileAndExpect<EL.Identifier>(functionDecl.name)
+		const args = functionDecl.args
+			.map(x => this.compileAndExpect<EL.Identifier>(x))
+			.map(identifier => new EL.FunctionArg(identifier))
+		if (this.context.isInRootScope) {
+			this.compileTopLevelFunction(functionDecl, name, args)
+		} else {
+			this.compileNestedFunction(functionDecl, name, args)
+		}
 	}
 
 	compileVariableDeclaration(varDecl: IR.VariableDeclaration) {
@@ -251,8 +267,9 @@ class Compiler {
 
 	compileReturn(ret: IR.ReturnStatement) {
 		//TODO: Make the return of getCurrentscopematchingpredicate typesafe
-		this.context.print()
-		const parentFunc = this.context.getCurrentScopeMatchingPredicate(scope => scope instanceof EL.Defun) as EL.Defun
+		const parentFunc = this.context.getCurrentScopeMatchingPredicate(scope => {
+			return (scope instanceof EL.Defun) || (scope instanceof EL.Lambda)
+		}) as EL.Defun
 		const retValue = this.compileAndExpect<EL.Expression>(ret.returnValue)
 		this.context.push(new EL.ReturnStatement(parentFunc.blockId, retValue))
 	}

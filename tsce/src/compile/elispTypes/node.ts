@@ -55,10 +55,6 @@ export abstract class Node {
 		return false
 	}
 
-	isStringLiteral(): this is StringLiteral {
-		return false
-	}
-
 	isNumberLiteral(): this is NumberLiteral {
 		return false
 	}

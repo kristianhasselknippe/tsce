@@ -296,6 +296,19 @@ class Compiler {
 	compilePropertyAccess(propAccess: IR.PropertyAccess) {
 		const left = this.compileAndExpect<EL.Expression>(propAccess.left)
 		const right = this.compileAndExpect<EL.Identifier>(propAccess.right)
+
+		if (left.isIdentifier()) {
+			const symbolData = propAccess.symTable.tryLookup(left.identifierName)
+			if (symbolData && symbolData.data) {
+				if (symbolData.data.symbolType === SymbolType.ImportedName) {
+					//Imported named can only be global functions, and thus
+					//needs to be referenced as if in global scope
+					this.context.push(right)
+					return
+				}
+			}
+		}
+
 		this.context.push(new EL.PropertyAccess(left, right))
 	}
 
@@ -331,8 +344,8 @@ class Compiler {
 		const args = callExpr.args.map(arg => this.compileAndExpect<EL.Expression>(arg))
 
 		if (left.isIdentifier()) {
-			const symbolData = callExpr.symTable.lookup(left.identifierName)
-			if (symbolData.data) {
+			const symbolData = callExpr.symTable.tryLookup(left.identifierName)
+			if (symbolData && symbolData.data) {
 				switch (symbolData.data.symbolType) {
 					case SymbolType.ImportedName:
 					case SymbolType.FunctionDeclaration:
@@ -346,7 +359,7 @@ class Compiler {
 						throw new Error(`Unrecognized symbol type: ${symbolData.data.symbolType}`)
 				}
 			} else {
-				throw new Error("Symbol entry found but did not contain symbol data for: " + left.identifierName)
+				this.context.push(new EL.FunctionCallDefun(left, args))
 			}
 		} else {
 			this.context.push(new EL.FunctionCallVariable(left, args))

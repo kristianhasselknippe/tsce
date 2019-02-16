@@ -494,7 +494,7 @@ class Compiler {
 	}
 
 	compileModuleDeclaration(node: IR.ModuleDeclaration) {
-		
+		//TODO: Implement module declaration
 	}
 
 	compileNode(node?: IR.Node) {

@@ -62,12 +62,12 @@ export class LetItem extends Expression {
 		super()
 	}
 
-	hyphenateName() {
-		return hyphenate(this.identifier.identifierName)
+	emitName() {
+		return this.identifier.emit(0)
 	}
 
 	emitInRootScope(indent: number){
-		return `${tabs(indent)}(setf ${this.hyphenateName()} ${this.emitInitializer(0)})`
+		return `${tabs(indent)}(setf ${this.emitName()} ${this.emitInitializer(0)})`
 	}
 
 	emitInitializer(indent: number) {
@@ -82,6 +82,6 @@ export class LetItem extends Expression {
 		if (this.isInRootScope) {
 			return this.emitInRootScope(indent)
 		}
-		return `${tabs(indent)}(${this.hyphenateName()} ${this.emitInitializer(indent)})`
+		return `${tabs(indent)}(${this.emitName()} ${this.emitInitializer(indent)})`
 	}
 }

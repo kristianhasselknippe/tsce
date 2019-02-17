@@ -1,8 +1,8 @@
 import { Expression, Identifier, StringLiteral, Node, tabs, ObjectLiteral, Property, LetBinding, LetItem } from ".";
 
 export class Enum extends LetBinding {
-	constructor(readonly propName: Identifier, members: EnumMember[], isInRootScope = false) {
-		super([new LetItem(propName, new ObjectLiteral(members))], isInRootScope)
+	constructor(readonly propName: Identifier, members: EnumMember[]) {
+		super([new LetItem(propName, new ObjectLiteral(members))], true)
 	}
 }
 

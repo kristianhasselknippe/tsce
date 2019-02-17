@@ -330,6 +330,14 @@ export class Null extends Node {
 }
 
 export class SourceFile extends Block {
+
+	constructor(
+		readonly filePath: string,
+		symTable: SymbolTableType,
+		readonly statements: Node[]) {
+		super(symTable, statements)
+	}
+	
 	printAst() {
 		for (const i of this.statements) {
 			if (i) {

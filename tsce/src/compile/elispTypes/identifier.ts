@@ -1,6 +1,6 @@
 import { Expression, tabs, hyphenate } from '.';
 import { NodeData, SymbolType } from '../parser';
-import { CompilerDirective } from './compilerDirective';
+import path from 'path'
 
 export class Identifier extends Expression {
 	type: string = 'Identifier';
@@ -11,13 +11,12 @@ export class Identifier extends Expression {
 
 	constructor(
 		readonly identifierName: string,
-		readonly compilerDirectives: CompilerDirective[],
 		readonly symbolData?: NodeData
 	) {
 		super();
 
-		if (this.compilerDirectives) {
-			for (const compDir of this.compilerDirectives) {
+		if (this.symbolData) {
+			for (const compDir of this.symbolData.compilerDirectives) {
 				switch (compDir.kind) {
 					case 'Name':
 						this.customName = compDir.name;
@@ -33,11 +32,18 @@ export class Identifier extends Expression {
 		}
 	}
 
+	get namespacePrefix() {
+		if (this.symbolData && this.symbolData.isRootLevelDeclaration && this.symbolData.hasImplementation) {
+			return path.parse(this.symbolData.fileName).name + '/'
+		}
+		return ''
+	}
+
 	formatName() {
 		if (this.customName) {
-			return this.customName;
+			return `${this.namespacePrefix}${this.customName}`
 		} else {
-			let ret = hyphenate(this.identifierName);
+			let ret = `${this.namespacePrefix}${hyphenate(this.identifierName)}`
 			if (this.isPredicate) {
 				ret += '?';
 			}

@@ -54,7 +54,7 @@ export class NamedArgumentsFunctionCallDefun extends FunctionCallDefun {
 		super(leftHand, [arg])
 
 		this.bindingName = this.randomBindingName()
-		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName, []), arg)])
+		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName), arg)])
 	}
 
 	randomBindingName() {
@@ -64,7 +64,7 @@ export class NamedArgumentsFunctionCallDefun extends FunctionCallDefun {
 	emitArgs(indent: number, quoted = false) {
 		let ret = ''
 		for (const arg of this.namedArguments) {
-			const propAccess = new PropertyAccess(new Identifier(this.bindingName, []), new Identifier(arg, []))
+			const propAccess = new PropertyAccess(new Identifier(this.bindingName), new Identifier(arg))
 			const propertySelection = quoted ? propAccess.emitQuoted(0) : propAccess.emit(0)
 			ret += `\n${tabs(indent)}:${arg} ${propertySelection}`
 		}
@@ -93,7 +93,7 @@ export class NamedArgumentsFunctionCallVariable extends FunctionCallVariable {
 		super(leftHand, [arg])
 
 		this.bindingName = this.randomBindingName()
-		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName, []), arg)])
+		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName), arg)])
 	}
 
 	randomBindingName() {
@@ -103,7 +103,7 @@ export class NamedArgumentsFunctionCallVariable extends FunctionCallVariable {
 	emitArgs(indent: number, quoted = false) {
 		let ret = ''
 		for (const arg of this.namedArguments) {
-			const propAccess = new PropertyAccess(new Identifier(this.bindingName, []), new Identifier(arg, []))
+			const propAccess = new PropertyAccess(new Identifier(this.bindingName), new Identifier(arg))
 			const propertySelection = quoted ? propAccess.emitQuoted(0) : propAccess.emit(0)
 			ret += `\n${tabs(indent)}:${arg} ${propertySelection}`
 		}

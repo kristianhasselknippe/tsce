@@ -1,4 +1,4 @@
-import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun } from './'
+import { Lambda, Identifier, Scope, Block, RootScope, ElementIndexer, ArrayIndexer, StringIndexer, StringLiteral, PropertyAccess, Defun, SourceFile } from './'
 import { NumberLiteral } from '../ir';
 
 export abstract class Node {
@@ -56,6 +56,10 @@ export abstract class Node {
 	}
 
 	isNumberLiteral(): this is NumberLiteral {
+		return false
+	}
+
+	isSourceFile(): this is SourceFile {
 		return false
 	}
 }

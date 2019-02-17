@@ -1,4 +1,5 @@
 import { Project } from 'ts-morph'
+import path from 'path'
 import chalk from 'chalk'
 import * as ts from 'ts-morph'
 import * as IR from './ir'
@@ -60,6 +61,7 @@ export class Stack<T> {
 		if (this.stack.length === 1) {
 			return true
 		}
+		return false
 	}
 
 	peek() {
@@ -87,7 +89,7 @@ export class Stack<T> {
 	}
 
 	getCurrentScopeMatchingPredicate(pred: (scope: T) => boolean): Scope<T> {
-		for (let i = this.stack.length - 1; i > 0; i--) {
+		for (let i = this.stack.length - 1; i >= 0; i--) {
 			const scope = this.stack[i]
 			if (pred(scope.scope)) {
 				return scope.scope
@@ -162,9 +164,33 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		}
 	}
 
+	getCurrentFileName() {
+		const sourceFile = this.context.getCurrentScopeMatchingPredicate(x => x.isSourceFile()) as Scope<EL.SourceFile>
+		const fileNamePath = path.parse(sourceFile.fileName)
+		return fileNamePath.name
+	}
+
+	//TODO: Identifiers now get their compiler directives from two sources.
+	//We should see if they can be consolidated somehow.
 	compileIdentifier(identifier: IR.Identifier) {
 		const symbolData = identifier.symTable.tryLookup(identifier.name)
-		this.context.push(new EL.Identifier(identifier.name, identifier.compilerDirectives, symbolData && symbolData.data))
+		let identifierData
+		if (symbolData && symbolData.data) {
+			identifierData = {
+				...symbolData.data,
+				compilerDirectives: identifier.compilerDirectives.concat(symbolData.data.compilerDirectives),
+			}
+		} else {
+			identifierData = {
+				compilerDirectives: identifier.compilerDirectives,
+				symbolType: SymbolType.VariableDeclaration,
+				hasImplementation: true,
+				fileName: this.getCurrentFileName(),
+				isRootLevelDeclaration: false
+			}
+		}
+
+		this.context.push(new EL.Identifier(identifier.name, identifierData))
 	}
 
 	compileIf(ifNode: IR.If) {
@@ -233,7 +259,7 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 	}
 
 	compileSourceFile(sourceFile: IR.SourceFile) {
-		const scope = this.context.pushScope(new EL.SourceFile())
+		const scope = this.context.pushScope(new EL.SourceFile(sourceFile.filePath))
 		this.context.push(new EL.ModuleImport(new EL.StringLiteral("./ts-lib")))
 		this.compileNodeList(sourceFile.statements)
 		this.context.resolveTo(scope)
@@ -340,9 +366,11 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 	}
 
 	compileEnumDeclaration(enumDecl: IR.EnumDeclaration) {
+		console.log(chalk.red("Compiling enum"))
 		const identifier = this.compileAndExpect<EL.Identifier>(enumDecl.name)
+		console.log(chalk.red("DONE Compiling enum"))
 		const members = enumDecl.members.map(x => this.compileAndExpect<EL.EnumMember>(x))
-		this.context.push(new EL.Enum(identifier, members, this.context.isInRootScope))
+		this.context.push(new EL.Enum(identifier, members))
 	}
 
 

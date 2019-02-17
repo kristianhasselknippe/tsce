@@ -35,8 +35,7 @@ import {
 	NamespaceDeclaration,
 	SourceFile,
 	LanguageService,
-	InterfaceDeclaration} from 'ts-simple-ast';
-import chalk from 'chalk'
+	InterfaceDeclaration} from 'ts-morph';
 import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
 import { CompilerDirective, extractCompilerDirectivesFromStrings, CompilerDirectiveKind } from './elispTypes/compilerDirective';

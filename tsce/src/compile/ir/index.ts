@@ -1,7 +1,7 @@
 import { SymbolTable } from "../symbolTable";
 import { TableItem, NodeData } from "../parser";
 import { CompilerDirective } from "../elispTypes/compilerDirective";
-import * as ts from 'ts-simple-ast'
+import * as ts from 'ts-morph'
 
 type SymbolTableType = SymbolTable<TableItem<Node, NodeData>>
 

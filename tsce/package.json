@@ -17,19 +17,19 @@
 	"dependencies": {
 		"@types/chalk": "^2.2.0",
 		"@types/commander": "^2.12.2",
-		"@types/node": "^9.4.1",
-		"@types/shelljs": "^0.8.1",
+		"@types/node": "^9.6.42",
+		"@types/shelljs": "^0.8.3",
 		"chalk": "^2.4.2",
 		"commander": "^2.19.0",
-		"linqts": "^1.10.0",
+		"linqts": "^1.12.2",
 		"shelljs": "^0.8.3",
-		"ts-simple-ast": "*"
+		"ts-morph": "*"
 	},
 	"devDependencies": {
-		"@types/jest": "^23.3.13",
-		"jest": "^24.0.0",
+		"@types/jest": "^23.3.14",
+		"jest": "^24.1.0",
 		"source-map-support": "^0.5.10",
 		"ts-jest": "^23.10.5",
-		"typescript": "*"
+		"typescript": "^3.3.3"
 	}
 }

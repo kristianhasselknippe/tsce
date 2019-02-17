@@ -1,13 +1,10 @@
-import { Project } from 'ts-simple-ast'
-import * as ts from 'ts-simple-ast'
-import chalk from 'chalk'
+import { Project } from 'ts-morph'
+import * as ts from 'ts-morph'
 import * as IR from './ir'
 import * as EL from './elispTypes'
 import { TsceProject } from './projectFormat';
 import { Parser, SymbolType, getDeclarationOfNode, getArgumentsOfFunctionDeclaration, declarationOfNodeHasCompilerDirectiveKind } from './parser';
-import { Defun } from './elispTypes';
 import { CompilerDirective } from './elispTypes/compilerDirective';
-import { SymbolTable } from './symbolTable';
 import { PipelineBuilder, Pass } from './pipeline';
 
 

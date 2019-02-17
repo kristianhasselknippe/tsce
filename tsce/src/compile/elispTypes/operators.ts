@@ -1,4 +1,4 @@
-import { ts } from 'ts-simple-ast'
+import { ts } from 'ts-morph'
 import { Expression, tabs, generateTempBindingName } from ".";
 
 let operatorsMap = {

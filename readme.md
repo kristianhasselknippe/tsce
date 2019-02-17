@@ -66,8 +66,4 @@ Requires Emacs version >=25.1 and NodeJS
 
 ## Why?
 
-I wanted to write more emacs packages, but I hate working without static type checking. Typescript has a flexible enough type system that it could be viable as a compiler frontend, and the typescript compiler API is very accessible.
-
-## Sorry about the mess
-
-This is currently a very hack'n slash thing until i figure out a proper architecture.
+I wanted to write more emacs packages, but I prefer working with static type checking. TypeScript has a flexible enough type system that it could be viable as a compiler frontend for elisp, and the typescript compiler API is very accessible.

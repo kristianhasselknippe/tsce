@@ -13,12 +13,14 @@ export function isUpper(character: string) {
 
 export function hyphenate(name: string) {
 	let ret = ""
+	let i = 0
 	for (const char of name) {
-		if (isUpper(char)) {
+		if (isUpper(char) && i !== 0) {
 			ret += "-" + char.toLowerCase()
 		} else {
-			ret += char
+			ret += char.toLowerCase()
 		}
+		i++
 	}
 	return ret
 }

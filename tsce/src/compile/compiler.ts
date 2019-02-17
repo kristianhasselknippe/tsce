@@ -8,6 +8,7 @@ import { Parser, SymbolType, getDeclarationOfNode, getArgumentsOfFunctionDeclara
 import { Defun } from './elispTypes';
 import { CompilerDirective } from './elispTypes/compilerDirective';
 import { SymbolTable } from './symbolTable';
+import { PipelineBuilder, Pass } from './pipeline';
 
 
 interface Addable<T> {
@@ -143,7 +144,7 @@ export class Stack<T> {
 	}
 }
 
-class Compiler {
+class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 	constructor(readonly project: Project) { }
 
 	context = new Stack<EL.Node>()
@@ -494,7 +495,7 @@ class Compiler {
 	compileDeleteExpression(node: IR.DeleteExpression) {
 		const expr = this.compileAndExpect<EL.Expression>(node.expr)
 		this.context.push(new EL.DeleteExpression(expr))
-	}
+	}
 
 	compileArrowFunction(arrowFunc: IR.ArrowFunction) {
 		const args = arrowFunc.args.map(x => new EL.FunctionArg(this.compileAndExpect<EL.Identifier>(x)))
@@ -630,13 +631,13 @@ class Compiler {
 		}
 	}
 
-	generateElisp(ast: IR.SourceFile) {
+	perform(ast: IR.SourceFile): EL.SourceFile {
 		this.compileNode(ast)
 		return this.context.popScope().scope as EL.SourceFile
 	}
 
-	compile(): CompilationResult[] {
-		const parser = new Parser(this.project.getLanguageService())
+	/*compile(): CompilationResult[] {
+
 		const ret: CompilationResult[] = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
 			console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())
@@ -651,7 +652,7 @@ class Compiler {
 			});
 		}
 		return ret;
-	}
+	}*/
 }
 
 export interface CompilationResult {
@@ -660,6 +661,11 @@ export interface CompilationResult {
 }
 
 export function compileProject(program: TsceProject): CompilationResult[] {
-	const compilerProcess = new Compiler(program.project);
-	return compilerProcess.compile();
+	//const compilerProcess = new Compiler(program.project);
+
+	const pipeline = new PipelineBuilder<ts.SourceFile, EL.SourceFile>()
+	const parsePass = pipeline.withPass<IR.SourceFile>(new Parser(program.project.getLanguageService()))
+	const compilePass = parsePass.withPass<EL.SourceFile>(new Compiler(program.project))
+
+	return null as any
 }

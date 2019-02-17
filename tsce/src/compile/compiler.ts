@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import * as IR from './ir'
 import * as EL from './elispTypes'
 import { TsceProject } from './projectFormat';
-import { Parser, SymbolType, getDeclarationOfNode, getArgumentsOfFunctionDeclaration } from './parser';
+import { Parser, SymbolType, getDeclarationOfNode, getArgumentsOfFunctionDeclaration, declarationOfNodeHasCompilerDirectiveKind } from './parser';
 import { Defun } from './elispTypes';
 import { CompilerDirective } from './elispTypes/compilerDirective';
 import { SymbolTable } from './symbolTable';
@@ -388,10 +388,16 @@ class Compiler {
 		const left = this.compileAndExpect<EL.Identifier | EL.Expression>(callExpr.expression)
 		const args = callExpr.args.map(arg => this.compileAndExpect<EL.Expression>(arg))
 
+		let calleeRequiresNamedArguments = declarationOfNodeHasCompilerDirectiveKind(
+			callExpr.typescriptNode.getExpression(),
+			'NamedArguments'
+		);
+
 		if (left.isIdentifier()) {
 			const symbolData = callExpr.symTable.tryLookup(left.identifierName)
 			if (symbolData && symbolData.data) {
-				let calleeRequiresNamedArguments = 
+				//TODO: Can prob remove this
+				calleeRequiresNamedArguments =
 					symbolData.data.compilerDirectives.reduce((prev, curr) => {
 						if (prev) {
 							return true
@@ -429,7 +435,12 @@ class Compiler {
 				this.context.push(new EL.FunctionCallDefun(left, args))
 			}
 		} else {
-			this.context.push(new EL.FunctionCallVariable(left, args))
+			if (calleeRequiresNamedArguments) {
+				const namedArgument = this.getNamedArgumentNamesForCallExpression(callExpr.typescriptNode)
+				this.context.push(new EL.NamedArgumentsFunctionCallVariable(left, args[0], namedArgument))
+			} else {
+				this.context.push(new EL.FunctionCallVariable(left, args))
+			}
 		}
 
 	}

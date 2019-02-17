@@ -663,9 +663,11 @@ export interface CompilationResult {
 export function compileProject(program: TsceProject): CompilationResult[] {
 	//const compilerProcess = new Compiler(program.project);
 
-	const pipeline = new PipelineBuilder<ts.SourceFile, EL.SourceFile>()
-	const parsePass = pipeline.withPass<IR.SourceFile>(new Parser(program.project.getLanguageService()))
+	const pipelineBuilder = new PipelineBuilder<ts.SourceFile, EL.SourceFile>()
+	const parsePass = pipelineBuilder.withPass<IR.SourceFile>(new Parser(program.project.getLanguageService()))
 	const compilePass = parsePass.withPass<EL.SourceFile>(new Compiler(program.project))
+
+	pipelineBuilder.build()
 
 	return null as any
 }

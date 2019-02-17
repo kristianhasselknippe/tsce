@@ -2,15 +2,23 @@ export interface Pass<TFrom, TTo> {
 	perform(ast: TFrom): TTo
 }
 
-export class PipelinePass<TFrom, TTo> {
+class Pipeline<TFrom, TTo> {
+	
+}
 
-	nextPass?: PipelinePass<TTo, any>
+class PipelinePass<TFrom, TTo> {
 
-	constructor(readonly pass: Pass<TFrom, TTo>) {}
+	nextPass?: PipelinePass<TTo, any> = undefined
+
+	constructor(private readonly builder: PipelineBuilder<any,any>, readonly pass: Pass<TFrom, TTo>) {}
 
 	withPass<TNextPass>(pass: Pass<TTo, TNextPass>): PipelinePass<TTo, TNextPass> {
-		this.nextPass = new PipelinePass<TTo, TNextPass>(pass)
+		this.nextPass = new PipelinePass<TTo, TNextPass>(this.builder, pass)
 		return this.nextPass
+	}
+
+	build(): Pipeline {
+		
 	}
 }
 
@@ -22,4 +30,6 @@ export class PipelineBuilder<TFrom, TTo> {
 		this.rootPass = new PipelinePass<TFrom, TNextPass>(pass)
 		return this.rootPass
 	}
+
+	
 }

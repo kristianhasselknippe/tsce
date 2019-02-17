@@ -58,6 +58,7 @@ npm pack
 - namespaces
 - for-in statements
 - while statements
+- npm
 
 ## Dependencies
 

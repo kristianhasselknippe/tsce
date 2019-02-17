@@ -35,11 +35,11 @@ import {
 	NamespaceDeclaration,
 	SourceFile,
 	LanguageService,
-	InterfaceDeclaration} from 'ts-simple-ast';
-import chalk from 'chalk'
+	InterfaceDeclaration} from 'ts-morph';
 import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
 import { CompilerDirective, extractCompilerDirectivesFromStrings, CompilerDirectiveKind } from './elispTypes/compilerDirective';
+import { Pass } from './pipeline';
 
 export function getDeclarationOfNode(node: Node) {
 	const nodeSymbol = node.getType().getSymbol();
@@ -197,8 +197,7 @@ export interface NodeData {
 	hasImplementation: boolean
 }
 
-export class Parser extends ParserBase<IR.Node, NodeData> {
-
+export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<SourceFile, IR.SourceFile> {
 	constructor(readonly languageService: LanguageService) {
 		super()
 	}
@@ -648,7 +647,11 @@ export class Parser extends ParserBase<IR.Node, NodeData> {
 		return ret as T
 	}
 
-	parseFile(sourceFile: SourceFile) {
-		return new IR.SourceFile(this.symbols, sourceFile.getStatements().map(x => this.parse<IR.Node>(x)))
+	perform(ast: SourceFile): IR.SourceFile {
+		return new IR.SourceFile(this.symbols, ast.getStatements().map(x => this.parse<IR.Node>(x)))
+	}
+
+	describe() {
+		return "TypeScript AST -> Intermediate Representation"
 	}
 }

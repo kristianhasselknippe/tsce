@@ -1,7 +1,5 @@
 import { Expression, tabs, hyphenate } from '.';
 import { NodeData, SymbolType } from '../parser';
-import { SymbolTable } from '../symbolTable';
-import chalk from 'chalk'
 import { CompilerDirective } from './compilerDirective';
 
 export class Identifier extends Expression {
@@ -21,15 +19,15 @@ export class Identifier extends Expression {
 		if (this.compilerDirectives) {
 			for (const compDir of this.compilerDirectives) {
 				switch (compDir.kind) {
-					case "Name":
-						this.customName = compDir.name
-						break
-					case "Predicate":
-						this.isPredicate = true
-						break
-					case "NamedArguments":
-						this.useNamedArguments = true
-						break
+					case 'Name':
+						this.customName = compDir.name;
+						break;
+					case 'Predicate':
+						this.isPredicate = true;
+						break;
+					case 'NamedArguments':
+						this.useNamedArguments = true;
+						break;
 				}
 			}
 		}
@@ -54,7 +52,7 @@ export class Identifier extends Expression {
 	emitQuoted(indent: number) {
 		if (this.symbolData) {
 			if (this.symbolData.symbolType === SymbolType.FunctionDeclaration) {
-				return this.emit(indent)
+				return this.emit(indent);
 			}
 		}
 		return `${tabs(indent)},${this.formatName()}`;

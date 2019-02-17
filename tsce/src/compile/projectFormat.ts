@@ -1,9 +1,8 @@
-
 import * as fs from 'fs';
 import * as path from 'path'
 import * as shell from 'shelljs'
 import chalk from 'chalk'
-import { Project } from 'ts-simple-ast'
+import { Project } from 'ts-morph'
 import { CompilationResult } from './compiler';
 
 function ensurePathExists(pathString: string) {

@@ -1,13 +1,12 @@
-import { Project } from 'ts-simple-ast'
-import * as ts from 'ts-simple-ast'
+import { Project } from 'ts-morph'
 import chalk from 'chalk'
+import * as ts from 'ts-morph'
 import * as IR from './ir'
 import * as EL from './elispTypes'
 import { TsceProject } from './projectFormat';
 import { Parser, SymbolType, getDeclarationOfNode, getArgumentsOfFunctionDeclaration, declarationOfNodeHasCompilerDirectiveKind } from './parser';
-import { Defun } from './elispTypes';
 import { CompilerDirective } from './elispTypes/compilerDirective';
-import { SymbolTable } from './symbolTable';
+import { PipelineBuilder, Pass } from './pipeline';
 
 
 interface Addable<T> {
@@ -143,8 +142,12 @@ export class Stack<T> {
 	}
 }
 
-class Compiler {
+class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 	constructor(readonly project: Project) { }
+
+	describe() {
+		return "Intermediate Representation -> Elisp"
+	}
 
 	context = new Stack<EL.Node>()
 
@@ -494,7 +497,7 @@ class Compiler {
 	compileDeleteExpression(node: IR.DeleteExpression) {
 		const expr = this.compileAndExpect<EL.Expression>(node.expr)
 		this.context.push(new EL.DeleteExpression(expr))
-	}
+	}
 
 	compileArrowFunction(arrowFunc: IR.ArrowFunction) {
 		const args = arrowFunc.args.map(x => new EL.FunctionArg(this.compileAndExpect<EL.Identifier>(x)))
@@ -630,13 +633,13 @@ class Compiler {
 		}
 	}
 
-	generateElisp(ast: IR.SourceFile) {
+	perform(ast: IR.SourceFile): EL.SourceFile {
 		this.compileNode(ast)
 		return this.context.popScope().scope as EL.SourceFile
 	}
 
-	compile(): CompilationResult[] {
-		const parser = new Parser(this.project.getLanguageService())
+	/*compile(): CompilationResult[] {
+
 		const ret: CompilationResult[] = [];
 		for (const sourceFile of this.project.getSourceFiles()) {
 			console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())
@@ -651,7 +654,7 @@ class Compiler {
 			});
 		}
 		return ret;
-	}
+	}*/
 }
 
 export interface CompilationResult {
@@ -660,6 +663,26 @@ export interface CompilationResult {
 }
 
 export function compileProject(program: TsceProject): CompilationResult[] {
-	const compilerProcess = new Compiler(program.project);
-	return compilerProcess.compile();
+	//const compilerProcess = new Compiler(program.project);
+
+	const pipeline =
+		new PipelineBuilder<ts.SourceFile, EL.SourceFile>()
+		.withPass<IR.SourceFile>(new Parser(program.project.getLanguageService()))
+		.withPass<EL.SourceFile>(new Compiler(program.project))
+		.build()
+
+	const ret = []
+	for (const sourceFile of program.project.getSourceFiles()) {
+		console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())
+		const elisp = pipeline.perform(sourceFile)
+		const elispSource = elisp.emit(0)
+		ret.push({
+			fileName: sourceFile.getBaseNameWithoutExtension(),
+			source: elispSource
+		});
+		console.log("\n")
+	}
+
+
+	return ret
 }

@@ -4,7 +4,7 @@ export class Lambda extends Block {
 	type: string = "Block"
 
 	constructor(readonly args: FunctionArg[]) {
-		super(new Identifier("lambda"))
+		super(new Identifier("lambda", []))
 	}
 
 	emitArgs() {

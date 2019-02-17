@@ -1,4 +1,5 @@
 import { Project } from 'ts-morph'
+import chalk from 'chalk'
 import * as ts from 'ts-morph'
 import * as IR from './ir'
 import * as EL from './elispTypes'
@@ -143,6 +144,10 @@ export class Stack<T> {
 
 class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 	constructor(readonly project: Project) { }
+
+	describe() {
+		return "Intermediate Representation -> Elisp"
+	}
 
 	context = new Stack<EL.Node>()
 
@@ -660,11 +665,24 @@ export interface CompilationResult {
 export function compileProject(program: TsceProject): CompilationResult[] {
 	//const compilerProcess = new Compiler(program.project);
 
-	const pipelineBuilder = new PipelineBuilder<ts.SourceFile, EL.SourceFile>()
-	const parsePass = pipelineBuilder.withPass<IR.SourceFile>(new Parser(program.project.getLanguageService()))
-	const compilePass = parsePass.withPass<EL.SourceFile>(new Compiler(program.project))
+	const pipeline =
+		new PipelineBuilder<ts.SourceFile, EL.SourceFile>()
+		.withPass<IR.SourceFile>(new Parser(program.project.getLanguageService()))
+		.withPass<EL.SourceFile>(new Compiler(program.project))
+		.build()
 
-	pipelineBuilder.build()
+	const ret = []
+	for (const sourceFile of program.project.getSourceFiles()) {
+		console.log(chalk.blueBright('    - Compiling file: ') + sourceFile.getFilePath())
+		const elisp = pipeline.perform(sourceFile)
+		const elispSource = elisp.emit(0)
+		ret.push({
+			fileName: sourceFile.getBaseNameWithoutExtension(),
+			source: elispSource
+		});
+		console.log("\n")
+	}
 
-	return null as any
+
+	return ret
 }

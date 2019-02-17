@@ -650,4 +650,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 	perform(ast: SourceFile): IR.SourceFile {
 		return new IR.SourceFile(this.symbols, ast.getStatements().map(x => this.parse<IR.Node>(x)))
 	}
+
+	describe() {
+		return "TypeScript AST -> Intermediate Representation"
+	}
 }

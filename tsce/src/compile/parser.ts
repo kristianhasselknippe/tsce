@@ -128,7 +128,7 @@ function compilerDirectivesOfDeclarationOfNode(node: Node, langService: Language
 	return ret;
 }
 
-/*function declarationOfNodeHasCompilerDirectiveKind(
+export function declarationOfNodeHasCompilerDirectiveKind(
 	node: Node,
 	compilerDirectiveKind: CompilerDirectiveKind
 ) {
@@ -147,10 +147,6 @@ function compilerDirectivesOfDeclarationOfNode(node: Node, langService: Language
 	}
 	return false;
 }
-
-
-
-*/
 
 export interface TableItem<TNode, TData> {
 	node: TNode

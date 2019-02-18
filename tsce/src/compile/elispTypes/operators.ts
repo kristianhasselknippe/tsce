@@ -11,6 +11,13 @@ let operatorsMap = {
 	'||': 'or'
 } as { [index: string]: string };
 
+let assignOperators = [
+	'+=',
+	'-=',
+	'*=',
+	'/='
+]
+
 export class BinaryExpression extends Expression {
 	type: string = 'BinaryExpression'
 	operator: string;
@@ -33,12 +40,16 @@ export class BinaryExpression extends Expression {
 	}
 
 	emit(indent: number, quoted = false) {
-		let operatorFunc = this.operator
-		if (this.operator === "+") {
-			operatorFunc = "ts/+"
+		if (assignOperators.indexOf(this.operator) !== -1) {
+			return `${tabs(indent)}(setf ${this.left.emit(0)} (${this.operator[0]} ${this.left.emit(0)} ${this.right.emit(0)}))`
+		} else {
+			let operatorFunc = this.operator
+			if (this.operator === "+") {
+				operatorFunc = "ts/+"
+			}
+			const unquote = quoted ? ',' : ''
+			return `${tabs(indent)}${unquote}(${operatorFunc} ${this.left.emit(0)} ${this.right.emit(0)})`
 		}
-		const unquote = quoted ? ',' : ''
-		return `${tabs(indent)}${unquote}(${operatorFunc} ${this.left.emit(0)} ${this.right.emit(0)})`
 	}
 }
 

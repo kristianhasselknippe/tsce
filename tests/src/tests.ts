@@ -653,3 +653,31 @@ function enumTest3() {
 function callingFunctionInOtherFile() {
   should(otherFile.testFromAnotherFileUsingTheEmacsApi());
 }
+
+//[Form: ert-deftest]
+function plusEquals() {
+	let foo = 0
+	foo += 5
+	should(equal(foo, 5))
+}
+
+//[Form: ert-deftest]
+function plusMinus() {
+	let foo = 16
+	foo -= 15
+	should(equal(foo, 1))
+}
+
+//[Form: ert-deftest]
+function plusMul() {
+	let foo = 3
+	foo *= 3
+	should(equal(foo, 9))
+}
+
+//[Form: ert-deftest]
+function plusDiv() {
+	let foo = 12
+	foo /= 2
+	should(equal(foo, 6))
+}

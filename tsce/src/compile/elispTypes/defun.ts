@@ -1,15 +1,23 @@
-import { Block, Node, tabs, hyphenate, Identifier } from './';
+import { Block, Node, tabs, hyphenate, Identifier, Expression } from './';
 import { CompilerDirective } from './compilerDirective';
 import { NodeData } from '../parser';
 
 export class FunctionArg extends Node {
 	type: string = 'FunctionArg';
 
-	constructor(readonly name: Identifier) {
+	constructor(readonly name: Identifier, readonly initializer?: Expression) {
 		super();
+		console.log("FUNCTION ARG: " + this.name.identifierName + ", ", this.initializer)
 	}
 
 	emit(indent: number) {
+		if (typeof this.initializer !== 'undefined') {
+			return `${tabs(indent)}(${this.name.emit(0)} ${this.initializer.emit(0)})`;
+		}
+		return this.name.emit(indent);
+	}
+
+	emitForLambda(indent: number) {
 		return this.name.emit(indent);
 	}
 }
@@ -28,7 +36,7 @@ export class Defun extends Block {
 		super(identifier);
 
 		if (nodeData) {
-			const compilerDirectives = nodeData.compilerDirectives
+			const compilerDirectives = nodeData.compilerDirectives;
 			for (const compDir of compilerDirectives) {
 				switch (compDir.kind) {
 					case 'Form':
@@ -51,7 +59,26 @@ export class Defun extends Block {
 	}
 
 	emitArgs() {
-		return this.args.reduce((prev, curr) => prev + ' ' + curr.emit(0), '');
+		const requiredArgs = [];
+		const optionalArgs = [];
+		for (const arg of this.args) {
+			if (typeof arg.initializer !== 'undefined') {
+				optionalArgs.push(arg);
+			} else {
+				requiredArgs.push(arg);
+			}
+		}
+		return requiredArgs.reduce(
+			(prev, curr) => prev + ' ' + curr.emit(0),
+			''
+		) +
+			((optionalArgs.length > 0)
+			? ' &optional ' +
+					optionalArgs.reduce(
+						(prev, curr) => prev + ' ' + curr.emit(0),
+						''
+					)
+			 : '');
 	}
 
 	getForm() {
@@ -72,9 +99,9 @@ export class Defun extends Block {
 
 	emit(indent: number) {
 		if (this.nodeData && !this.nodeData.hasImplementation) {
-			return ''
+			return '';
 		}
-		
+
 		return `${tabs(indent)}(${this.getForm()} ${this.identifier.emit(
 			0
 		)} (${this.emitArgs()})${this.emitInteractive(indent + 1)}

@@ -245,8 +245,7 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 	compileFunctionDeclaration(functionDecl: IR.FunctionDeclaration) {
 		const name = this.compileAndExpect<EL.Identifier>(functionDecl.name)
 		const args = functionDecl.args
-			.map(x => this.compileAndExpect<EL.Identifier>(x))
-			.map(identifier => new EL.FunctionArg(identifier))
+			.map(x => this.compileAndExpect<EL.FunctionArg>(x))
 		if (this.context.isInRootScope) {
 			this.compileTopLevelFunction(functionDecl, name, args)
 		} else {
@@ -537,10 +536,10 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 	compileDeleteExpression(node: IR.DeleteExpression) {
 		const expr = this.compileAndExpect<EL.Expression>(node.expr)
 		this.context.push(new EL.DeleteExpression(expr))
-	}
+	}
 
 	compileArrowFunction(arrowFunc: IR.ArrowFunction) {
-		const args = arrowFunc.args.map(x => new EL.FunctionArg(this.compileAndExpect<EL.Identifier>(x)))
+		const args = arrowFunc.args.map(x => this.compileAndExpect<EL.FunctionArg>(x))
 		const scope = this.context.pushScope(new EL.Lambda(args))
 		this.compileNodeList(arrowFunc.body)
 		this.context.resolveTo(scope)
@@ -562,6 +561,12 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		this.context.push(new EL.ModuleDeclaration(node.name))
 	}
 
+	compileArgumentDeclaration(arg: IR.ArgumentDeclaration) {
+		const name = this.compileAndExpect<EL.Identifier>(arg.name)
+		const initializer = this.compileAndExpect<EL.Expression>(arg.initializer)
+		this.context.push(new EL.FunctionArg(name, initializer))
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -570,6 +575,9 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		switch (node.constructor) {
 			case IR.SourceFile:
 				this.compileSourceFile(<IR.SourceFile>node)
+				break
+			case IR.ArgumentDeclaration:
+				this.compileArgumentDeclaration(<IR.ArgumentDeclaration>node)
 				break
 			case IR.Identifier:
 				this.compileIdentifier(<IR.Identifier>node)

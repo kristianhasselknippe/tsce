@@ -38,10 +38,18 @@ export abstract class NamedDeclaration extends Node {
 	}
 }
 
+export class ArgumentDeclaration extends NamedDeclaration {
+		constructor(symTable: SymbolTableType,
+					name: Identifier,
+					readonly initializer?: Expression) {
+			super(symTable, name)
+		}
+}
+
 export class FunctionDeclaration extends NamedDeclaration {
 	constructor(symTable: SymbolTableType,
 				name: Identifier,
-				readonly args: Identifier[],
+				readonly args: ArgumentDeclaration[],
 				readonly body: Node[]) {
 		super(symTable, name)
 	}
@@ -289,7 +297,7 @@ export class While extends Node {
 
 export class ArrowFunction extends Node {
 	constructor(symTable: SymbolTableType,
-				readonly args: Identifier[],
+				readonly args: ArgumentDeclaration[],
 				readonly body: Node[]) {
 		super(symTable)
 	}

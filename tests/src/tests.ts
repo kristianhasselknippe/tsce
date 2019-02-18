@@ -707,3 +707,30 @@ function ternaryOperatorSecondCase() {
 	let foo = test > 5 ? "hei" : "sann"
 	should(equal(foo, "sann"))
 }
+
+
+function defaultArgValueTestFunc(val = "foobar") {
+	return val
+}
+
+//[Form: ert-deftest]
+function defaultArgumentValueWithoutArgument() {
+	should(equal(defaultArgValueTestFunc(), "foobar"))
+}
+
+//[Form: ert-deftest]
+function defaultArgumentValueWithArgument() {
+	should(equal(defaultArgValueTestFunc("testing"), "testing"))
+}
+
+//[Form: ert-deftest]
+function defaultArgumentLambdaValueWithoutArgument() {
+	const l = (foo = "bar") => { return foo }
+	should(equal(l(), "bar"))
+}
+
+//[Form: ert-deftest]
+function defaultArgumentLambdaValueWithArgument() {
+	const l = (foo = "bar") => { return foo }
+	should(equal(l("theValue"), "theValue"))
+}

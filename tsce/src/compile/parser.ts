@@ -36,6 +36,7 @@ import {
 	SourceFile,
 	LanguageService,
     InterfaceDeclaration,
+	ParameterDeclaration,
     ConditionalExpression} from 'ts-morph';
 import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
@@ -248,6 +249,23 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 		return new IR.VariableDeclarationList(this.symbols, bindings);
 	}
 
+	private parseArgumentList(args: ParameterDeclaration[]) {
+		return args.map(p => {
+			return {
+				name: p.getNameNode(),
+				initializer: p.getInitializer()
+			}
+		}).map(x => {
+			let name = this.parse<IR.Identifier>(x.name)!
+
+			let initializer
+			if (x.initializer) {
+				initializer = this.parse<IR.Expression>(x.initializer)
+			}
+			return new IR.ArgumentDeclaration(this.symbols, name, initializer)
+		})
+	}
+
 	private parseFunctionDeclaration(fd: FunctionDeclaration) {
 		const fileName = fd.getSourceFile().getFilePath()
 		const functionIdentifier = this.parse<IR.Identifier>(
@@ -257,14 +275,10 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 		const compilerDirectives = getCompilerDirectivesForNode(fd)
 
 		return this.enterScope(functionIdentifier.name, () => {
-			let args = fd
-				.getParameters()
-				.map(p => p.getNameNode())
-				.filter(x => typeof x !== 'undefined')
-				.map(x => this.parse<IR.Identifier>(x!))
+			let args = this.parseArgumentList(fd.getParameters())
 
 			for (const a of args) {
-				this.insertSymbol(a.name, a, {
+				this.insertSymbol(a.name.name, a, {
 					compilerDirectives: [],
 					symbolType: SymbolType.FunctionArgument,
 					hasImplementation: true,
@@ -539,13 +553,9 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 	private parseArrowFunction(arrowFunc: ArrowFunction) {
 		const fileName = arrowFunc.getSourceFile().getFilePath()
 		return this.enterAnonymousScope(() => {
-			let params = arrowFunc
-				.getParameters()
-				.map(p => p.getNameNode())
-				.filter(x => typeof x !== 'undefined')
-				.map(x => this.parse<IR.Identifier>(x!))
+			let params = this.parseArgumentList(arrowFunc.getParameters())
 			for (const param of params) {
-				this.insertSymbol(param.name, param, {
+				this.insertSymbol(param.name.name, param, {
 					compilerDirectives: [],
 					symbolType: SymbolType.FunctionArgument,
 					hasImplementation: true,

@@ -64,7 +64,7 @@ abstract class UnaryExpression extends Expression {
 export class UnaryPrefixExpression extends UnaryExpression {
 	type: string = 'UnaryPrefixExpression'
 
-	constructor(op: string, operand: Expression) {
+	constructor(readonly op: string, operand: Expression) {
 		super(operatorsMap[op], operand)
 	}
 
@@ -73,6 +73,9 @@ export class UnaryPrefixExpression extends UnaryExpression {
 	}
 
 	emit(indent: number, quoted = false) {
+		if (this.op === '-') {
+			return `${tabs(indent)}-${this.operand.emit(0)}`
+		}
 		const unquote = quoted ? ',' : ''
 		return `${tabs(indent)}${unquote}(${this.operator} ${this.operand.emit(0)})`
 	}

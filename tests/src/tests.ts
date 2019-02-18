@@ -681,3 +681,15 @@ function plusDiv() {
 	foo /= 2
 	should(equal(foo, 6))
 }
+
+//[Form: ert-deftest]
+function prefixMinusOperator() {
+	let foo = 10 - 12
+	should(equal(foo, -2))
+}
+
+//[Form: ert-deftest]
+function prefixNotOperator() {
+	let foo = false
+	should(!foo)
+}

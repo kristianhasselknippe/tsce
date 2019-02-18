@@ -202,6 +202,18 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		this.context.push(new EL.IfExpression(pred, body, elseBody))
 	}
 
+	compileConditionalExpression(condExpr: IR.ConditionalExpression) {
+		const cond = this.compileAndExpect<EL.Expression>(condExpr.condition)
+		const whenTrue = this.compileAndExpect<EL.Expression>(condExpr.whenTrue)
+		const whenFalse = this.compileAndExpect<EL.Expression>(condExpr.whenFalse)
+		const whenTrueBody = new EL.Body()
+		whenTrueBody.add(whenTrue)
+		const whenFalseBody = new EL.Body()
+		whenFalseBody.add(whenFalse)
+		//TODO: Is it hacky reusing EL.IfExpression here?
+		this.context.push(new EL.IfExpression(cond, whenTrueBody, whenFalseBody))
+	}
+
 	compileTopLevelFunction(functionDecl: IR.FunctionDeclaration, name: EL.Identifier, args: EL.FunctionArg[]) {
 		//functionDecl.symTable.visualize()
 		const symbolData = functionDecl.symTable.lookup(functionDecl.name.name)
@@ -624,6 +636,9 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 				break
 			case IR.If:
 				this.compileIf(<IR.If>node)
+				break
+			case IR.ConditionalExpression:
+				this.compileConditionalExpression(<IR.ConditionalExpression>node)
 				break
 			case IR.For:
 				this.compileFor(<IR.For>node)

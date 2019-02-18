@@ -35,7 +35,8 @@ import {
 	NamespaceDeclaration,
 	SourceFile,
 	LanguageService,
-	InterfaceDeclaration} from 'ts-morph';
+    InterfaceDeclaration,
+    ConditionalExpression} from 'ts-morph';
 import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
 import { CompilerDirective, extractCompilerDirectivesFromStrings, CompilerDirectiveKind } from './elispTypes/compilerDirective';
@@ -569,6 +570,13 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 		return new IR.Null(this.symbols);
 	}
 
+	private parseConditionalExpression(ce: ConditionalExpression) {
+		const condition = this.parse<IR.Expression>(ce.getCondition())
+		const whenTrue = this.parse<IR.Expression>(ce.getWhenTrue())
+		const whenFalse = this.parse<IR.Expression>(ce.getWhenFalse())
+		return new IR.ConditionalExpression(this.symbols, condition, whenTrue, whenFalse)
+	}
+
 	private parse<T extends (IR.Node | undefined)>(node?: Node): T {
 		if (typeof node === "undefined") {
 			return undefined as T
@@ -663,6 +671,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 					return this.parseNullKeyword()
 				case ts.SyntaxKind.ImportDeclaration:
 					return this.parseImportDeclaration(<ImportDeclaration>node)
+				case ts.SyntaxKind.ConditionalExpression:
+					return this.parseConditionalExpression(<ConditionalExpression>node)
 				default:
 					throw new Error(
 						`Unsupported ast item: ${node.getKindName()}  - ${node.getText()}`

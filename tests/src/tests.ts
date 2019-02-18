@@ -693,3 +693,17 @@ function prefixNotOperator() {
 	let foo = false
 	should(!foo)
 }
+
+//[Form: ert-deftest]
+function ternaryOperatorFirstCase() {
+	const test = 10
+	let foo = test > 5 ? "hei" : "sann"
+	should(equal(foo, "hei"))
+}
+
+//[Form: ert-deftest]
+function ternaryOperatorSecondCase() {
+	const test = 4
+	let foo = test > 5 ? "hei" : "sann"
+	should(equal(foo, "sann"))
+}

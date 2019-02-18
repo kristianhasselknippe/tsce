@@ -242,6 +242,15 @@ export class If extends Node {
 	}
 }
 
+export class ConditionalExpression extends Node {
+	constructor(symTable: SymbolTableType,
+				readonly condition: Expression,
+				readonly whenTrue: Expression,
+				readonly whenFalse: Expression) {
+		super(symTable)
+	}
+}
+
 export class For extends Node {
 	constructor(symTable: SymbolTableType,
 				readonly body: Node,

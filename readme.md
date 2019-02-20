@@ -67,3 +67,13 @@ Requires Emacs version >=25.1 and NodeJS
 ## Why?
 
 I wanted to write more emacs packages, but I prefer working with static type checking. TypeScript has a flexible enough type system that it could be viable as a compiler frontend for elisp, and the typescript compiler API is very accessible.
+
+
+## Goals (short term)
+
+- Convert a large enough subset of TypeScript to Elisp to be usefull in the creation of new packages.
+- Output readable Elisp code.
+
+## Stretch goals
+
+- Support, if possible, the entire TypeScript language

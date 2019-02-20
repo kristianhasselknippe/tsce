@@ -42,6 +42,7 @@ import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
 import { CompilerDirective, extractCompilerDirectivesFromStrings, CompilerDirectiveKind } from './elispTypes/compilerDirective';
 import { Pass } from './pipeline';
+import chalk from 'chalk'
 
 export function getDeclarationOfNode(node: Node) {
 	const nodeSymbol = node.getType().getSymbol();
@@ -272,6 +273,10 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 			fd.getNameNode()!
 		);
 
+		const docStrings = fd.getJsDocs()
+			.map(x => x.getComment())
+			.filter(x => typeof x !== 'undefined') as string[]
+
 		const compilerDirectives = getCompilerDirectivesForNode(fd)
 
 		return this.enterScope(functionIdentifier.name, () => {
@@ -295,7 +300,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 				this.symbols,
 				functionIdentifier,
 				args,
-				statements
+				statements,
+				docStrings
 			)
 		}, {
 			compilerDirectives,

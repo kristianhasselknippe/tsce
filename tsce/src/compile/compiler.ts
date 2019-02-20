@@ -221,7 +221,7 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		if (symbolData.data) {
 			compilerDirectives = symbolData.data.compilerDirectives
 		}
-		const scope = this.context.pushScope(new EL.Defun(name, args, symbolData.data))
+		const scope = this.context.pushScope(new EL.Defun(name, args, functionDecl.docStrings, symbolData.data))
 		this.compileNodeList(functionDecl.body)
 		this.context.resolveToParentOf(scope)
 	}
@@ -377,9 +377,7 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 	}
 
 	compileEnumDeclaration(enumDecl: IR.EnumDeclaration) {
-		console.log(chalk.red("Compiling enum"))
 		const identifier = this.compileAndExpect<EL.Identifier>(enumDecl.name)
-		console.log(chalk.red("DONE Compiling enum"))
 		const members = enumDecl.members.map(x => this.compileAndExpect<EL.EnumMember>(x))
 		this.context.push(new EL.Enum(identifier, members))
 	}

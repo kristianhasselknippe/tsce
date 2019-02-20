@@ -708,7 +708,6 @@ function ternaryOperatorSecondCase() {
 	should(equal(foo, "sann"))
 }
 
-
 function defaultArgValueTestFunc(val = "foobar") {
 	return val
 }
@@ -733,4 +732,15 @@ function defaultArgumentLambdaValueWithoutArgument() {
 function defaultArgumentLambdaValueWithArgument() {
 	const l = (foo = "bar") => { return foo }
 	should(equal(l("theValue"), "theValue"))
+}
+
+/** This is a JS doc comment
+ */
+function functionWithDocString() { }
+
+//[Form: ert-deftest]
+function testDocStrings() {
+	const doc = emacs.documentation(emacs.quote(functionWithDocString))
+	const containsDocString = emacs.stringMatchP(emacs.regexpQuote("This is a JS doc comment"), doc)
+	should(containsDocString)
 }

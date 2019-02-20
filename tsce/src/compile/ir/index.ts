@@ -50,7 +50,8 @@ export class FunctionDeclaration extends NamedDeclaration {
 	constructor(symTable: SymbolTableType,
 				name: Identifier,
 				readonly args: ArgumentDeclaration[],
-				readonly body: Node[]) {
+				readonly body: Node[],
+				readonly docStrings: string[]) {
 		super(symTable, name)
 	}
 }

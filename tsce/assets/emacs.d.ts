@@ -33,7 +33,18 @@ declare module 'emacs' {
 
 	function length(item: any[] | string): number
 
+	function documentation(func: Function): string
+
 	function doWithCurrentBuffer(buffer: Buffer, action: () => void): void
+
+	interface Quoted<T> {}
+
+	function quote<T>(obj: T): Quoted<T>
+
+	interface Regex {}
+
+	function regexpQuote(str: string): Regex
+	function stringMatchP(needle: Regex, heystack: string): number | null
 
 	type EmacsVersion = string
 
@@ -268,5 +279,5 @@ declare module 'json' {
 
 declare module 'ert' {
 	function equal<T>(a: T, b: T): boolean
-	function should(be: boolean): void
+	function should(be: any): void
 }

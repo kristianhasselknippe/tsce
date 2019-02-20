@@ -7,7 +7,6 @@ export class FunctionArg extends Node {
 
 	constructor(readonly name: Identifier, readonly initializer?: Expression) {
 		super();
-		console.log("FUNCTION ARG: " + this.name.identifierName + ", ", this.initializer)
 	}
 
 	emit(indent: number) {
@@ -31,6 +30,7 @@ export class Defun extends Block {
 	constructor(
 		identifier: Identifier,
 		readonly args: FunctionArg[],
+		readonly docStrings: string[],
 		readonly nodeData?: NodeData
 	) {
 		super(identifier);
@@ -97,6 +97,12 @@ export class Defun extends Block {
 		}
 	}
 
+	emitDocStrings(indent: number) {
+		return this.docStrings.length > 0
+			? `${tabs(indent)}\"${this.docStrings.reduce((acc, curr) => acc + curr, "")}\"\n`
+			: ''
+	}
+
 	emit(indent: number) {
 		if (this.nodeData && !this.nodeData.hasImplementation) {
 			return '';
@@ -104,8 +110,8 @@ export class Defun extends Block {
 
 		return `${tabs(indent)}(${this.getForm()} ${this.identifier.emit(
 			0
-		)} (${this.emitArgs()})${this.emitInteractive(indent + 1)}
-${this.emitBlock(indent + 1, this.emitBody(indent + 2))}
+		)} (${this.emitArgs()})
+${this.emitDocStrings(indent + 1)}${this.emitInteractive(indent + 1)}${this.emitBlock(indent + 1, this.emitBody(indent + 2))}
 ${tabs(indent)})`;
 	}
 }

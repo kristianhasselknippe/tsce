@@ -57,6 +57,7 @@ npm pack
 - namespaces
 - for-in statements
 - npm
+- switch statements
 
 ## Dependencies
 

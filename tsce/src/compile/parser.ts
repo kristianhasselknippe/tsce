@@ -1,5 +1,6 @@
 import {
 	ts,
+	NewExpression,
 	Node,
 	ArrowFunction,
 	ForStatement,
@@ -35,6 +36,7 @@ import {
 	NamespaceDeclaration,
 	SourceFile,
 	LanguageService,
+	ClassDeclaration,
     InterfaceDeclaration,
 	ParameterDeclaration,
     ConditionalExpression,
@@ -600,6 +602,16 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 		return new IR.While(this.symbols, condition, body)
 	}
 
+	private parseNewExpression(newExpr: NewExpression) {
+		const leftHand = this.parse<IR.Expression>(newExpr.getExpression())
+		const args = newExpr.getArguments().map(x => this.parse<IR.Node>(x))
+		return new IR.NewExpression(this.symbols, leftHand, args)
+	}
+
+	private parseClassDeclaration(classDecl: ClassDeclaration) {
+		return
+	}
+
 	private parse<T extends (IR.Node | undefined)>(node?: Node): T {
 		if (typeof node === "undefined") {
 			return undefined as T
@@ -684,8 +696,10 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 				case ts.SyntaxKind.ModuleDeclaration:
 				case ts.SyntaxKind.NamespaceExportDeclaration:
 					return this.parseNamespaceExportDeclaration(<NamespaceDeclaration>node)
+				case ts.SyntaxKind.NewExpression:
+					return this.parseNewExpression(<NewExpression>node)
 				case ts.SyntaxKind.ClassDeclaration:
-					break;
+					return this.parseClassDeclaration(<ClassDeclaration>node)
 				case ts.SyntaxKind.MissingDeclaration:
 					break;
 				case ts.SyntaxKind.InterfaceDeclaration:

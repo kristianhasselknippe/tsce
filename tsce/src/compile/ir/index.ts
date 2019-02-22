@@ -366,3 +366,17 @@ export class SourceFile extends Block {
 		}
 	}
 }
+
+export class ClassDeclaration extends Block {
+	
+}
+
+export class NewExpression extends Node {
+	constructor(
+		symTable: SymbolTableType,
+		readonly leftHand: Expression,
+		readonly args: Node[]
+	) {
+		super(symTable)
+	}
+}

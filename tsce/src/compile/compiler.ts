@@ -568,6 +568,12 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		this.context.resolveToParentOf(scope)
 	}
 
+	compileNewExpression(newExpr: IR.NewExpression) {
+		const leftHand = this.compileAndExpect<EL.Expression>(newExpr.leftHand)
+		const args = newExpr.args.map(x => this.compileAndExpect<EL.Node>(x))
+		this.context.push(new EL.NewExpression(leftHand, args))
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -576,6 +582,9 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		switch (node.constructor) {
 			case IR.SourceFile:
 				this.compileSourceFile(<IR.SourceFile>node)
+				break
+			case IR.NewExpression:
+				this.compileNewExpression(<IR.NewExpression>node)
 				break
 			case IR.While:
 				this.compileWhile(<IR.While>node)

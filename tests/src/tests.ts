@@ -753,3 +753,13 @@ function testWhile() {
 	}
 	should(foo == 10)
 }
+
+class TestClass {
+	
+}
+
+//[Form: ert-deftest]
+function testSimpleClass() {
+	const foo = new TestClass()
+	should(foo)
+}

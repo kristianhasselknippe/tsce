@@ -506,10 +506,6 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		throw new Error("For in statement are currently not supported")
 	}
 
-	compileWhile(whileNode: IR.While) {
-		throw new Error("While statements are currently not supported")
-	}
-
 	compileUnaryPostfix(node: IR.UnaryPostfix) {
 		const operand = this.compileAndExpect<EL.Expression>(node.operand)
 		let operator: EL.UnaryPostfixOp
@@ -565,6 +561,13 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		this.context.push(new EL.FunctionArg(name, initializer))
 	}
 
+	compileWhile(whileStmt: IR.While) {
+		const condition = this.compileAndExpect<EL.Expression>(whileStmt.condition)
+		const scope = this.context.pushScope(new EL.While(condition))
+		this.compileNode(whileStmt.body)
+		this.context.resolveToParentOf(scope)
+	}
+
 	compileNode(node?: IR.Node) {
 		if (typeof node === 'undefined') {
 			return
@@ -573,6 +576,9 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		switch (node.constructor) {
 			case IR.SourceFile:
 				this.compileSourceFile(<IR.SourceFile>node)
+				break
+			case IR.While:
+				this.compileWhile(<IR.While>node)
 				break
 			case IR.ArgumentDeclaration:
 				this.compileArgumentDeclaration(<IR.ArgumentDeclaration>node)

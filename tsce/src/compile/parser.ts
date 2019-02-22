@@ -37,7 +37,8 @@ import {
 	LanguageService,
     InterfaceDeclaration,
 	ParameterDeclaration,
-    ConditionalExpression} from 'ts-morph';
+    ConditionalExpression,
+    WhileStatement} from 'ts-morph';
 import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
 import { CompilerDirective, extractCompilerDirectivesFromStrings, CompilerDirectiveKind } from './elispTypes/compilerDirective';
@@ -593,6 +594,12 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 		return new IR.ConditionalExpression(this.symbols, condition, whenTrue, whenFalse)
 	}
 
+	private parseWhileStatement(whileStmt: WhileStatement) {
+		const condition = this.parse<IR.Expression>(whileStmt.getExpression())
+		const body = this.parse<IR.Block>(whileStmt.getStatement())
+		return new IR.While(this.symbols, condition, body)
+	}
+
 	private parse<T extends (IR.Node | undefined)>(node?: Node): T {
 		if (typeof node === "undefined") {
 			return undefined as T
@@ -600,6 +607,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 		const ret = (() => {
 			//context.printAtStackOffset(node.getKindName(), node);
 			switch (node.getKind()) {
+				case ts.SyntaxKind.WhileStatement:
+					return this.parseWhileStatement(<WhileStatement>node)
 				case ts.SyntaxKind.ExpressionStatement:
 					return this.parseExpressionStatement(<ExpressionStatement>node);
 				case ts.SyntaxKind.CallExpression:

@@ -54,10 +54,8 @@ npm pack
 
 - classes
 - async/await
-- ternary operator (cond ? expr : expr)
 - namespaces
 - for-in statements
-- while statements
 - npm
 
 ## Dependencies

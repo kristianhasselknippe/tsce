@@ -744,3 +744,12 @@ function testDocStrings() {
 	const containsDocString = emacs.stringMatchP(emacs.regexpQuote("This is a JS doc comment"), doc)
 	should(containsDocString)
 }
+
+//[Form: ert-deftest]
+function testWhile() {
+	let foo = 0
+	while (foo < 10) {
+		foo += 1
+	}
+	should(foo == 10)
+}

@@ -1,6 +1,7 @@
 import { should, equal } from "ert";
 import * as emacs from "emacs";
 import * as otherFile from "./otherFileTests";
+import { testFromAnotherFileUsingTheEmacsApi2 } from "./otherFileTests";
 
 interface TsceTestFunctionNamedArgumentsArg {
   foo: number;
@@ -652,6 +653,11 @@ function enumTest3() {
 //[Form: ert-deftest]
 function callingFunctionInOtherFile() {
   should(otherFile.testFromAnotherFileUsingTheEmacsApi());
+}
+
+//[Form: ert-deftest]
+function callingFunctionInOtherFileNamedImport() {
+  should(testFromAnotherFileUsingTheEmacsApi2());
 }
 
 //[Form: ert-deftest]

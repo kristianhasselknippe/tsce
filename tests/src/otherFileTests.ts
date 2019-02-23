@@ -7,3 +7,10 @@ export function testFromAnotherFileUsingTheEmacsApi() {
 	should(equal(l, 3))
 	return true
 }
+
+export function testFromAnotherFileUsingTheEmacsApi2() {
+	const foo = "bar"
+	const l = emacs.length(foo)
+	should(equal(l, 3))
+	return true
+}

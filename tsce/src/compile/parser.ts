@@ -523,6 +523,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 
 	private parseImportDeclaration(importDecl: ImportDeclaration) {
 		const moduleName = this.parse<IR.StringLiteral>(importDecl.getModuleSpecifier())
+		//TODO: Make this robust
+		const isRelative = (moduleName.value.indexOf(".") !== -1) || (moduleName.value.indexOf("./") !== -1)
 
 		if (importDecl.getImportClause()) {
 			const namedBindings = importDecl.getImportClause()!.getNamedBindings();
@@ -535,23 +537,26 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 						symbolType: SymbolType.ImportedName,
 						hasImplementation: true,
 						fileName: moduleName.value,
-						isRootLevelDeclaration: false
+						isRootLevelDeclaration: isRelative
 					})
 					return new IR.NamespaceImport(this.symbols, moduleName, namespaceIdentifier)
 				} else if (TypeGuards.isNamedImports(namedBindings)) {
 					//TODO: Also handle the default import item
 					const elements = namedBindings.getElements().map(x => {
 						const identifier = this.parse<IR.Identifier>(x.getNameNode())
+						console.log(chalk.red("fileName of the import: " + moduleName.value) + " for id: " + identifier.name)
 						this.insertSymbol(identifier.name, identifier, {
 							compilerDirectives: [],
 							symbolType: SymbolType.ImportedName,
 							hasImplementation: true,
 							fileName: moduleName.value,
-							isRootLevelDeclaration: false
+							isRootLevelDeclaration: isRelative
 						})
 						return identifier
 					})
 					return new IR.NamedImport(this.symbols, moduleName, elements)
+				} else {
+					throw new Error("Unknown import type: " + namedBinding)
 				}
 			}
 		}

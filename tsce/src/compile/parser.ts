@@ -37,8 +37,9 @@ import {
 	LanguageService,
     InterfaceDeclaration,
 	ParameterDeclaration,
-    ConditionalExpression,
-    WhileStatement} from 'ts-morph';
+	ConditionalExpression,
+	WhileStatement} from 'ts-morph';
+import * as morph from 'ts-morph';
 import { SymbolTable } from "./symbolTable";
 import * as IR from './ir'
 import { CompilerDirective, extractCompilerDirectivesFromStrings, CompilerDirectiveKind } from './elispTypes/compilerDirective';
@@ -544,10 +545,21 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 					//TODO: Also handle the default import item
 					const elements = namedBindings.getElements().map(x => {
 						const identifier = this.parse<IR.Identifier>(x.getNameNode())
-						console.log(chalk.red("fileName of the import: " + moduleName.value) + " for id: " + identifier.name)
+						const declarations = getDeclarationOfNode(x)
+						let isFunction = false
+						if (declarations) {
+							for (const decl of declarations) {
+								const declIsFunction = morph.TypeGuards.isFunctionDeclaration(decl)
+								if (declIsFunction) {
+									isFunction = true
+									break
+								}
+							}
+						}
+							
 						this.insertSymbol(identifier.name, identifier, {
 							compilerDirectives: [],
-							symbolType: SymbolType.ImportedName,
+							symbolType: isFunction ? SymbolType.FunctionDeclaration : SymbolType.ImportedName,
 							hasImplementation: true,
 							fileName: moduleName.value,
 							isRootLevelDeclaration: isRelative
@@ -556,7 +568,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 					})
 					return new IR.NamedImport(this.symbols, moduleName, elements)
 				} else {
-					throw new Error("Unknown import type: " + namedBinding)
+					throw new Error("Unknown import type: " + moduleName)
 				}
 			}
 		}

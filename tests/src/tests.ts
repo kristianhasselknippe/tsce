@@ -1,7 +1,7 @@
 import { should, equal } from "ert";
 import * as emacs from "emacs";
 import * as otherFile from "./otherFileTests";
-import { testFromAnotherFileUsingTheEmacsApi2 } from "./otherFileTests";
+import { testFromAnotherFileUsingTheEmacsApi2, testVariable } from "./otherFileTests";
 
 interface TsceTestFunctionNamedArgumentsArg {
   foo: number;
@@ -769,13 +769,15 @@ function testFunctionPointer() {
 function testObjectWithFunctions() {
 	const foo = {
 		bar: {
-			baz: testFunctionPointer
+			baz: testFromAnotherFileUsingTheEmacsApi2
 		},
 		tes: {
 			baz: testFunctionPointer
 		}
 	}
 
-	const res = foo.bar.baz()
-	should(res)
+	const hei = testVariable
+
+	should(foo.bar.baz())
+	should(foo.tes.baz())
 }

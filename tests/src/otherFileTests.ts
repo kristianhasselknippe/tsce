@@ -14,3 +14,5 @@ export function testFromAnotherFileUsingTheEmacsApi2() {
 	should(equal(l, 3))
 	return true
 }
+
+export const testVariable = 123123

@@ -609,7 +609,8 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 	}
 
 	private parseClassDeclaration(classDecl: ClassDeclaration) {
-		return
+		const { ctors, getAccessors, setAccessors, methods, properties } = classDecl.getStructure()
+		ctors!.map(x => x.
 	}
 
 	private parse<T extends (IR.Node | undefined)>(node?: Node): T {

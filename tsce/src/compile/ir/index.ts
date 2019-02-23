@@ -21,8 +21,7 @@ export abstract class Expression extends Node {
 
 export class Identifier extends Node {
 	constructor(symTable: SymbolTableType,
-				readonly name: string,
-				readonly compilerDirectives: CompilerDirective[]) {
+				readonly name: string) {
 		super(symTable)
 	}
 

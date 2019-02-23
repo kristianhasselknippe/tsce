@@ -16,3 +16,15 @@ export function testFromAnotherFileUsingTheEmacsApi2() {
 }
 
 export const testVariable = 123123
+
+
+interface TsceTestFunctionNamedArgumentsArg {
+  foo: number;
+  bar: number;
+}
+
+//[NamedArguments]
+//[Name: tsce-test-function-named-arguments]
+export declare function tsceTestFunctionNamedArguments(
+  arg: TsceTestFunctionNamedArgumentsArg
+): number;

@@ -92,6 +92,8 @@ export class NamedArgumentsFunctionCallVariable extends FunctionCallVariable {
 	constructor(readonly leftHand: Expression, arg: Expression, private namedArguments: string[]) {
 		super(leftHand, [arg])
 
+		console.log("NamedArgumentsFunctionCallVariable: " + leftHand.type + ": " + leftHand.emit(0))
+
 		this.bindingName = this.randomBindingName()
 		this.wrappingLet = new LetBinding([new LetItem(new Identifier(this.bindingName), arg)])
 	}

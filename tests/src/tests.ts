@@ -1,17 +1,7 @@
 import { should, equal } from "ert";
 import * as emacs from "emacs";
 import * as otherFile from "./otherFileTests";
-import { testFromAnotherFileUsingTheEmacsApi2, testVariable } from "./otherFileTests";
-
-interface TsceTestFunctionNamedArgumentsArg {
-  foo: number;
-  bar: number;
-}
-
-//[NamedArguments]
-declare function tsceTestFunctionNamedArguments(
-  arg: TsceTestFunctionNamedArgumentsArg
-): number;
+import { testFromAnotherFileUsingTheEmacsApi2, testVariable, tsceTestFunctionNamedArguments } from "./otherFileTests";
 
 //[Form: ert-deftest]
 function testEquality() {

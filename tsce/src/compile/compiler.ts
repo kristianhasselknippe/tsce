@@ -5,7 +5,7 @@ import * as ts from 'ts-morph'
 import * as IR from './ir'
 import * as EL from './elispTypes'
 import { TsceProject } from './projectFormat';
-import { Parser, SymbolType, getDeclarationOfNode, getArgumentsOfFunctionDeclaration, declarationOfNodeHasCompilerDirectiveKind } from './parser';
+import { Parser, SymbolType, getDeclarationOfNode, getArgumentsOfFunctionDeclaration, declarationOfNodeHasCompilerDirectiveKind, nodeHasCompilerDirectiveKind } from './parser';
 import { CompilerDirective } from './elispTypes/compilerDirective';
 import { PipelineBuilder, Pass } from './pipeline';
 
@@ -170,26 +170,9 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		return fileNamePath.name
 	}
 
-	//TODO: Identifiers now get their compiler directives from two sources.
-	//We should see if they can be consolidated somehow.
 	compileIdentifier(identifier: IR.Identifier) {
 		const symbolData = identifier.symTable.tryLookup(identifier.name)
-		let identifierData
-		if (symbolData && symbolData.data) {
-			identifierData = {
-				...symbolData.data,
-				compilerDirectives: identifier.compilerDirectives.concat(symbolData.data.compilerDirectives),
-			}
-		} else {
-			identifierData = {
-				compilerDirectives: identifier.compilerDirectives,
-				symbolType: SymbolType.VariableDeclaration,
-				hasImplementation: true,
-				fileName: this.getCurrentFileName(),
-				isRootLevelDeclaration: false
-			}
-		}
-
+		const identifierData = symbolData && symbolData.data
 		this.context.push(new EL.Identifier(identifier.name, identifierData))
 	}
 
@@ -341,7 +324,7 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		if (left.isIdentifier()) {
 			const symbolData = propAccess.symTable.tryLookup(left.identifierName)
 			if (symbolData && symbolData.data) {
-				if (symbolData.data.symbolType === SymbolType.ImportedName) {
+				if (symbolData.data.shouldBeOmitted) {
 					//Imported named can only be global functions, and thus
 					//needs to be referenced as if in global scope
 					this.context.push(right)
@@ -350,7 +333,10 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 			}
 		}
 
-		this.context.push(new EL.PropertyAccess(left, right))
+		console.log(`Prop access ${propAccess.left.print()}.${propAccess.right.print()}`)
+		const p = new EL.PropertyAccess(left, right)
+		console.log("    done making")
+		this.context.push(p)
 	}
 
 	compileElementAccess(elemAccess: IR.ElementAccess) {
@@ -428,10 +414,10 @@ class Compiler implements Pass<IR.SourceFile, EL.SourceFile> {
 		const left = this.compileAndExpect<EL.Identifier | EL.Expression>(callExpr.expression)
 		const args = callExpr.args.map(arg => this.compileAndExpect<EL.Expression>(arg))
 
-		let calleeRequiresNamedArguments = declarationOfNodeHasCompilerDirectiveKind(
+		let calleeRequiresNamedArguments = nodeHasCompilerDirectiveKind(
 			callExpr.typescriptNode.getExpression(),
 			'NamedArguments'
-		);
+		)
 
 		if (left.isIdentifier()) {
 			const symbolData = callExpr.symTable.tryLookup(left.identifierName)

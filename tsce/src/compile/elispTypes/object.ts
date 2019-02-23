@@ -56,6 +56,7 @@ export class PropertyAccess extends Expression {
 
 	constructor(readonly leftHand: Expression, readonly rightHand: Identifier) {
 		super()
+		console.log("Created property access: " + leftHand.emit(0) + " " + rightHand.emit(0))
 	}
 
 	isPropertyAccess() { return true }

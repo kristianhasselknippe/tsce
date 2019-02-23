@@ -17,6 +17,7 @@ export class Identifier extends Expression {
 
 		if (this.symbolData) {
 			for (const compDir of this.symbolData.compilerDirectives) {
+				console.log("Comp dir of actual: " + compDir.kind)
 				switch (compDir.kind) {
 					case 'Name':
 						this.customName = compDir.name;
@@ -24,6 +25,15 @@ export class Identifier extends Expression {
 					case 'Predicate':
 						this.isPredicate = true;
 						break;
+					case 'NamedArguments':
+						this.useNamedArguments = true;
+						break;
+				}
+			}
+
+			for (const compDir of this.symbolData.compilerDirectivesDeclaration) {
+				console.log("Comp dir of declaration: " + compDir.kind)
+				switch (compDir.kind) {
 					case 'NamedArguments':
 						this.useNamedArguments = true;
 						break;
@@ -41,7 +51,12 @@ export class Identifier extends Expression {
 
 	formatName() {
 		if (this.customName) {
-			return `${this.namespacePrefix}${this.customName}`
+			continu here: we need to make sure that we do not use the custom name if the
+			identifier in question is actually a new field (like
+															{ foo: bar }
+															if bar has a custom name,
+															then foo should not take that name!
+			return `${this.customName}`
 		} else {
 			let ret = `${this.namespacePrefix}${hyphenate(this.identifierName)}`
 			if (this.isPredicate) {

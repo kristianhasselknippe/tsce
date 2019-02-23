@@ -101,7 +101,7 @@ function getCompilerDirectivesForNode(node: Node) {
 	return compilerDirectives;
 }
 
-function nodeHasCompilerDirectiveKind(
+export function nodeHasCompilerDirectiveKind(
 	node: Node,
 	compilerDirectiveKind: CompilerDirectiveKind
 ) {
@@ -199,11 +199,13 @@ export enum SymbolType {
 
 export interface NodeData {
 	compilerDirectives: CompilerDirective[]
+	compilerDirectivesDeclaration: CompilerDirective[]
 	symbolType: SymbolType
 	hasImplementation: boolean
 	fileName: string
 	/** Whether this symbol was declared in the root scope. Used for adding namespace prefixes to identifier in elisp */
 	isRootLevelDeclaration: boolean
+	shouldBeOmitted?: boolean
 }
 
 export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<SourceFile, IR.SourceFile> {
@@ -240,6 +242,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 			initializer
 		), {
 			compilerDirectives: getCompilerDirectivesForNode(vd),
+			compilerDirectivesDeclaration: getCompilerDirectivesForNode(vd),
 			symbolType: SymbolType.VariableDeclaration,
 			hasImplementation: true,
 			fileName: fileName,
@@ -287,6 +290,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 			for (const a of args) {
 				this.insertSymbol(a.name.name, a, {
 					compilerDirectives: [],
+					compilerDirectivesDeclaration: [],
 					symbolType: SymbolType.FunctionArgument,
 					hasImplementation: true,
 					fileName,
@@ -307,6 +311,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 			)
 		}, {
 			compilerDirectives,
+			compilerDirectivesDeclaration: [],
 			symbolType: SymbolType.FunctionDeclaration,
 			hasImplementation: !(fd.hasDeclareKeyword()),
 			fileName,
@@ -338,6 +343,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 			props
 		), {
 			compilerDirectives: getCompilerDirectivesForNode(enumDecl),
+			compilerDirectivesDeclaration: compilerDirectivesOfDeclarationOfNode(enumDecl, this.languageService),
 			fileName: enumDecl.getSourceFile().getFilePath(),
 			hasImplementation: !enumDecl.hasDeclareKeyword(),
 			symbolType: SymbolType.EnumDeclaration,
@@ -346,8 +352,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 	}
 
 	private parseIdentifier(identifierNode: Identifier) {
-		const directives = compilerDirectivesOfDeclarationOfNode(identifierNode, this.languageService)
-		return new IR.Identifier(this.symbols, identifierNode.getText(), directives)
+		return new IR.Identifier(this.symbols, identifierNode.getText())
 	}
 
 	private parseParenthesizedExpression(pe: ParenthesizedExpression) {
@@ -519,6 +524,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 	private parsePropertyAccessExpression(propAccess: PropertyAccessExpression) {
 		const left = this.parse<IR.Node>(propAccess.getExpression());
 		const right = this.parse<IR.Identifier>(propAccess.getNameNode());
+		console.log("Parsed prop access: " + left.print() + " " + right.print())
 		return new IR.PropertyAccess(this.symbols, left, right)
 	}
 
@@ -534,8 +540,10 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 					const namespaceImport = <NamespaceImport>(namedBindings);
 					const namespaceIdentifier = this.parse<IR.Identifier>(namespaceImport.getNameNode());
 					this.insertSymbol(namespaceIdentifier.name, namespaceIdentifier, {
-						compilerDirectives: [],
+						compilerDirectives: getCompilerDirectivesForNode(namespaceImport.getNameNode()),
+						compilerDirectivesDeclaration: compilerDirectivesOfDeclarationOfNode(namespaceImport.getNameNode(), this.languageService),
 						symbolType: SymbolType.ImportedName,
+						shouldBeOmitted: true,
 						hasImplementation: true,
 						fileName: moduleName.value,
 						isRootLevelDeclaration: isRelative
@@ -556,9 +564,9 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 								}
 							}
 						}
-							
 						this.insertSymbol(identifier.name, identifier, {
-							compilerDirectives: [],
+							compilerDirectives: getCompilerDirectivesForNode(x),
+							compilerDirectivesDeclaration: compilerDirectivesOfDeclarationOfNode(x, this.languageService),
 							symbolType: isFunction ? SymbolType.FunctionDeclaration : SymbolType.ImportedName,
 							hasImplementation: true,
 							fileName: moduleName.value,
@@ -581,6 +589,7 @@ export class Parser extends ParserBase<IR.Node, NodeData> implements Pass<Source
 			for (const param of params) {
 				this.insertSymbol(param.name.name, param, {
 					compilerDirectives: [],
+					compilerDirectivesDeclaration: [],
 					symbolType: SymbolType.FunctionArgument,
 					hasImplementation: true,
 					fileName,

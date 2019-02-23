@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "baseUrl": "./",
+        "moduleResolution": "node",
+        "strict": true,
+        "removeComments": false,
+        "composite": true,
+        "lib": [],
+        "module": "commonjs",
+        "target": "elisp",
+        "rootDir": "./src",
+        "outDir": "./dist"
+    }
+}

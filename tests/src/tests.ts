@@ -759,3 +759,23 @@ function testWhile() {
 	}
 	should(foo == 10)
 }
+
+
+function testFunctionPointer() {
+	return true
+}
+
+//[Form: ert-deftest]
+function testObjectWithFunctions() {
+	const foo = {
+		bar: {
+			baz: testFunctionPointer
+		},
+		tes: {
+			baz: testFunctionPointer
+		}
+	}
+
+	const res = foo.bar.baz()
+	should(res)
+}
